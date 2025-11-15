@@ -1,31 +1,34 @@
 ## Project Structure
 
 ```
-frontend/
-├── assets/
+src/
 │
-├── public/
-│   ├── icons/
-│   └── logo.svg
-├── src/
-│   ├── components/
-│   │
-│   ├── context/
-|   |
-│   ├── hooks/
-│   │
-│   ├── services/
-│   │
-│   ├── types/                   # for future TS: Auth, User, Token
-│   │
-│   ├── utils/
-│   │
-│   ├── App.css
-│   ├── App.tsx
-│   ├── main.tsx
-│   └── index.css
-├── index.html
-└── README.md
+├─ api/                       
+│   ├─ axios.ts                
+│   ├─ authService.ts          
+│   ├─ customerService.ts      
+│   ├─ fakeAuthService.ts    
+│   └─ adminService.ts        
+│
+├─ pages/
+│   ├─ Signin/
+│   │    └─ LoginForm.tsx
+│   ├─ Signup/
+│   │    └─ SignupForm.tsx
+│   ├─ Customer/
+│   │    └─ Homepage.tsx
+│   └─ Admin/
+│        └─ Dashboard.tsx
+│
+├─ routes/
+│   └─ protectedRoutes.tsx            
+│
+└─ context/
+    ├─ authContext.ts                
+    ├─ ToastContext.ts            
+    ├─ useToast.ts 
+    └─ useAuth.ts      
+
 
 ```
 
