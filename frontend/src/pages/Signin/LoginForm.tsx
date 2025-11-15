@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Paper,
@@ -13,13 +14,36 @@ import FacebookIcon from "@mui/icons-material/Facebook";
 import GoogleIcon from "@mui/icons-material/Google";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 
+// import { login } from "../../services/authServices";
+import { useAuth } from "../../context/useAuth";
+import { login } from "../../services/fakeAuthServices";
+
+import { useToast } from "../../context/useToast";
+
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { setUser } = useAuth();
+  const navigate = useNavigate();
+  const { showToast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login:", { email, password });
+
+    try {
+      const data = await login(email, password);
+
+      setUser(data.user);
+      showToast("Đăng nhập thành công!", "success");
+      if (data.user.role === "admin") {
+        navigate("/dashboard");
+      } else {
+        navigate("/homepage");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      showToast("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.", "error");
+    }
   };
 
   return (
@@ -49,8 +73,9 @@ const LoginForm: React.FC = () => {
             </Typography>
             <Typography
               variant="body2"
-              sx={{ maxWidth: 420, textAlign: "left" }}
+              sx={{ textAlign: "left", fontSize: { xs: "0.5rem", md: "1rem" } }}
             >
+              <br />
               Mỗi tài khoản là một câu chuyện phong cách riêng.
               <br />
               Hãy đăng nhập để khám phá ưu đãi và nhận gợi ý độc quyền dành cho
@@ -76,7 +101,7 @@ const LoginForm: React.FC = () => {
               color: "#2F4156",
             }}
           >
-            Sign in
+            Sign In
           </Typography>
 
           {/* Social Login Icons */}
@@ -200,7 +225,7 @@ const LoginForm: React.FC = () => {
 
             <Box textAlign="center" mt={1}>
               <MuiLink
-                href="/signup"
+                href="/register"
                 underline="hover"
                 sx={{ color: "#567C8D", display: "inline-block" }}
               >
