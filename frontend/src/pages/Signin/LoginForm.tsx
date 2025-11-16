@@ -56,7 +56,7 @@ const LoginForm: React.FC = () => {
     <div className="fixed inset-0 flex justify-center items-center bg-[#F5EFEB] overflow-hidden p-6">
       <Paper
         elevation={10}
-        className="flex max-w-[1100px] w-full h-[90vh] max-h-[210vh] overflow-hidden"
+        className="flex max-w-[800px] w-full h-[90vh] max-h-[210vh] overflow-hidden"
         sx={{ borderRadius: "24px" }}
       >
         {/* Left Side - Welcome Section */}
@@ -71,7 +71,7 @@ const LoginForm: React.FC = () => {
               variant="h2"
               sx={{
                 fontWeight: 600,
-                fontSize: { xs: "2.25rem", md: "3rem" },
+                fontSize: { xs: "1.5rem", md: "2rem" },
                 textAlign: "left",
               }}
             >
@@ -79,7 +79,7 @@ const LoginForm: React.FC = () => {
             </Typography>
             <Typography
               variant="body2"
-              sx={{ textAlign: "left", fontSize: { xs: "0.5rem", md: "1rem" } }}
+              sx={{ textAlign: "left", fontSize: { xs: "0.3rem", md: "0.7rem" } }}
             >
               <br />
               Mỗi tài khoản là một câu chuyện phong cách riêng.
@@ -92,7 +92,7 @@ const LoginForm: React.FC = () => {
 
         {/* Right Side - Login Form */}
         <Box
-          className="flex-1 p-8 lg:p-12 flex flex-col justify-center"
+          className="flex-1 p-10 lg:p-15 flex flex-col justify-center "
           sx={{
             background: "linear-gradient(135deg, #f8fafc 0%, #e6f0fb 100%)",
           }}
@@ -101,20 +101,20 @@ const LoginForm: React.FC = () => {
             variant="h3"
             align="center"
             sx={{
-              fontWeight: 700,
+              fontWeight: 600,
               mb: 2,
-              fontSize: { xs: "2.25rem", md: "3rem" },
+              fontSize: { xs: "1.5m", md: "1.7rem" },
               color: "#2F4156",
             }}
           >
-            Sign In
+            Sign in
           </Typography>
 
           {/* Social Login Icons */}
-          <Stack direction="row" spacing={3} justifyContent="center" mb={4}>
+          <Stack direction="row" spacing={3} justifyContent="center" mb={2}>
             <IconButton
               aria-label="Sign in with Facebook"
-              size="large"
+              size="medium"
               sx={{
                 borderRadius: "8px",
                 bgcolor: "common.white",
@@ -127,7 +127,7 @@ const LoginForm: React.FC = () => {
 
             <IconButton
               aria-label="Sign in with Google"
-              size="large"
+              size="medium"
               sx={{
                 borderRadius: "8px",
                 bgcolor: "common.white",
@@ -140,7 +140,7 @@ const LoginForm: React.FC = () => {
 
             <IconButton
               aria-label="Sign in with LinkedIn"
-              size="large"
+              size="medium"
               sx={{
                 borderRadius: "8px",
                 bgcolor: "common.white",
@@ -152,7 +152,7 @@ const LoginForm: React.FC = () => {
             </IconButton>
           </Stack>
 
-          <Typography variant="body2" align="center" color="#2F4156" mb={3}>
+          <Typography variant="body2" align="center" color="#2F4156" mb={1}>
             Or use your account
           </Typography>
 
@@ -175,6 +175,7 @@ const LoginForm: React.FC = () => {
                 sx: {
                   borderRadius: "9999px",
                   bgcolor: "common.white",
+                  maxHeight: "50px",
                 },
               }}
             />
@@ -193,6 +194,7 @@ const LoginForm: React.FC = () => {
                 sx: {
                   borderRadius: "9999px",
                   bgcolor: "common.white",
+                  maxHeight: "50px",
                 },
               }}
             />
@@ -218,7 +220,7 @@ const LoginForm: React.FC = () => {
                 sx={{
                   width: "40%",
                   borderRadius: "9999px",
-                  py: 1.5,
+                  py: 1,
                   fontSize: "1rem",
                   backgroundColor: "#5a7d9a",
                   "&:hover": { backgroundColor: "#4a6d8a" },

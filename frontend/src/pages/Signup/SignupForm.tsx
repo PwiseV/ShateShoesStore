@@ -33,10 +33,7 @@ const SignupForm: React.FC = () => {
     e.preventDefault();
     try {
       const data = await signup(name, email, password, confirmPassword, check);
-      showToast(
-        data.message,
-        "success"
-      );
+      showToast(data.message, "success");
       navigate("/login");
     } catch (err: unknown) {
       console.error("Register error:", err);
@@ -56,7 +53,7 @@ const SignupForm: React.FC = () => {
     <div className="fixed inset-0 flex justify-center items-center bg-[#F5EFEB] overflow-hidden p-6">
       <Paper
         elevation={10}
-        className="flex max-w-[1100px] w-full h-[90vh] max-h-[210vh] overflow-hidden"
+        className="flex max-w-[800px] w-full h-[90vh] max-h-[210vh] overflow-hidden"
         sx={{ borderRadius: "24px" }}
       >
         {/* Left Side - Welcome Section */}
@@ -71,7 +68,7 @@ const SignupForm: React.FC = () => {
               variant="h1"
               sx={{
                 fontWeight: 600,
-                fontSize: { xs: "2rem", md: "2rem" },
+                fontSize: { xs: "2rem", md: "1.4rem" },
                 textAlign: "left",
                 mt: 2,
               }}
@@ -80,7 +77,10 @@ const SignupForm: React.FC = () => {
             </Typography>
             <Typography
               variant="body2"
-              sx={{ textAlign: "left", fontSize: { xs: "0.5rem", md: "1rem" } }}
+              sx={{
+                textAlign: "left",
+                fontSize: { xs: "0.5rem", md: "0.7rem" },
+              }}
             >
               <br />
               Hãy đăng ký để tiếp tục hành trình tìm kiếm đôi giày hoàn hảo dành
@@ -91,7 +91,7 @@ const SignupForm: React.FC = () => {
 
         {/* Right Side - Login Form */}
         <Box
-          className="flex-1 p-8 lg:p-12 flex flex-col justify-center"
+          className="flex-1 p-10 lg:p-15 flex flex-col justify-center"
           sx={{
             background: "linear-gradient(135deg, #f8fafc 0%, #e6f0fb 100%)",
           }}
@@ -102,18 +102,18 @@ const SignupForm: React.FC = () => {
             sx={{
               fontWeight: 700,
               mb: 2,
-              fontSize: { xs: "2.25rem", md: "3rem" },
+              fontSize: { xs: "1.5rem", md: "1.7rem" },
               color: "#2F4156",
             }}
           >
-            Sign Up
+            Sign up
           </Typography>
 
           {/* Social Login Icons */}
-          <Stack direction="row" spacing={3} justifyContent="center" mb={4}>
+          <Stack direction="row" spacing={3} justifyContent="center" mb={2}>
             <IconButton
               aria-label="Sign in with Facebook"
-              size="large"
+              size="medium"
               sx={{
                 borderRadius: "8px",
                 bgcolor: "common.white",
@@ -126,7 +126,7 @@ const SignupForm: React.FC = () => {
 
             <IconButton
               aria-label="Sign in with Google"
-              size="large"
+              size="medium"
               sx={{
                 borderRadius: "8px",
                 bgcolor: "common.white",
@@ -139,7 +139,7 @@ const SignupForm: React.FC = () => {
 
             <IconButton
               aria-label="Sign in with LinkedIn"
-              size="large"
+              size="medium"
               sx={{
                 borderRadius: "8px",
                 bgcolor: "common.white",
@@ -151,7 +151,7 @@ const SignupForm: React.FC = () => {
             </IconButton>
           </Stack>
 
-          <Typography variant="body2" align="center" color="#2F4156" mb={3}>
+          <Typography variant="body2" align="center" color="#2F4156" mb={1}>
             Or using email for registration
           </Typography>
 
@@ -174,6 +174,18 @@ const SignupForm: React.FC = () => {
                 sx: {
                   borderRadius: "9999px",
                   bgcolor: "common.white",
+                  height: 40,
+                  padding: "0 14px", // để chữ không bị sát
+                },
+              }}
+              InputLabelProps={{
+                sx: {
+                  fontSize: "0.9rem",
+                  top: "-5px", // 🔥 chỉnh label lên/xuống
+                  left: 10,
+                  "&.MuiInputLabel-shrink": {
+                    top: "0", // khi thu nhỏ, label về đúng vị trí
+                  },
                 },
               }}
             />
@@ -185,12 +197,24 @@ const SignupForm: React.FC = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
               fullWidth
-              margin="normal"
+              margin="dense"
               placeholder="example@email.com"
               InputProps={{
                 sx: {
                   borderRadius: "9999px",
                   bgcolor: "common.white",
+                  height: 40,
+                  padding: "0 14px", // để chữ không bị sát
+                },
+              }}
+              InputLabelProps={{
+                sx: {
+                  fontSize: "0.9rem",
+                  top: "-5px", // 🔥 chỉnh label lên/xuống
+                  left: 10,
+                  "&.MuiInputLabel-shrink": {
+                    top: "0", // khi thu nhỏ, label về đúng vị trí
+                  },
                 },
               }}
             />
@@ -203,12 +227,24 @@ const SignupForm: React.FC = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
               fullWidth
-              margin="normal"
+              margin="dense"
               placeholder="Your password"
               InputProps={{
                 sx: {
                   borderRadius: "9999px",
                   bgcolor: "common.white",
+                  height: 40,
+                  padding: "0 14px", // để chữ không bị sát
+                },
+              }}
+              InputLabelProps={{
+                sx: {
+                  fontSize: "0.9rem",
+                  top: "-5px", // 🔥 chỉnh label lên/xuống
+                  left: 10,
+                  "&.MuiInputLabel-shrink": {
+                    top: "0", // khi thu nhỏ, label về đúng vị trí
+                  },
                 },
               }}
             />
@@ -221,12 +257,24 @@ const SignupForm: React.FC = () => {
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               fullWidth
-              margin="normal"
+              margin="dense"
               placeholder="Your password"
               InputProps={{
                 sx: {
                   borderRadius: "9999px",
                   bgcolor: "common.white",
+                  height: 40,
+                  padding: "0 14px", // để chữ không bị sát
+                },
+              }}
+              InputLabelProps={{
+                sx: {
+                  fontSize: "0.9rem",
+                  top: "-5px", // 🔥 chỉnh label lên/xuống
+                  left: 10,
+                  "&.MuiInputLabel-shrink": {
+                    top: "0", // khi thu nhỏ, label về đúng vị trí
+                  },
                 },
               }}
             />
@@ -234,10 +282,11 @@ const SignupForm: React.FC = () => {
             <FormControlLabel
               required
               value={check}
-              control={<Checkbox />}
+              control={<Checkbox  size="small"/>}
               onChange={() => setCheck(!check)}
+
               label={
-                <span className="text-[#2F4156] text-sm">
+                <span className="text-[#2F4156] text-xs">
                   Tôi đồng ý với tất cả các{" "}
                   <a href="/terms" className="text-blue-600 underline">
                     điều khoản dịch vụ
@@ -246,14 +295,14 @@ const SignupForm: React.FC = () => {
               }
             />
 
-            <Box textAlign="center" mt={2}>
+            <Box textAlign="center" mt={1}>
               <Button
                 type="submit"
                 variant="contained"
                 sx={{
                   width: "40%",
                   borderRadius: "9999px",
-                  py: 1.5,
+                  py: 0.75,
                   fontSize: "1rem",
                   backgroundColor: "#5a7d9a",
                   "&:hover": { backgroundColor: "#4a6d8a" },
