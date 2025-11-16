@@ -17,26 +17,31 @@ export const login = async (email: string, password: string): Promise<AuthRespon
       if (email === "admin@example.com" && password === "123456789") {
         resolve({
           user: { id: "1", name: "Admin", email, role: "admin" },
-          message: "Login successful",
+          message: "Đăng nhập thành công",
         });
       } else if (email === "customer@example.com" && password === "123456789") {
         resolve({
           user: { id: "2", name: "Customer", email, role: "customer" },
-          message: "Login successful",
+          message: "Đăng nhập thành công",
         });
       } else {
-        reject(new Error("Invalid email or password"));
+        reject(new Error("Sai email hoặc mật khẩu"));
       }
     }, 500); 
   });
 };
 
 // Fake signup
-export const signup = async (name: string, email: string, password: string): Promise<{ message: string }> => {
-  console.log(name, email, password);
+export const signup = async (name: string, email: string, password: string, confirmPassword: string, check: boolean): Promise<{ message: string }> => {
+  if (password !== confirmPassword) {
+    return Promise.reject(new Error("Mật khẩu xác nhận không khớp"));
+  }
+  if (!check) {
+    return Promise.reject(new Error("Bạn phải đồng ý với các điều khoản"));
+  } 
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve({ message: "Signup successful" });
+      resolve({ message: "Đăng kí thành công" });
     }, 500);
   });
 };

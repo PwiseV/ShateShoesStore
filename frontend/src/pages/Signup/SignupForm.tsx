@@ -9,6 +9,8 @@ import {
   Link as MuiLink,
   Typography,
   Stack,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import GoogleIcon from "@mui/icons-material/Google";
@@ -21,19 +23,32 @@ const SignupForm: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [check, setCheck] = useState(false);
+
   const navigate = useNavigate();
   const { showToast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const data = await signup(name, email, password);
-      console.log("Signup successful:", data);
-      showToast("Đăng kí thành công! Đang quay trở lại trang đăng nhập", "success");
+      const data = await signup(name, email, password, confirmPassword, check);
+      showToast(
+        data.message,
+        "success"
+      );
       navigate("/login");
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Register error:", err);
-      showToast(err.messages, "error");
+
+      const message =
+        err instanceof Error
+          ? err.message
+          : typeof err === "string"
+          ? err
+          : "Something went wrong";
+
+      showToast(message, "error");
     }
   };
 
@@ -196,6 +211,39 @@ const SignupForm: React.FC = () => {
                   bgcolor: "common.white",
                 },
               }}
+            />
+
+            <TextField
+              id="confirmPassword"
+              label="Confirm Password"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              fullWidth
+              margin="normal"
+              placeholder="Your password"
+              InputProps={{
+                sx: {
+                  borderRadius: "9999px",
+                  bgcolor: "common.white",
+                },
+              }}
+            />
+
+            <FormControlLabel
+              required
+              value={check}
+              control={<Checkbox />}
+              onChange={() => setCheck(!check)}
+              label={
+                <span className="text-[#2F4156] text-sm">
+                  Tôi đồng ý với tất cả các{" "}
+                  <a href="/terms" className="text-blue-600 underline">
+                    điều khoản dịch vụ
+                  </a>
+                </span>
+              }
             />
 
             <Box textAlign="center" mt={2}>

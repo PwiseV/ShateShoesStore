@@ -34,15 +34,21 @@ const LoginForm: React.FC = () => {
       const data = await login(email, password);
 
       setUser(data.user);
-      showToast("Đăng nhập thành công!", "success");
+      showToast(data.message, "success");
       if (data.user.role === "admin") {
         navigate("/dashboard");
       } else {
         navigate("/homepage");
       }
-    } catch (err) {
-      console.error("Login error:", err);
-      showToast("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.", "error");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : typeof err === "string"
+          ? err
+          : "Something went wrong";
+
+      showToast(message, "error");
     }
   };
 
