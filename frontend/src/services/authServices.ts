@@ -23,44 +23,52 @@ export interface AuthResponse {
   message?: string;
 }
 
-// --- Login ---
-export const login = async (params: LoginParams): Promise<AuthResponse> => {
+/* ============================
+   SIGN IN
+============================ */
+export const signin = async (params: LoginParams): Promise<AuthResponse> => {
   try {
-    const response = await api.post<AuthResponse>("/auth/login", params);
-    return response.data; 
+    const data = await api.post<AuthResponse>("/auth/signin", params);
+    return data;
   } catch (error) {
-    console.error("Login error:", error);
+    console.error("Signin error:", error);
     throw error;
   }
 };
 
-// --- Signup ---
+/* ============================
+   SIGN UP
+============================ */
 export const signup = async (params: SignupParams): Promise<{ message: string }> => {
   try {
-    const response = await api.post<{ message: string }>("/auth/register", params);
-    return response.data;
+    const data = await api.post<{ message: string }>("/auth/signup", params);
+    return data;
   } catch (error) {
     console.error("Signup error:", error);
     throw error;
   }
 };
 
-// --- Logout ---
-export const logout = async (): Promise<{ message: string }> => {
+/* ============================
+   SIGN OUT
+============================ */
+export const signout = async (): Promise<{ message: string }> => {
   try {
-    const response = await api.post<{ message: string }>("/auth/logout");
-    return response.data;
+    const data = await api.post<{ message: string }>("/auth/signout");
+    return data;
   } catch (error) {
-    console.error("Logout error:", error);
+    console.error("Signout error:", error);
     throw error;
   }
 };
 
-// --- Refresh token ---
+/* ============================
+   REFRESH TOKEN
+============================ */
 export const refreshToken = async (): Promise<AuthResponse> => {
   try {
-    const response = await api.post<AuthResponse>("/auth/refresh-token");
-    return response.data;
+    const data = await api.post<AuthResponse>("/auth/refresh-token");
+    return data;
   } catch (error) {
     console.error("Refresh token error:", error);
     throw error;

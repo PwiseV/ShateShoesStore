@@ -9,8 +9,8 @@ import "./App.css";
 
 import ProtectedRoute from "./routes/protectedRoutes.tsx";
 import AdminDashboard from "./pages/Admin/Dashboard.tsx";
-import CustomerDashboard from "./pages/Costumer/Homepage.tsx";
-import Login from "./pages/Signin/LoginForm";
+import CustomerDashboard from "./pages/Costumer/Homepage/Homepage.tsx";
+import Login from "./pages/Signin/SigninForm.tsx";
 import Signup from "./pages/Signup/SignupForm";
 
 

@@ -16,7 +16,8 @@ import LinkedInIcon from "@mui/icons-material/LinkedIn";
 
 // import { login } from "../../services/authServices";
 import { useAuth } from "../../context/useAuth";
-import { login } from "../../services/fakeAuthServices";
+import { signin } from "../../services/authServices";
+
 
 import { useToast } from "../../context/useToast";
 
@@ -28,29 +29,39 @@ const LoginForm: React.FC = () => {
   const { showToast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      const data = await login(email, password);
+  try {
+    // FE gửi email + password -> BE trả về { user, message, accessToken }
+    const data = await signin({ email, password });
 
-      setUser(data.user);
-      showToast(data.message, "success");
-      if (data.user.role === "admin") {
-        navigate("/dashboard");
-      } else {
-        navigate("/homepage");
-      }
-    } catch (err: unknown) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : typeof err === "string"
-          ? err
-          : "Something went wrong";
-
-      showToast(message, "error");
+    if (!data.user) {
+      throw new Error("Unexpected response from server");
     }
-  };
+
+    setUser(data.user);
+
+    showToast(data.message ?? "Sign in successfully!", "success");
+
+    if (data.user.role === "admin") {
+      navigate("/dashboard");
+    } else {
+      navigate("/homepage");
+    }
+
+  } catch (err: unknown) {
+    const message =
+      err instanceof Error
+        ? err.message
+        : typeof err === "string"
+        ? err
+        : "Something went wrong";
+
+    showToast(message, "error");
+  }
+};
+
+
 
   return (
     <div className="fixed inset-0 flex justify-center items-center bg-[#F5EFEB] overflow-hidden p-6">

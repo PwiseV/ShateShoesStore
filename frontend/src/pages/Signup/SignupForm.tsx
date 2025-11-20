@@ -16,7 +16,7 @@ import FacebookIcon from "@mui/icons-material/Facebook";
 import GoogleIcon from "@mui/icons-material/Google";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 
-import { signup } from "../../services/fakeAuthServices";
+import { signup } from "../../services/authServices";
 import { useToast } from "../../context/useToast";
 
 const SignupForm: React.FC = () => {
@@ -31,21 +31,26 @@ const SignupForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // FE validation
+    if (password !== confirmPassword) {
+      showToast("Mật khẩu xác nhận không khớp!", "error");
+      return;
+    }
+
+    if (!check) {
+      showToast("Bạn phải đồng ý với điều khoản!", "error");
+      return;
+    }
+
     try {
-      const data = await signup(name, email, password, confirmPassword, check);
+      const data = await signup({name, email, password}); 
       showToast(data.message, "success");
       navigate("/login");
-    } catch (err: unknown) {
+    } catch (err: any) {
       console.error("Register error:", err);
 
-      const message =
-        err instanceof Error
-          ? err.message
-          : typeof err === "string"
-          ? err
-          : "Something went wrong";
-
-      showToast(message, "error");
+      showToast(err?.message || "Something went wrong", "error");
     }
   };
 
