@@ -13,9 +13,9 @@ const ProtectedRoute = ({ role }: ProtectedRouteProps) => {
     return <Navigate to="/signin" replace />;
   }
 
-  // Sai role → về homepage
+  // Sai role → về trang báo unauthorized/forbidden
   if (role && user.role !== role) {
-    return <Navigate to="/homepage" replace />;
+    return <Navigate to="/unauthorized" replace />;
   }
 
   // Hợp lệ → cho phép render route con
