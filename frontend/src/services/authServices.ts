@@ -28,8 +28,8 @@ export interface AuthResponse {
 ============================ */
 export const signin = async (params: LoginParams): Promise<AuthResponse> => {
   try {
-    const data = await api.post<AuthResponse>("/auth/signin", params);
-    return data;
+    const response = await api.post<AuthResponse>("/auth/signin", params);
+    return response.data;
   } catch (error) {
     console.error("Signin error:", error);
     throw error;
@@ -39,10 +39,15 @@ export const signin = async (params: LoginParams): Promise<AuthResponse> => {
 /* ============================
    SIGN UP
 ============================ */
-export const signup = async (params: SignupParams): Promise<{ message: string }> => {
+export const signup = async (
+  params: SignupParams
+): Promise<{ message: string }> => {
   try {
-    const data = await api.post<{ message: string }>("/auth/signup", params);
-    return data;
+    const response = await api.post<{ message: string }>(
+      "/auth/signup",
+      params
+    );
+    return response.data;
   } catch (error) {
     console.error("Signup error:", error);
     throw error;
@@ -54,8 +59,8 @@ export const signup = async (params: SignupParams): Promise<{ message: string }>
 ============================ */
 export const signout = async (): Promise<{ message: string }> => {
   try {
-    const data = await api.post<{ message: string }>("/auth/signout");
-    return data;
+    const response = await api.post<{ message: string }>("/auth/signout");
+    return response.data;
   } catch (error) {
     console.error("Signout error:", error);
     throw error;
@@ -67,8 +72,8 @@ export const signout = async (): Promise<{ message: string }> => {
 ============================ */
 export const refreshToken = async (): Promise<AuthResponse> => {
   try {
-    const data = await api.post<AuthResponse>("/auth/refresh-token");
-    return data;
+    const response = await api.post<AuthResponse>("/auth/refresh-token");
+    return response.data;
   } catch (error) {
     console.error("Refresh token error:", error);
     throw error;
