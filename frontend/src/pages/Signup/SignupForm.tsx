@@ -43,14 +43,22 @@ const SignupForm: React.FC = () => {
       return;
     }
 
+    // Call API
     try {
-      const data = await signup({name, email, password}); 
-      showToast(data.message, "success");
+      const data = await signup({ name, email, password });
+      showToast(data.message || "Đăng ký thành công!", "success");
       navigate("/login");
     } catch (err: any) {
       console.error("Register error:", err);
 
-      showToast(err?.message || "Something went wrong", "error");
+      // Giúp "đào" sâu vào phản hồi của Backend để lấy câu thông báo cụ thể.
+      // Xử lý lỗi từ backend hoặc network
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Đã xảy ra lỗi khi đăng ký!";
+
+      showToast(errorMessage, "error");
     }
   };
 
@@ -287,9 +295,8 @@ const SignupForm: React.FC = () => {
             <FormControlLabel
               required
               value={check}
-              control={<Checkbox  size="small"/>}
+              control={<Checkbox size="small" />}
               onChange={() => setCheck(!check)}
-
               label={
                 <span className="text-[#2F4156] text-xs">
                   Tôi đồng ý với tất cả các{" "}
