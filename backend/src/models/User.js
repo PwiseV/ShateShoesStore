@@ -4,13 +4,14 @@ const userSChema = new  mongoose.Schema ({
     username: {
         type: String,
         required: true,
-        unique: true,
         trim: true,
-        lowercase: true
+        lowercase: true,
+        unique: false 
     },
     hashedPassword: {
         type: String,
-        required: true,       
+        required: false,    // Cho phép tài khoản Google không có password
+        default: "",      
     },
     email: {
         type: String,
@@ -42,6 +43,11 @@ const userSChema = new  mongoose.Schema ({
     phone: {
         type: String,
         sparse: true,
+    },
+    authType: {
+        type: String,
+        enum: ["local", "google"],
+        default: "local"
     }
 }, {
     timestamps: true,
