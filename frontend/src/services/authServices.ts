@@ -29,7 +29,7 @@ export interface AuthResponse {
 export const signin = async (params: LoginParams): Promise<AuthResponse> => {
   try {
     const response = await api.post<AuthResponse>("/auth/signin", params);
-    return response.data;
+    return response;
   } catch (error) {
     console.error("Signin error:", error);
     throw error;
@@ -47,7 +47,7 @@ export const signup = async (
       "/auth/signup",
       params
     );
-    return response.data;
+    return response;
   } catch (error) {
     console.error("Signup error:", error);
     throw error;
@@ -60,7 +60,7 @@ export const signup = async (
 export const signout = async (): Promise<{ message: string }> => {
   try {
     const response = await api.post<{ message: string }>("/auth/signout");
-    return response.data;
+    return response;
   } catch (error) {
     console.error("Signout error:", error);
     throw error;
@@ -73,7 +73,7 @@ export const signout = async (): Promise<{ message: string }> => {
 export const refreshToken = async (): Promise<AuthResponse> => {
   try {
     const response = await api.post<AuthResponse>("/auth/refresh-token");
-    return response.data;
+    return response;
   } catch (error) {
     console.error("Refresh token error:", error);
     throw error;
