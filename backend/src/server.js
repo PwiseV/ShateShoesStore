@@ -1,5 +1,6 @@
+import "./loadEnv.js";   // ⬅ NHẤT ĐỊNH PHẢI ĐỨNG TRƯỚC MỌI IMPORT KHÁC
+
 import express from 'express';
-import dotenv from 'dotenv'
 import cors from "cors";
 import cookieParser from 'cookie-parser';
 
@@ -12,7 +13,6 @@ import userRoute from "./routes/userRoute.js";
 import { protectedRoute } from "./middlewares/authMiddleware.js";
 import { adminOnly } from './middlewares/adminMiddleware.js';
 // import devRoute from "./routes/devRoute.js";
-dotenv.config();        // load các biến môi trường 
 
 const app = express();
 const PORT = process.env.PORT || 5001;
