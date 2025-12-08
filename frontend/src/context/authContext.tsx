@@ -1,7 +1,7 @@
 // src/context/AuthContext.tsx
 import { createContext, useState, useEffect, type ReactNode } from "react";
 import type { User } from "../services/authServices";
-import { refreshToken, logout as apiLogout } from "../services/fakeAuthServices";
+import { refreshToken, signout as apiLogout } from "../services/authServices";
 
 export interface AuthContextType {
   user: User | null;

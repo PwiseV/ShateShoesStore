@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import {
   Box,
   Paper,
-  TextField,
   Button,
   IconButton,
   Link as MuiLink,
@@ -19,6 +18,8 @@ import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import { signup } from "../../services/authServices";
 import { useToast } from "../../context/useToast";
 
+import RoundedInput from "./TextInput";
+
 const SignupForm: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,7 +33,6 @@ const SignupForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // FE validation
     if (password !== confirmPassword) {
       showToast("Mật khẩu xác nhận không khớp!", "error");
       return;
@@ -48,17 +48,15 @@ const SignupForm: React.FC = () => {
       const data = await signup({ name, email, password });
       showToast(data.message || "Đăng ký thành công!", "success");
       navigate("/login");
-    } catch (err: any) {
-      console.error("Register error:", err);
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : typeof err === "string"
+          ? err
+          : "Something went wrong";
 
-      // Giúp "đào" sâu vào phản hồi của Backend để lấy câu thông báo cụ thể.
-      // Xử lý lỗi từ backend hoặc network
-      const errorMessage =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Đã xảy ra lỗi khi đăng ký!";
-
-      showToast(errorMessage, "error");
+      showToast(message, "error");
     }
   };
 
@@ -164,8 +162,10 @@ const SignupForm: React.FC = () => {
             </IconButton>
           </Stack>
 
-          <Typography variant="body2" align="center" color="#2F4156" mb={1}>
-            Or using email for registration
+          <Typography align="center" color="#2F4156" mb={0}>
+            <span className="text-[#2F4156] text-xs">
+              Or using email for registration
+            </span>
           </Typography>
 
           <Box
@@ -173,123 +173,36 @@ const SignupForm: React.FC = () => {
             onSubmit={handleSubmit}
             sx={{ mx: "auto", width: "100%", maxWidth: 480 }}
           >
-            <TextField
-              id="name"
+            <RoundedInput
               label="Name"
-              type="ext"
               value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              fullWidth
-              margin="normal"
-              placeholder="Ly Thi Let"
-              InputProps={{
-                sx: {
-                  borderRadius: "9999px",
-                  bgcolor: "common.white",
-                  height: 40,
-                  padding: "0 14px", // để chữ không bị sát
-                },
-              }}
-              InputLabelProps={{
-                sx: {
-                  fontSize: "0.9rem",
-                  top: "-5px", // 🔥 chỉnh label lên/xuống
-                  left: 10,
-                  "&.MuiInputLabel-shrink": {
-                    top: "0", // khi thu nhỏ, label về đúng vị trí
-                  },
-                },
-              }}
+              setValue={setName}
+              type="text"
+              placeholder="Nguyen Van A"
             />
-            <TextField
-              id="email"
+
+            <RoundedInput
               label="Email"
-              type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              fullWidth
-              margin="dense"
+              setValue={setEmail}
+              type="email"
               placeholder="example@email.com"
-              InputProps={{
-                sx: {
-                  borderRadius: "9999px",
-                  bgcolor: "common.white",
-                  height: 40,
-                  padding: "0 14px", // để chữ không bị sát
-                },
-              }}
-              InputLabelProps={{
-                sx: {
-                  fontSize: "0.9rem",
-                  top: "-5px", // 🔥 chỉnh label lên/xuống
-                  left: 10,
-                  "&.MuiInputLabel-shrink": {
-                    top: "0", // khi thu nhỏ, label về đúng vị trí
-                  },
-                },
-              }}
             />
 
-            <TextField
-              id="password"
+            <RoundedInput
               label="Password"
-              type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              fullWidth
-              margin="dense"
+              setValue={setPassword}
+              type="password"
               placeholder="Your password"
-              InputProps={{
-                sx: {
-                  borderRadius: "9999px",
-                  bgcolor: "common.white",
-                  height: 40,
-                  padding: "0 14px", // để chữ không bị sát
-                },
-              }}
-              InputLabelProps={{
-                sx: {
-                  fontSize: "0.9rem",
-                  top: "-5px", // 🔥 chỉnh label lên/xuống
-                  left: 10,
-                  "&.MuiInputLabel-shrink": {
-                    top: "0", // khi thu nhỏ, label về đúng vị trí
-                  },
-                },
-              }}
             />
 
-            <TextField
-              id="confirmPassword"
+            <RoundedInput
               label="Confirm Password"
-              type="password"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              fullWidth
-              margin="dense"
-              placeholder="Your password"
-              InputProps={{
-                sx: {
-                  borderRadius: "9999px",
-                  bgcolor: "common.white",
-                  height: 40,
-                  padding: "0 14px", // để chữ không bị sát
-                },
-              }}
-              InputLabelProps={{
-                sx: {
-                  fontSize: "0.9rem",
-                  top: "-5px", // 🔥 chỉnh label lên/xuống
-                  left: 10,
-                  "&.MuiInputLabel-shrink": {
-                    top: "0", // khi thu nhỏ, label về đúng vị trí
-                  },
-                },
-              }}
+              setValue={setConfirmPassword}
+              type="password"
+              placeholder="Your confirm password"
             />
 
             <FormControlLabel

@@ -1,4 +1,5 @@
 import api from "./axios";
+import { setAccessToken } from "./tokenServices";
 
 export interface LoginParams {
   email: string;
@@ -20,6 +21,7 @@ export interface User {
 
 export interface AuthResponse {
   user: User;
+  accessToken: string;
   message?: string;
 }
 
@@ -29,7 +31,11 @@ export interface AuthResponse {
 export const signin = async (params: LoginParams): Promise<AuthResponse> => {
   try {
     const response = await api.post<AuthResponse>("/auth/signin", params);
-    return response;
+    if (response?.data.accessToken) {
+      setAccessToken(response.data.accessToken);
+    }
+
+    return response.data;
   } catch (error) {
     console.error("Signin error:", error);
     throw error;
@@ -47,7 +53,7 @@ export const signup = async (
       "/auth/signup",
       params
     );
-    return response;
+    return response.data;
   } catch (error) {
     console.error("Signup error:", error);
     throw error;
@@ -60,7 +66,7 @@ export const signup = async (
 export const signout = async (): Promise<{ message: string }> => {
   try {
     const response = await api.post<{ message: string }>("/auth/signout");
-    return response;
+    return response.data;
   } catch (error) {
     console.error("Signout error:", error);
     throw error;
@@ -73,9 +79,34 @@ export const signout = async (): Promise<{ message: string }> => {
 export const refreshToken = async (): Promise<AuthResponse> => {
   try {
     const response = await api.post<AuthResponse>("/auth/refresh-token");
-    return response;
+    if (response.data?.accessToken) {
+      setAccessToken(response.data.accessToken);
+    }
+    return response.data;
   } catch (error) {
     console.error("Refresh token error:", error);
+    throw error;
+  }
+};
+
+/* ============================
+   GOOGLE SIGN IN
+============================ */
+
+export const googleSignIn = () => {
+  window.location.href = "http://localhost:5001/api/auth/google";
+  // ĐÚNG: redirect thẳng tới BE
+};
+
+export const getMe = async (params?: unknown): Promise<AuthResponse> => {
+  try {
+    const response = await api.get<AuthResponse>("/auth/me", {
+      params: params, // Nếu có query params
+    });
+
+    return response.data; // Trả về đúng kiểu User
+  } catch (error) {
+    console.error("Get me error:", error);
     throw error;
   }
 };

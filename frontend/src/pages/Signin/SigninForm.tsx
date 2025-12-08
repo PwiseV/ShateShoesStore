@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
   Paper,
-  TextField,
   Button,
   IconButton,
   Link as MuiLink,
@@ -16,10 +15,12 @@ import LinkedInIcon from "@mui/icons-material/LinkedIn";
 
 // import { login } from "../../services/authServices";
 import { useAuth } from "../../context/useAuth";
-import { signin } from "../../services/authServices";
-
+import { signin, googleSignIn, getMe } from "../../services/authServices";
+import { setAccessToken } from "../../services/tokenServices";
 
 import { useToast } from "../../context/useToast";
+
+import RoundedInput from "./TextInput";
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -28,40 +29,76 @@ const LoginForm: React.FC = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get("token");
+        if (!token) return;
+        setAccessToken(token);
+        const data = await getMe({ token });
+        const user = data.user;
+
+        if (user) {
+          setUser(user);
+          const cleanUrl = window.location.origin + window.location.pathname;
+          window.history.replaceState({}, "", cleanUrl);
+          showToast("Sign in successfully", "success");
+          if (user.role === "admin") {
+            navigate("/dashboard");
+          } else {
+            navigate("/homepage");
+          }
+        } else {
+          showToast("Unable to get user info from token", "error");
+          setAccessToken(null);
+        }
+      } catch (err) {
+        const message =
+          err instanceof Error
+            ? err.message
+            : typeof err === "string"
+            ? err
+            : "Something went wrong";
+        showToast(message, "error");
+        setAccessToken(null);
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, "", cleanUrl);
+      }
+    })();
+  }, [setUser, navigate, showToast]);
+
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    // FE gửi email + password -> BE trả về { user, message, accessToken }
-    const data = await signin({ email, password });
+    try {
+      // FE gửi email + password -> BE trả về { user, message, accessToken }
+      const data = await signin({ email, password });
 
-    if (!data.user) {
-      throw new Error("Unexpected response from server");
+      if (!data.user) {
+        throw new Error("Unexpected response from server");
+      }
+
+      setUser(data.user);
+
+      showToast(data.message ?? "Sign in successfully!", "success");
+
+      if (data.user.role === "admin") {
+        navigate("/dashboard");
+      } else {
+        navigate("/homepage");
+      }
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : typeof err === "string"
+          ? err
+          : "Something went wrong";
+
+      showToast(message, "error");
     }
-
-    setUser(data.user);
-
-    showToast(data.message ?? "Sign in successfully!", "success");
-
-    if (data.user.role === "admin") {
-      navigate("/dashboard");
-    } else {
-      navigate("/homepage");
-    }
-
-  } catch (err: unknown) {
-    const message =
-      err instanceof Error
-        ? err.message
-        : typeof err === "string"
-        ? err
-        : "Something went wrong";
-
-    showToast(message, "error");
-  }
-};
-
-
+  };
 
   return (
     <div className="fixed inset-0 flex justify-center items-center bg-[#F5EFEB] overflow-hidden p-6">
@@ -90,7 +127,10 @@ const LoginForm: React.FC = () => {
             </Typography>
             <Typography
               variant="body2"
-              sx={{ textAlign: "left", fontSize: { xs: "0.3rem", md: "0.7rem" } }}
+              sx={{
+                textAlign: "left",
+                fontSize: { xs: "0.3rem", md: "0.7rem" },
+              }}
             >
               <br />
               Mỗi tài khoản là một câu chuyện phong cách riêng.
@@ -124,6 +164,7 @@ const LoginForm: React.FC = () => {
           {/* Social Login Icons */}
           <Stack direction="row" spacing={3} justifyContent="center" mb={2}>
             <IconButton
+              onClick={googleSignIn}
               aria-label="Sign in with Facebook"
               size="medium"
               sx={{
@@ -137,6 +178,7 @@ const LoginForm: React.FC = () => {
             </IconButton>
 
             <IconButton
+              onClick={googleSignIn}
               aria-label="Sign in with Google"
               size="medium"
               sx={{
@@ -150,6 +192,7 @@ const LoginForm: React.FC = () => {
             </IconButton>
 
             <IconButton
+              onClick={googleSignIn}
               aria-label="Sign in with LinkedIn"
               size="medium"
               sx={{
@@ -172,42 +215,19 @@ const LoginForm: React.FC = () => {
             onSubmit={handleSubmit}
             sx={{ mx: "auto", width: "100%", maxWidth: 480 }}
           >
-            <TextField
-              id="email"
+            <RoundedInput
               label="Email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              fullWidth
-              margin="normal"
+              setValue={setEmail}
               placeholder="example@email.com"
-              InputProps={{
-                sx: {
-                  borderRadius: "9999px",
-                  bgcolor: "common.white",
-                  maxHeight: "50px",
-                },
-              }}
             />
-
-            <TextField
-              id="password"
+            <RoundedInput
               label="Password"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              fullWidth
-              margin="normal"
+              setValue={setPassword}
               placeholder="Your password"
-              InputProps={{
-                sx: {
-                  borderRadius: "9999px",
-                  bgcolor: "common.white",
-                  maxHeight: "50px",
-                },
-              }}
             />
 
             <Box textAlign="center" mt={2}>
