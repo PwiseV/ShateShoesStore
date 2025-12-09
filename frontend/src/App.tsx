@@ -8,8 +8,8 @@ import {
 import "./App.css";
 
 import ProtectedRoute from "./routes/protectedRoutes.tsx";
-import Dashboard from "./pages/DashboardPage.tsx";
-import HomePage from "./pages/HomePage.tsx";
+import Dashboard from "./pages/Admin/Dashboard/Dashboard.tsx";
+import HomePage from "./pages/Costumer/Homepage/Homepage.tsx";
 import Login from "./pages/Signin/SigninForm.tsx";
 import Signup from "./pages/Signup/SignupForm";
 
@@ -20,14 +20,15 @@ export default function AppRoutes() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Signup />} />
-
-          <Route element={<ProtectedRoute role="admin" />}>
+          <Route path="/homepage" element={<HomePage />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          {/* <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/dashboard" element={<Dashboard />} />
-          </Route>
+          </Route> */}
 
-          <Route element={<ProtectedRoute role="customer" />}>
+          {/* <Route element={<ProtectedRoute role="customer" />}>
             <Route path="/homepage" element={<HomePage />} />
-          </Route>
+          </Route> */}
 
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
