@@ -7,10 +7,11 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ role }: ProtectedRouteProps) => {
   const { user } = useAuth();
+  console.log("ProtectedRoute - user:", user);
 
   // Chưa đăng nhập → về signin
   if (!user) {
-    return <Navigate to="/signin" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   // Sai role → về trang báo unauthorized/forbidden
