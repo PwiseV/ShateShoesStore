@@ -230,11 +230,11 @@ const FlashSale: React.FC = () => {
                 sx={{ fontSize: "1rem", fontWeight: 700, color: "#2C3E50" }}
               >
                 {p.title}
-                <Typography
-                  sx={{ color: "#777", fontSize: "0.85rem", flex: "1 1 auto" }}
-                >
-                  {p.desc}
-                </Typography>
+              </Typography>
+              <Typography
+                sx={{ color: "#777", fontSize: "0.85rem", flex: "1 1 auto" }}
+              >
+                {p.desc}
               </Typography>
 
               <Button

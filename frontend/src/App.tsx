@@ -12,6 +12,7 @@ import Dashboard from "./pages/Admin/Dashboard/Dashboard.tsx";
 import HomePage from "./pages/Costumer/Homepage/Homepage.tsx";
 import Login from "./pages/Signin/SigninForm.tsx";
 import Signup from "./pages/Signup/SignupForm";
+import Users from "./pages/Admin/Users/Users.tsx";
 
 export default function AppRoutes() {
   return (
@@ -21,12 +22,13 @@ export default function AppRoutes() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Signup />} />
           <Route path="/homepage" element={<HomePage />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/admin/dashboard" element={<Dashboard />} />
+          <Route path="/admin/users" element={<Users />} />
           {/* <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/dashboard" element={<Dashboard />} />
-          </Route> */}
+          </Route>
 
-          {/* <Route element={<ProtectedRoute role="customer" />}>
+          <Route element={<ProtectedRoute role="customer" />}>
             <Route path="/homepage" element={<HomePage />} />
           </Route> */}
 

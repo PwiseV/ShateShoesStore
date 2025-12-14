@@ -7,7 +7,7 @@ import {
 } from "react-icons/fa";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import logoImg from "../assets/logo3.svg";
+import logoImg from "../../assets/logo3.svg";
 
 const Footer = () => {
   return (

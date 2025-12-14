@@ -5,7 +5,7 @@ import Toolbar from "@mui/material/Toolbar";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
-import logoImg from "../assets/logo3.svg";
+import logoImg from "../../assets/logo3.svg";
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 
