@@ -25,7 +25,7 @@ const Comment = () => {
       }
     };
     fetchProducts();
-  }, []);
+  });
 
   return (
     <Paper
@@ -35,7 +35,6 @@ const Comment = () => {
         padding: "10px",
         pt: 4,
         width: "100%",
-        // minWidth: "350px",
       }}
     >
       <Typography

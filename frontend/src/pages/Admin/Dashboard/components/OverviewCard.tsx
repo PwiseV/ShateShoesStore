@@ -26,7 +26,6 @@ const OverviewCard = () => {
 
         setOverview(overviewRes);
         setNewCustomers(newCustomersRes);
-        console.log("over view: ", overview);
       } catch (err) {
         const message =
           err instanceof Error
@@ -39,7 +38,7 @@ const OverviewCard = () => {
     };
 
     fetchData();
-  }, []);
+  });
   return (
     <Paper
       sx={{
@@ -79,7 +78,7 @@ const OverviewCard = () => {
             backgroundColor: "#D4C6C6",
             borderRadius: "30px",
             padding: "20px",
-            width: "220px",
+            width: "55%",
             display: "flex",
             flexDirection: "column",
           }}

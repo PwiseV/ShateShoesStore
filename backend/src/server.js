@@ -1,4 +1,4 @@
-import "./loadEnv.js";   // ⬅ NHẤT ĐỊNH PHẢI ĐỨNG TRƯỚC MỌI IMPORT KHÁC
+import "./loadEnv.js"; 
 
 import express from 'express';
 import cors from "cors";
@@ -29,22 +29,14 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 
-// public routes
-app.use('/api/auth',authRoute);
+// public routes (KHÔNG token)
+app.use("/api/auth", authRoute);
 
-// đăng kí tài khoản admin
-// app.use("/api/dev", devRoute);
+// private user routes (CẦN đăng nhập)
+app.use("/api/users", protectedRoute, userRoute);
 
-
-
-// private routes
-app.use(protectedRoute);          // middeleware xác thực cho tất cả api dưới đây
-app.use("/api/users",userRoute);
-
-
-// Admin private routes
-app.use(adminOnly);             // middeleware xác thực cho tất cả api dưới đây
-app.use("/api/admin", adminRoute);
+// admin routes (CẦN đăng nhập + quyền admin)
+app.use("/api/admin", protectedRoute, adminOnly, adminRoute);
 
 
 

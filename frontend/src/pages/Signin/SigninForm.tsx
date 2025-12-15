@@ -45,7 +45,7 @@ const LoginForm: React.FC = () => {
           window.history.replaceState({}, "", cleanUrl);
           showToast("Sign in successfully", "success");
           if (user.role === "admin") {
-            navigate("/dashboard");
+            navigate("/admin/dashboard");
           } else {
             navigate("/homepage");
           }
@@ -84,7 +84,7 @@ const LoginForm: React.FC = () => {
       showToast(data.message ?? "Sign in successfully!", "success");
 
       if (data.user.role === "admin") {
-        navigate("/dashboard");
+        navigate("/admin/dashboard");
       } else {
         navigate("/homepage");
       }

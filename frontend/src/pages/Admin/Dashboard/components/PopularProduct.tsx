@@ -27,7 +27,7 @@ const PopularProduct = () => {
     };
 
     fetchProducts();
-  }, []);
+  });
 
   return (
     <Paper
@@ -93,7 +93,7 @@ const PopularProduct = () => {
               >
                 {c.price}
               </Typography>
-              <StockStatus status={c.status}>{c.status}</StockStatus>
+              <StockStatus status={c.status}></StockStatus>
             </Box>
           </Box>
         ))}
