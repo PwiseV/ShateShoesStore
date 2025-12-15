@@ -11,14 +11,14 @@ export interface OverviewResponse {
   balanceAmount: string;
   customerTrend: number;
   balanceTrend: number;
-  newCustomersToday: number;
 }
 
 export interface NewCustomer {
   id: string;
   username: string;
   email: string;
-  avatar?: string | null;
+  avatar?: string | undefined;
+  
 }
 
 export interface ProductItem {
@@ -26,7 +26,7 @@ export interface ProductItem {
   name: string;
   price: number;
   status: StockState;
-  avatar?: string | null;
+  avatar?: string | undefined;
 }
 
 export interface DayData {
@@ -39,7 +39,7 @@ export interface CommentItem {
   username: string;
   content: string;
   time: string;
-  avatar?: string | null;
+  avatar?: string | undefined;
 }
 
 /* ============================

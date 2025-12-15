@@ -7,9 +7,9 @@ import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import logoImg from "../../assets/logo3.svg";
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
+// import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 
-const menuItems = ["Giới thiệu", "Tin tức", "Danh mục", "abc"];
+// const menuItems = ["Giới thiệu", "Tin tức", "Danh mục", "abc"];
 
 const Header: React.FC = () => {
   return (
@@ -58,7 +58,7 @@ const Header: React.FC = () => {
         </Box>
 
         {/* MENU */}
-        <Box sx={{ display: "flex", gap: "2rem", alignItems: "center" }}>
+        {/* <Box sx={{ display: "flex", gap: "2rem", alignItems: "center" }}>
           {menuItems.map((item, index) => (
             <Typography
               key={index}
@@ -75,13 +75,13 @@ const Header: React.FC = () => {
               {item}
             </Typography>
           ))}
-        </Box>
+        </Box> */}
 
         {/* ICONS */}
         <Box sx={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-          <IconButton aria-label="Open cart" sx={{ color: "#627D98" }}>
+          {/* <IconButton aria-label="Open cart" sx={{ color: "#627D98" }}>
             <ShoppingBagIcon fontSize="small"/>
-          </IconButton>
+          </IconButton> */}
 
           <IconButton
             component={Link}

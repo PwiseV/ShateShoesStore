@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import slugify from "slugify";
 import Session from "../models/Session.js";
 import { OAuth2Client } from "google-auth-library";
 
@@ -22,9 +23,17 @@ export const signUp = async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    const baseUsername = slugify(name, {
+      lower: true,
+      strict: true,
+      locale: "vi",
+    }).replace(/-/g, "");
+
+    let username = baseUsername;
+
     // Tạo user
     await User.create({
-      username: name,
+      username: username,
       hashedPassword,
       email,
       displayName: name,
@@ -104,6 +113,49 @@ export const signIn = async (req, res) => {
   } catch (error) {
     console.error("Lỗi khi gọi signIp", error);
     return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+export const refreshAccessToken = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+      return res.status(401).json({
+        message: "Không tìm thấy refresh token",
+      });
+    }
+
+    const session = await Session.findOne({ refreshToken });
+    console.log("session: ", session);
+
+    if (!session) {
+      return res.status(403).json({ message: "Refresh token không hợp lệ" });
+    }
+
+    if (session.expiresAt < new Date()) {
+      return res.status(401).json({ message: "Refresh token đã hết hạn" });
+    }
+
+    const user = await User.findById(session.userId);
+
+    const accessToken = jwt.sign(
+      { userId: user._id, role: user.role },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: ACCESS_TOKEN_TTL }
+    );
+
+    return res.status(200).json({
+      message: "Lấy access token thành công",
+      accessToken,
+      user: {
+        id: user._id,
+        name: user.displayName,
+        email: user.email,
+        role: user.role ?? "customer",
+      },
+    });
+  } catch (err) {
+    return res.status(403).json({ message: "Lỗi hệ thống" });
   }
 };
 
@@ -189,7 +241,10 @@ export const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select("-hashedPassword");
 
-    return res.json({ user, message: `User ${user.displayName} đã logged in!` });
+    return res.json({
+      user,
+      message: `User ${user.displayName} đã logged in!`,
+    });
   } catch (err) {
     return res.status(500).json({ message: "Lỗi hệ thống" });
   }

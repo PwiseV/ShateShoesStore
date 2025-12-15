@@ -1,3 +1,4 @@
+// import React, { type Dispatch, type SetStateAction } from "react";
 import { TextField } from "@mui/material";
 
 interface RoundedInputProps {
@@ -6,6 +7,7 @@ interface RoundedInputProps {
   setValue: (val: string) => void;
   type?: string;
   placeholder?: string;
+  onBlur?: () => void;
 }
 
 const RoundedInput: React.FC<RoundedInputProps> = ({
@@ -14,6 +16,7 @@ const RoundedInput: React.FC<RoundedInputProps> = ({
   setValue,
   type = "text",
   placeholder,
+  onBlur,
 }) => {
   return (
     <TextField
@@ -22,6 +25,7 @@ const RoundedInput: React.FC<RoundedInputProps> = ({
       value={value}
       onChange={(e) => setValue(e.target.value)}
       placeholder={placeholder}
+      onBlur={onBlur}
       fullWidth
       margin="dense"
       sx={{

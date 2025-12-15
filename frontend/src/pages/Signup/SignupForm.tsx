@@ -17,6 +17,7 @@ import LinkedInIcon from "@mui/icons-material/LinkedIn";
 
 import { signup } from "../../services/authServices";
 import { useToast } from "../../context/useToast";
+import validatePassword from "../../utils/ValidatePassword";
 
 import RoundedInput from "./TextInput";
 
@@ -26,13 +27,20 @@ const SignupForm: React.FC = () => {
   const [name, setName] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [check, setCheck] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const { showToast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    const validationError = validatePassword(password);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    setError(null);
+    
     if (password !== confirmPassword) {
       showToast("Mật khẩu xác nhận không khớp!", "error");
       return;
@@ -195,7 +203,10 @@ const SignupForm: React.FC = () => {
               setValue={setPassword}
               type="password"
               placeholder="Your password"
+              onBlur={() => setError(validatePassword(password))}
             />
+            {error && <p className="text-red-500 text-xs">{error}</p>}
+
 
             <RoundedInput
               label="Confirm Password"

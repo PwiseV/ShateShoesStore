@@ -7,6 +7,7 @@ export interface AuthContextType {
   user: User | null;
   setUser: (user: User | null) => void;
   logout: () => Promise<void>;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,6 +18,7 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -25,6 +27,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUser(auth.user);
       } catch {
         setUser(null);
+      } finally {
+        setLoading(false);
       }
     })();
   }, []);
@@ -32,17 +36,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Logout function
   const logout = async () => {
     try {
-      await apiLogout(); 
+      await apiLogout();
     } catch (err) {
       console.error("Logout error:", err);
     } finally {
-      setUser(null); 
-      window.location.href = "/login"; 
+      setUser(null);
+      window.location.href = "/login";
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, logout }}>
+    <AuthContext.Provider value={{ user, setUser, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

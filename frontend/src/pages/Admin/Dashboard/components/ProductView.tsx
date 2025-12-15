@@ -40,7 +40,7 @@ const ProductViewWith7DayColumnChart = ({
     };
 
     fetchProducts();
-  }, []);
+  });
   const total = data.reduce((s, d) => s + d.views, 0);
   const avg = Math.round(total / data.length);
   const maxViews = Math.max(...data.map((d) => d.views));
@@ -53,7 +53,6 @@ const ProductViewWith7DayColumnChart = ({
         borderRadius: "20px",
         padding: 2,
         pt: 4,
-        minWidth: 390,
         width: "100%",
       }}
     >

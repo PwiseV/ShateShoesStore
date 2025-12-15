@@ -14,7 +14,7 @@ export interface NewCustomer {
   id: string;
   username: string;
   email: string;
-  avatar?: string | null;
+  avatar?: string | undefined;
   
 }
 
@@ -23,7 +23,7 @@ export interface ProductItem {
   name: string;
   price: number;
   status: StockState;
-  avatar?: string | null;
+  avatar?: string | undefined;
 }
 
 export interface DayData {
@@ -36,7 +36,7 @@ export interface CommentItem {
   username: string;
   content: string;
   time: string;
-  avatar?: string | null;
+  avatar?: string | undefined;
 }
 
 /* ============================
@@ -55,25 +55,25 @@ const mockNewCustomers: NewCustomer[] = [
     id: "u1",
     username: "minhnguyen",
     email: "minhnguyen@gmail.com",
-    avatar: null,
+    avatar: undefined,
   },
   {
     id: "u2",
     username: "linhtran",
     email: "linhtran@gmail.com",
-    avatar: null,
+    avatar: undefined,
   },
   {
     id: "u3",
     username: "hoangpham",
     email: "hoangpham@gmail.com",
-    avatar: null,
+    avatar: undefined,
   },
   {
     id: "u4",
     username: "thao.le",
     email: "thao.le@gmail.com",
-    avatar: null,
+    avatar: undefined,
   },
 ];
 
@@ -83,35 +83,35 @@ const listProducts: ProductItem[] = [
     name: "Nike Air Force 1 '07",
     price: 120,
     status: "in stock",
-    avatar: null,
+    avatar: undefined,
   },
   {
     id: "s2",
     name: "Adidas Ultraboost 22",
     price: 180,
     status: "low stock",
-    avatar: null,
+    avatar: undefined,
   },
   {
     id: "s3",
     name: "Converse Chuck Taylor All Star",
     price: 65,
     status: "out of stock",
-    avatar: null,
+    avatar: undefined,
   },
   {
     id: "s4",
     name: "Puma RS-X Reinvention",
     price: 110,
     status: "in stock",
-    avatar: null,
+    avatar: undefined,
   },
   {
     id: "s5",
     name: "New Balance 550",
     price: 130,
     status: "in stock",
-    avatar: null,
+    avatar: undefined,
   },
 ];
 
@@ -131,42 +131,42 @@ const mockShoeComments: CommentItem[] = [
     username: "minhtran",
     content: "Giày mang rất êm, đi cả ngày không bị đau chân.",
     time: "5 minutes ago",
-    avatar: null,
+    avatar: undefined,
   },
   {
     id: "c2",
     username: "hoangnguyen",
     content: "Form giày đẹp, đúng size, màu ngoài đời giống hình.",
     time: "30 minutes ago",
-    avatar: null,
+    avatar: undefined,
   },
   {
     id: "c3",
     username: "thanhle",
     content: "Chạy bộ khá ổn, đế bám tốt nhưng hơi cứng lúc đầu.",
     time: "2 hours ago",
-    avatar: null,
+    avatar: undefined,
   },
   {
     id: "c4",
     username: "anhpham",
     content: "Đóng gói cẩn thận, giao hàng nhanh, rất hài lòng.",
     time: "Yesterday",
-    avatar: null,
+    avatar: undefined,
   },
   {
     id: "c5",
     username: "quanghuy",
     content: "Giày đẹp nhưng nên đặt lên nửa size nếu chân bè.",
     time: "2 days ago",
-    avatar: null,
+    avatar: undefined,
   },
   {
     id: "c6",
     username: "thutrang",
     content: "Mua cho chồng, anh ấy mang khen êm và nhẹ.",
     time: "3 days ago",
-    avatar: null,
+    avatar: undefined,
   },
 ];
 

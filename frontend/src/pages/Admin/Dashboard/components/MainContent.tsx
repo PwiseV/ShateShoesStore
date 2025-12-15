@@ -1,4 +1,4 @@
-import { Box, Grid, Paper } from "@mui/material";
+import { Box, Grid } from "@mui/material";
 import OverviewCard from "./OverviewCard";
 import PopularProduct from "./PopularProduct";
 import ProductView from "./ProductView";
@@ -16,16 +16,16 @@ const MainContent = () => {
       }}
     >
       <Grid container spacing={2}>
-        <Grid item xs={8}>
+        <Grid size={8}>
           <OverviewCard />
         </Grid>
-        <Grid item xs={4}>
+        <Grid size={4}>
           <PopularProduct />
         </Grid>
-        <Grid item xs={4}>
+        <Grid size={6}>
           <ProductView />
         </Grid>
-        <Grid item xs={8}>
+        <Grid size={6}>
           <Comment />
         </Grid>
       </Grid>

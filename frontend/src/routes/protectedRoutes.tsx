@@ -1,13 +1,18 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
+import FullScreenLoader from "../components/Loading";
 
 interface ProtectedRouteProps {
   role?: "customer" | "admin";
 }
 
 const ProtectedRoute = ({ role }: ProtectedRouteProps) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
   console.log("ProtectedRoute - user:", user);
+  if (loading) {
+    return <FullScreenLoader></FullScreenLoader>;
+  }
 
   // Chưa đăng nhập → về signin
   if (!user) {
