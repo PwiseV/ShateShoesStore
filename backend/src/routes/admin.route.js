@@ -1,6 +1,5 @@
 import express from "express";
-import { getAdminStats } from "../controllers/adminController.js";
-
+import { getAdminStats } from "../controllers/admin.controller.js";
 const router = express.Router();
 
 // Những API admin

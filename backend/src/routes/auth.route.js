@@ -1,8 +1,8 @@
 import express from 'express';
-import { signUp, signIn, refreshAccessToken } from '../controllers/authController.js';
-import { googleAuth, googleCallback } from '../controllers/authController.js';
+import { signUp, signIn, refreshAccessToken } from '../controllers/auth.controller.js';
+import { googleAuth, googleCallback } from '../controllers/auth.controller.js';
 import { protectedRoute } from '../middlewares/authMiddleware.js';
-import { getMe } from '../controllers/authController.js';
+import { getMe } from '../controllers/auth.controller.js';
 
 const router = express.Router();
 
