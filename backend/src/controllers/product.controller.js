@@ -6,7 +6,7 @@ import slugify from "slugify";
 
 export const createProduct = async (req, res) => {
   try {
-    const { productId, title, description, category, avatar } = req.body;
+    const { productId, title, description, category, avatar, tag } = req.body;
 
     if (!productId || !title || !category) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -45,6 +45,7 @@ export const createProduct = async (req, res) => {
       categoryId: categoryDoc._id,
       productImage: avatar,
       slug,
+      tag,
     });
     return res.status(201).json({
       message: "Create product success",
@@ -72,16 +73,10 @@ export const getProduct = async (req, res) => {
       filter.title = { $regex: keyword, $options: "i" };
     }
 
-    // const products = await Product.find(filter)
-    //   .populate("categoryId", "name")
-    //   .skip((page - 1) * limit)
-    //   .limit(Number(limit))
-    //   .sort({ createdAt: -1 });
-
     const products = await Product.aggregate([
       { $match: filter },
 
-      // 👉 JOIN CATEGORY
+      // category
       {
         $lookup: {
           from: "categories",
@@ -90,14 +85,25 @@ export const getProduct = async (req, res) => {
           as: "category",
         },
       },
+      { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+
+      // parent category
+      {
+        $lookup: {
+          from: "categories",
+          localField: "category.parentId",
+          foreignField: "_id",
+          as: "parentCategory",
+        },
+      },
       {
         $unwind: {
-          path: "$category",
+          path: "$parentCategory",
           preserveNullAndEmptyArrays: true,
         },
       },
 
-      // join size
+      // size
       {
         $lookup: {
           from: "productsizevariants",
@@ -107,7 +113,7 @@ export const getProduct = async (req, res) => {
         },
       },
 
-      // join color
+      // color
       {
         $lookup: {
           from: "productcolorvariants",
@@ -117,16 +123,51 @@ export const getProduct = async (req, res) => {
         },
       },
 
-      // tính toán
+      // build sizes -> colors
       {
         $addFields: {
-          stock: { $sum: "$colors.stock" },
-          sizeList: { $setUnion: ["$sizes.size", []] },
-          colorList: { $setUnion: ["$colors.color", []] },
+          sizes: {
+            $map: {
+              input: "$sizes",
+              as: "size",
+              in: {
+                sizeId: "$$size._id",
+                size: "$$size.size",
+                colors: {
+                  $map: {
+                    input: {
+                      $filter: {
+                        input: "$colors",
+                        as: "color",
+                        cond: {
+                          $eq: ["$$color.sizeId", "$$size._id"],
+                        },
+                      },
+                    },
+                    as: "color",
+                    in: {
+                      colorId: "$$color._id",
+                      color: "$$color.color",
+                      price: "$$color.price",
+                      stock: "$$color.stock",
+                      avatar: "$$color.variantImage",
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
 
-      // chọn field trả về
+      // tính tổng stock
+      {
+        $addFields: {
+          stock: { $sum: "$colors.stock" },
+        },
+      },
+
+      // project
       {
         $project: {
           productId: 1,
@@ -134,9 +175,20 @@ export const getProduct = async (req, res) => {
           description: 1,
           productImage: 1,
           stock: 1,
-          sizeList: 1,
-          colorList: 1,
-          "category.name": 1,
+          tag: 1,
+
+          category: {
+            categoryId: "$category._id",
+            name: "$category.name",
+            slug: "$category.slug",
+            parent: {
+              categoryId: "$parentCategory._id",
+              name: "$parentCategory.name",
+              slug: "$parentCategory.slug",
+            },
+          },
+
+          sizes: 1,
         },
       },
 
@@ -147,22 +199,18 @@ export const getProduct = async (req, res) => {
 
     const total = await Product.countDocuments(filter);
 
-    const data = products.map((product) => ({
-      id: product._id,
-      productId: product.productId,
-      title: product.title,
-      description: product.description,
-      avatar: product.productImage,
-
-      category: product.category ? product.category.name : null,
-
-      stock: product.stock || 0,
-      size: product.sizeList || [],
-      color: product.colorList || [],
-    }));
-
     return res.status(200).json({
-      data,
+      data: products.map((p) => ({
+        id: p._id,
+        productId: p.productId,
+        title: p.title,
+        description: p.description,
+        avatar: p.productImage,
+        category: p.category,
+        tag: p.tag,
+        stock: p.stock || 0,
+        sizes: p.sizes || [],
+      })),
       pagination: {
         total,
         page: Number(page),
@@ -239,7 +287,6 @@ export const updateProduct = async (req, res) => {
 
     return res.status(200).json({
       message: "Update product success",
-
     });
   } catch (error) {
     console.error("Update product error:", error);

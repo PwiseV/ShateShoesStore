@@ -13,6 +13,13 @@ const categorySchema = new mongoose.Schema(
       unique: true,
       required: true,
     },
+
+    parentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      default: null,
+      index: true,
+    },
   }
 );
 

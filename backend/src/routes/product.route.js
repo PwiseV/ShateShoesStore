@@ -24,7 +24,7 @@ const router = express.Router();
 /* =========================
    CATEGORY
 ========================= */
-router.post("/categories", createCategory);
+router.post("/category", createCategory);
 
 /* =========================
    PRODUCT
