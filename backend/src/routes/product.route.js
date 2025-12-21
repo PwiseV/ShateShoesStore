@@ -4,6 +4,7 @@ import {
   getProduct,
   updateProduct,
   deleteProduct,
+  getOneProduct,
 
   // Size
   createSizeVariant,
@@ -33,6 +34,8 @@ router.post("/products", createProduct);
 router.get("/products", getProduct);
 router.patch("/products/:id", updateProduct);
 router.delete("/products/:id", deleteProduct);
+
+router.get("/products/:id", getOneProduct )
 
 /* =========================
    SIZE VARIANT (FK -> Product)
