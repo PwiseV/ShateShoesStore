@@ -1,10 +1,46 @@
-# Frontend
+## Project Structure
 
-React + Vite frontend for authentication demo.
+```
+src/
+│
+├─ api/                       
+│   ├─ axios.ts                
+│   ├─ authService.ts          
+│   ├─ customerService.ts      
+│   ├─ fakeAuthService.ts    
+│   └─ adminService.ts        
+│
+├─ pages/
+│   ├─ Signin/
+│   │    └─ LoginForm.tsx
+│   ├─ Signup/
+│   │    └─ SignupForm.tsx
+│   ├─ Customer/
+│   │    └─ Homepage.tsx
+│   └─ Admin/
+│        └─ Dashboard.tsx
+│
+├─ routes/
+│   └─ protectedRoutes.tsx            
+│
+└─ context/
+    ├─ authContext.ts                
+    ├─ ToastContext.ts            
+    ├─ useToast.ts 
+    └─ useAuth.ts      
 
-Structure:
-- `src/api/`: Axios client for backend calls
-- `src/pages/`: Login, Protected pages, etc.
-- `src/components/`: Shared UI components (optional)
-- `App.jsx`: Main layout
-- `main.jsx`: React entry point
+
+```
+
+## Getting Started
+
+1. **Install dependencies:**
+
+   ```bash
+   npm install
+   ```
+
+2. **Start development server:**
+   ```bash
+   npm run dev
+   ```
