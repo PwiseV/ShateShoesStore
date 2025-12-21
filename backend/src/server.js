@@ -5,7 +5,7 @@ import cors from "cors";
 import cookieParser from 'cookie-parser';
 
 import { connectDB } from './libs/db.js';
-
+import "./config/cloudinary.js";
 import authRoute from './routes/auth.route.js'
 import adminRoute from "./routes/admin.route.js";
 import userRoute from "./routes/user.route.js";
