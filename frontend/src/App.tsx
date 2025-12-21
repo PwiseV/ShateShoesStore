@@ -20,21 +20,26 @@ export default function AppRoutes() {
     <Router>
       <Suspense fallback={<div>Loading...</div>}>
         <Routes>
+          {/* --- PUBLIC ROUTES (Ai cũng vào được) --- */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Signup />} />
+
+          {/* Homepage nên để Public để khách vãng lai xem được hàng */}
           <Route path="/homepage" element={<HomePage />} />
-          <Route path="/products" element={<ProductDetail />} />
+          {/* Để test đường dẫn, cuối cùng xong xuôi thì sẽ add vào mỗi protectedroute của customer (khai báo gọi 1 lần thì render toast mới được)*/}
+          <Route path="/products/:productid" element={<ProductDetail />} />
+
           <Route path="/admin/dashboard" element={<Dashboard />} />
           <Route path="/admin/users" element={<Users />} />
+
+          {/* --- ADMIN ROUTES --- */}
           <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/admin/dashboard" element={<Dashboard />} />
             <Route path="/admin/users" element={<Users />} />
           </Route>
 
-          <Route element={<ProtectedRoute role="customer" />}>
-            <Route path="/homepage" element={<HomePage />} />
-            <Route path="/products" element={<ProductDetail />} />
-          </Route>
+          {/* --- CUSTOMER ROUTES --- */}
+          <Route element={<ProtectedRoute role="customer" />}></Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

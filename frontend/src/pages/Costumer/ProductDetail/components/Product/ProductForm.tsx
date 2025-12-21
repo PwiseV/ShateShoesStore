@@ -1,31 +1,42 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography"; // Import Typography
+import Typography from "@mui/material/Typography";
 
 import ProductGallery, { type GalleryImage } from "./ProductGallery";
 import ProductInfo, { type ProductRating } from "./ProductInfo";
 import ProductOptions, { type OptionValue } from "./ProductOptions";
+import { type ProductSizeVariant } from "../../../../../services/productdetailsServices";
+// Import type Promotion (lấy từ file fake tạm thời)
+import { type Promotion } from "../../../../../services/fakeProductDetailsServices";
 
-// ... (Giữ nguyên props)
 export type ProductFormProps = {
   name: string;
-  price: number;
+  defaultPrice: number;
   images: GalleryImage[];
   breadcrumbs?: string[];
   badges?: string[];
-  rating?: ProductRating;
+  rating: { value: number; count: number };
   description?: string[];
   sizes: OptionValue[];
   colors: OptionValue[];
+  variantsData: ProductSizeVariant[];
+
+  // Prop Promotion
+  promotion: Promotion | null;
+
   onSubmit?: (payload: any) => void;
   onBuyNow?: () => void;
+
+  // --- THÊM PROPS WISHLIST ---
+  isLiked: boolean;
+  onToggleLike: () => void;
 };
 
 const ProductForm: React.FC<ProductFormProps> = ({
   name,
-  price,
+  defaultPrice,
   images,
   breadcrumbs,
   badges,
@@ -33,37 +44,55 @@ const ProductForm: React.FC<ProductFormProps> = ({
   description,
   sizes,
   colors,
+  variantsData,
+  promotion,
   onSubmit,
   onBuyNow,
+
+  // Destructuring props mới
+  isLiked,
+  onToggleLike,
 }) => {
-  const [size, setSize] = useState<string>("36"); // Default giống ảnh
-  const [color, setColor] = useState<string>("blue");
+  const [size, setSize] = useState<string>(sizes.length > 0 ? sizes[0].id : "");
+  const [color, setColor] = useState<string>(
+    colors.length > 0 ? colors[0].id : ""
+  );
   const [quantity, setQuantity] = useState(1);
 
-  // Format giá tiền
-  const formattedPrice = new Intl.NumberFormat("vi-VN").format(price) + " đ";
+  const currentVariant = useMemo(() => {
+    const selectedSizeObj = variantsData.find((s) => String(s.size) === size);
+    if (!selectedSizeObj) return null;
+    const selectedColorObj = selectedSizeObj.colors.find(
+      (c) => c.color === color
+    );
+    return selectedColorObj || null;
+  }, [size, color, variantsData]);
+
+  const displayPrice = currentVariant ? currentVariant.price : defaultPrice;
+  const currentStock = currentVariant ? currentVariant.stock : 0;
+  const isOutOfStock = currentStock <= 0;
+  const formattedPrice =
+    new Intl.NumberFormat("vi-VN").format(displayPrice) + " đ";
 
   return (
     <Stack spacing={4}>
       <Stack direction={{ xs: "column", md: "row" }} spacing={5}>
-        {/* CỘT TRÁI: ẢNH (Chiếm 55%) */}
         <Box sx={{ flex: 1.2 }}>
           <ProductGallery images={images} />
         </Box>
 
-        {/* CỘT PHẢI: NỘI DUNG (Chiếm 45%) */}
         <Stack spacing={3} sx={{ flex: 1 }}>
-          {/* 1. Thông tin trên cùng */}
           <ProductInfo
             name={name}
-            // Price không truyền vào đây nữa
             breadcrumbs={breadcrumbs}
             badges={badges}
             rating={rating}
             description={description}
+            // TRUYỀN XUỐNG PRODUCT INFO
+            isLiked={isLiked}
+            onToggleLike={onToggleLike}
           />
 
-          {/* 2. Các tùy chọn (Size, Màu, SL) */}
           <ProductOptions
             sizes={sizes}
             colors={colors}
@@ -75,79 +104,113 @@ const ProductForm: React.FC<ProductFormProps> = ({
             onChangeQuantity={setQuantity}
           />
 
-          {/* 3. GIÁ TIỀN (Đặt ở đây mới đúng thiết kế) */}
-          <Typography
-            variant="h3"
-            sx={{
-              fontWeight: 800,
-              color: "2F4156",
-              fontSize: "2rem",
-              mt: 1,
-              textAlign: "left",
-              fontFamily: '"DM Sans", sans-serif',
-            }}
-          >
-            {formattedPrice}
-          </Typography>
-
-          {/* 4. Box Khuyến mãi */}
-          <Box
-            sx={{
-              borderRadius: 2,
-              p: 2.5,
-              bgcolor: "#2C3E50",
-              color: "#fff",
-              fontFamily: '"Lexend", sans-serif',
-              textAlign: "left",
-            }}
-          >
-            <Box sx={{ fontWeight: 700, mb: 0.5, fontSize: "0.95rem" }}>
-              Giảm 10% cho khách hàng mới
-            </Box>
-            <Box sx={{ opacity: 0.8, fontSize: 13, lineHeight: 1.5 }}>
-              Vì những ấn tượng đầu tiên luôn đặc biệt, [Tên thương hiệu] dành
-              tặng bạn ưu đãi 10% cho lần mua sắm đầu tiên – như một món quà nhỏ
-              gửi đến người phụ nữ biết trân trọng vẻ đẹp tinh tế.
-            </Box>
-          </Box>
-
-          {/* 5. Nút bấm */}
-          <Stack direction="row" spacing={2}>
-            <Button
-              variant="contained"
-              fullWidth
-              size="large"
-              onClick={onBuyNow}
+          <Box>
+            <Typography
+              variant="h3"
               sx={{
-                bgcolor: "#6B8E9B",
-                py: 1.5,
-                fontWeight: 700,
-                textTransform: "none",
-                fontSize: "1rem",
-                boxShadow: "none",
+                fontWeight: 800,
+                color: "#2C3E50",
+                fontSize: "2.5rem",
+                mt: 1,
+                textAlign: "left",
                 fontFamily: '"DM Sans", sans-serif',
-                "&:hover": { bgcolor: "#557280" },
               }}
             >
-              Mua ngay
-            </Button>
+              {formattedPrice}
+            </Typography>
+          </Box>
+
+          {/* --- HIỂN THỊ KHUYẾN MÃI TỪ API --- */}
+          {promotion && (
+            <Box
+              sx={{
+                borderRadius: 2,
+                p: 3,
+                bgcolor: "#2C3E50",
+                color: "#fff",
+                textAlign: "left",
+              }}
+            >
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  fontWeight: 700,
+                  mb: 1,
+                  fontFamily: '"Lexend", sans-serif',
+                }}
+              >
+                {promotion.description}
+              </Typography>
+
+              {promotion.longDescription && (
+                <Typography
+                  variant="body2"
+                  sx={{ opacity: 0.9, lineHeight: 1.5, fontSize: "0.9rem" }}
+                >
+                  {promotion.longDescription}
+                </Typography>
+              )}
+            </Box>
+          )}
+
+          <Stack direction="row" spacing={2}>
             <Button
               variant="outlined"
               fullWidth
               size="large"
-              onClick={() => onSubmit?.({ size, color, quantity })}
+              disabled={isOutOfStock}
+              onClick={() =>
+                onSubmit?.({
+                  sizeId: size,
+                  colorName: color,
+                  variantId: currentVariant?.colorId,
+                  price: displayPrice,
+                  quantity,
+                })
+              }
               sx={{
                 bgcolor: "#fff",
-                color: "#567C8D",
-                borderColor: "#567C8D",
+                color: "#546E7A",
+                borderColor: "#546E7A",
+                borderWidth: "1px",
+                borderRadius: "4px",
                 fontWeight: 700,
+                fontSize: "1rem",
                 textTransform: "none",
                 py: 1.5,
                 fontFamily: '"DM Sans", sans-serif',
-                "&:hover": { borderColor: "#333", bgcolor: "transparent" },
+                "&:hover": {
+                  bgcolor: "#F5F7FA",
+                  borderColor: "#546E7A",
+                  borderWidth: "1px",
+                },
+                "&.Mui-disabled": { borderColor: "#ddd", color: "#ddd" },
               }}
             >
-              Thêm vào giỏ hàng
+              {isOutOfStock ? "Tạm hết hàng" : "Thêm vào giỏ hàng"}
+            </Button>
+
+            <Button
+              variant="contained"
+              fullWidth
+              size="large"
+              disabled={isOutOfStock}
+              onClick={onBuyNow}
+              sx={{
+                bgcolor: "#546E7A",
+                color: "#fff",
+                borderRadius: "4px",
+                fontWeight: 700,
+                fontSize: "1rem",
+                textTransform: "none",
+                py: 1.5,
+                boxShadow: "none",
+                fontFamily: '"DM Sans", sans-serif',
+                "&:hover": { bgcolor: "#455A64", boxShadow: "none" },
+                "&.Mui-disabled": { bgcolor: "#eee", color: "#999" },
+              }}
+            >
+              Mua ngay
             </Button>
           </Stack>
         </Stack>

@@ -6,6 +6,7 @@ import Chip from "@mui/material/Chip";
 import Rating from "@mui/material/Rating";
 import IconButton from "@mui/material/IconButton";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import FavoriteIcon from "@mui/icons-material/Favorite";
 
 export type ProductRating = {
   value: number;
@@ -19,6 +20,10 @@ export type ProductInfoProps = {
   rating?: ProductRating;
   description?: string[];
   className?: string;
+
+  // THÊM PROPS MỚI ĐỂ CONTROL TỪ BÊN NGOÀI
+  isLiked: boolean;
+  onToggleLike: () => void;
 };
 
 const ProductInfo: React.FC<ProductInfoProps> = ({
@@ -28,16 +33,20 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
   rating,
   description = [],
   className,
+  isLiked, // Nhận từ props
+  onToggleLike, // Nhận từ props
 }) => {
+  // (Đã xóa useState nội bộ ở đây)
+
   return (
     <Stack
       className={className}
-      spacing={2} // Tăng khoảng cách chung
-      alignItems="flex-start" // QUAN TRỌNG: Căn tất cả về bên trái
+      spacing={2}
+      alignItems="flex-start"
       sx={{
         fontFamily: '"DM Sans", sans-serif',
         width: "100%",
-        textAlign: "left", // Đảm bảo text mặc định căn trái
+        textAlign: "left",
       }}
     >
       {/* 1. Header (Breadcrumb + Tim) */}
@@ -62,14 +71,18 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
           <Box />
         )}
 
+        {/* --- NÚT TIM --- */}
         <IconButton
+          onClick={onToggleLike} // Gọi hàm từ props
+          disableRipple
           sx={{
             bgcolor: "#fff",
-            color: "#546E7A",
+            color: isLiked ? "#ff4757" : "#546E7A",
             width: 44,
             height: 44,
             boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
             transition: "all 0.2s",
+            "&:focus": { outline: "none" },
             "&:hover": {
               bgcolor: "#fff",
               color: "#ff4757",
@@ -78,13 +91,18 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
             },
           }}
         >
-          <FavoriteBorderIcon sx={{ fontSize: 22 }} />
+          {isLiked ? (
+            <FavoriteIcon sx={{ fontSize: 22 }} />
+          ) : (
+            <FavoriteBorderIcon sx={{ fontSize: 22 }} />
+          )}
         </IconButton>
       </Stack>
 
-      {/* 2. Tên sản phẩm */}
+      {/* ... (Các phần Tên, Rating, Badges, Mô tả giữ nguyên như cũ) ... */}
+
       <Typography
-        variant="h3" // Tăng kích cỡ tiêu đề lên chút (h4 -> h3) cho giống mẫu
+        variant="h3"
         sx={{
           fontWeight: 800,
           color: "#2C3E50",
@@ -96,7 +114,6 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
         {name}
       </Typography>
 
-      {/* 3. Rating */}
       {rating && (
         <Stack direction="row" spacing={1} alignItems="center">
           <Rating
@@ -120,7 +137,6 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
         </Stack>
       )}
 
-      {/* 4. Badges */}
       {badges.length > 0 && (
         <Stack direction="row" spacing={1.5} flexWrap="wrap">
           {badges.map((b) => (
@@ -143,33 +159,30 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
         </Stack>
       )}
 
-      {/* 5. Mô tả sản phẩm (ĐÃ CHỈNH SỬA) */}
       {description.length > 0 && (
         <Box sx={{ mt: 1, width: "100%" }}>
           <Typography
             variant="h6"
             sx={{
               fontWeight: 700,
-              mb: 1.5,
+              mb: 1,
               color: "#2C3E50",
               fontFamily: '"DM Sans", sans-serif',
             }}
           >
             Mô tả sản phẩm
           </Typography>
-
-          {/* Thay thẻ ul bằng Stack để bỏ dấu chấm và căn thẳng lề trái */}
-          <Stack spacing={1.5} sx={{ width: "100%" }}>
+          <Stack spacing={0.8} sx={{ width: "100%" }}>
             {description.map((d, i) => (
               <Typography
                 key={i}
-                variant="body1" // Dùng body1 cho chữ to rõ hơn xíu
+                variant="body1"
                 sx={{
                   color: "#4a4a4a",
                   fontSize: "0.95rem",
                   lineHeight: 1.6,
                   fontFamily: '"DM Sans", sans-serif',
-                  textAlign: "left", // Căn trái tuyệt đối
+                  textAlign: "left",
                 }}
               >
                 {d}

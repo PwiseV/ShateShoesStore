@@ -6,13 +6,17 @@ import Typography from "@mui/material/Typography";
 import Rating from "@mui/material/Rating";
 import Box from "@mui/material/Box";
 
+// --- CẬP NHẬT TYPE REVIEW MỚI (Khớp với Type ProductReview bên Fake Service) ---
 export type Review = {
-  id: string;
+  reviewId: string; // Đổi id -> reviewId
   author: string;
   rating: number;
-  comment: string;
+  content: string; // Đổi comment -> content
   createdAt: string;
-  productVariant?: string;
+  // Bỏ productVariant gộp chung, tách riêng Size/Color nếu muốn hiển thị chi tiết
+  size?: string;
+  color?: string;
+  productVariant?: string; // Giữ lại optional để tương thích ngược nếu cần
 };
 
 export type ReviewListProps = {
@@ -25,7 +29,7 @@ export type ReviewListProps = {
 
 const ReviewList: React.FC<ReviewListProps> = ({
   reviews,
-  title = "Đánh giá của khách hàng",
+  title = "Khách hàng đánh giá",
   subtitle = "Khách hàng của chúng tôi không chỉ yêu những đôi giày đẹp, mà còn yêu cảm giác tự tin, êm ái và thanh lịch mà mỗi sản phẩm mang lại",
   emptyText = "Chưa có đánh giá",
   className,
@@ -35,6 +39,7 @@ const ReviewList: React.FC<ReviewListProps> = ({
       <Typography
         variant="h4"
         sx={{
+          mt: 4,
           mb: 1.5,
           fontWeight: 800,
           textAlign: "center",
@@ -67,9 +72,6 @@ const ReviewList: React.FC<ReviewListProps> = ({
           {emptyText}
         </Typography>
       ) : (
-        /* 1. GIẢM SPACING TỪ 3 XUỐNG 2: Để tiết kiệm không gian ngang 
-           2. justifyContent="center": Căn giữa nguyên khối
-        */
         <Grid
           container
           spacing={2}
@@ -77,25 +79,19 @@ const ReviewList: React.FC<ReviewListProps> = ({
           alignItems="stretch"
         >
           {reviews.map((r) => (
-            /* 3. ÉP CỘT (sm={4}):
-               Bắt buộc chia 3 cột ngay từ màn hình Tablet/Laptop nhỏ (600px+)
-            */
             <Grid
               item
               xs={12}
               sm={4}
-              key={r.id}
+              key={r.reviewId} // Dùng reviewId làm key
               sx={{ display: "flex", justifyContent: "center" }}
             >
               <Card
                 elevation={0}
                 sx={{
-                  // --- CẬP NHẬT KÍCH THƯỚC NHỎ HƠN ---
-                  width: "100%", // Co giãn theo cột
-                  maxWidth: "350px", // Giới hạn max 350px (nhỏ hơn 388px cũ để dễ lọt hàng)
-                  height: "344px", // Giữ chiều cao cố định
-                  // ------------------------------------
-
+                  width: "100%",
+                  maxWidth: "330px",
+                  height: "344px",
                   borderRadius: "24px",
                   border: "1px solid #D0D6E8",
                   bgcolor: "#fff",
@@ -111,7 +107,7 @@ const ReviewList: React.FC<ReviewListProps> = ({
               >
                 <CardContent
                   sx={{
-                    p: 3, // Giảm padding nhẹ (từ 4 xuống 3) cho thoáng chữ bên trong
+                    p: 3,
                     textAlign: "left",
                     flex: 1,
                     display: "flex",
@@ -134,14 +130,13 @@ const ReviewList: React.FC<ReviewListProps> = ({
                         lineHeight: 1.6,
                         fontSize: "0.9rem",
                         fontFamily: '"DM Sans", sans-serif',
-                        // Cắt chữ nếu quá dài
                         display: "-webkit-box",
                         overflow: "hidden",
                         WebkitBoxOrient: "vertical",
                         WebkitLineClamp: 4,
                       }}
                     >
-                      “{r.comment}”
+                      “{r.content}” {/* Hiển thị content thay vì comment */}
                     </Typography>
                   </Box>
 
@@ -168,11 +163,22 @@ const ReviewList: React.FC<ReviewListProps> = ({
                         fontSize: "0.8rem",
                       }}
                     >
-                      {new Date(r.createdAt)
-                        .toISOString()
-                        .slice(0, 16)
-                        .replace("T", " ")}
-                      {r.productVariant ? ` | ${r.productVariant}` : ""}
+                      {
+                        new Date(r.createdAt).toISOString().slice(0, 10) // Lấy ngày tháng năm (YYYY-MM-DD)
+                      }
+
+                      {/* Hiển thị Size và Color nếu có */}
+                      {(r.size || r.color) && (
+                        <span style={{ marginLeft: "8px" }}>
+                          | {r.color ? r.color : ""}{" "}
+                          {r.size ? `/ Size ${r.size}` : ""}
+                        </span>
+                      )}
+
+                      {/* Fallback cho trường hợp dùng prop cũ */}
+                      {!r.size && !r.color && r.productVariant
+                        ? ` | ${r.productVariant}`
+                        : ""}
                     </Typography>
                   </Box>
                 </CardContent>
