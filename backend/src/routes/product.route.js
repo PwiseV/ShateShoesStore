@@ -19,6 +19,8 @@ import {
 
 import { createCategory } from "../controllers/category.controller.js";
 
+import { upload } from "../middlewares/upload.middleware.js";
+
 const router = express.Router();
 
 /* =========================
@@ -29,7 +31,7 @@ router.post("/categories", createCategory);
 /* =========================
    PRODUCT
 ========================= */
-router.post("/products", createProduct);
+router.post("/products",upload.single("image"), createProduct);
 router.get("/products", getProduct);
 router.patch("/products/:id", updateProduct);
 router.delete("/products/:id", deleteProduct);
@@ -53,6 +55,7 @@ router.get(
 
 router.post(
   "/product-sizes/:sizeId/colors",
+  upload.single("image"),
   createColorVariant
 );
 

@@ -3,16 +3,23 @@ import Category from "../models/Category.js";
 import ProductSizeVariant from "../models/ProductSizeVariant.js";
 import ProductColorVariant from "../models/ProductColorVariant.js";
 import slugify from "slugify";
+import { uploadImageToCloudinary } from "../services/cloudinaryService.js";
 
 export const createProduct = async (req, res) => {
   try {
-    const { productId, title, description, category, avatar } = req.body;
+    const { productId, title, description, category } = req.body;
 
     if (!productId || !title || !category) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const existProductId = await Product.findOne({ productId: productId });
+    if (!req.file) {
+      return res.status(400).json({
+        message: "Product image is required",
+      });
+    }
+
+    const existProductId = await Product.findOne({ productId });
     if (existProductId) {
       return res.status(409).json({
         message: "Product ID already exists",
@@ -38,14 +45,24 @@ export const createProduct = async (req, res) => {
       });
     }
 
+    //  upload cloudinary
+    const imageResult = await uploadImageToCloudinary(
+      req.file.buffer,
+      "products"
+    );
+
     await Product.create({
-      productId: productId,
+      productId,
       title,
       description,
       categoryId: categoryDoc._id,
-      productImage: avatar,
       slug,
+      productImage: {
+        url: imageResult.url,
+        publicId: imageResult.publicId,
+      },
     });
+
     return res.status(201).json({
       message: "Create product success",
     });
@@ -395,45 +412,53 @@ export const deleteSizeVariant = async (req, res) => {
 export const createColorVariant = async (req, res) => {
   try {
     const { sizeId } = req.params;
-    const { price, color, stock, avatar } = req.body;
+    const { price, color, stock } = req.body;
 
+    // 1. Kiểm tra input cơ bản
     if (!price || !color || !stock) {
-      return res.status(400).json({
-        message: "Missing required fields",
-      });
+      return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const product = await ProductSizeVariant.findById(sizeId);
-    if (!product) {
-      return res.status(404).json({
-        message: "Size not found",
-      });
+    // 2. Kiểm tra xem Size có tồn tại không
+    const sizeDoc = await ProductSizeVariant.findById(sizeId);
+    if (!sizeDoc) {
+      return res.status(404).json({ message: "Size not found" });
     }
 
-    const existColor = await ProductColorVariant.findOne({
-      sizeId: sizeId,
-      color,
-    });
-
+    // 3. Kiểm tra xem màu này đã tồn tại cho size này chưa
+    const existColor = await ProductColorVariant.findOne({ sizeId, color });
     if (existColor) {
-      return res.status(409).json({
-        message: "Color already exists for this size",
-      });
+      return res.status(409).json({ message: "Color already exists for this size" });
     }
 
-    const sizeVariant = await ProductColorVariant.create({
+    // 4. Xử lý Upload ảnh (nếu có gửi file lên)
+    let imageData = { url: "", publicId: "" };
+    if (req.file) {
+      const imageResult = await uploadImageToCloudinary(
+        req.file.buffer,
+        "variants" // Cậu có thể để trong folder 'variants' cho dễ quản lý
+      );
+      imageData = {
+        url: imageResult.url,
+        publicId: imageResult.publicId
+      };
+    }
+
+    // 5. Lưu vào Database
+    const newVariant = await ProductColorVariant.create({
       sizeId,
       color,
       price,
       stock,
-      variantImage: avatar,
+      variantImage: imageData,
     });
 
     return res.status(201).json({
       message: "Create color variant success",
+      data: newVariant
     });
   } catch (error) {
-    console.error("Create size variant error:", error);
+    console.error("Create color variant error:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };
