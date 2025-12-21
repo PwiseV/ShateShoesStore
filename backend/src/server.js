@@ -6,10 +6,9 @@ import cookieParser from 'cookie-parser';
 
 import { connectDB } from './libs/db.js';
 
-import authRoute from './routes/auth.route.js'
-import adminRoute from "./routes/admin.route.js";
-import userRoute from "./routes/user.route.js";
-import productRoute from "./routes/product.route.js"
+import authRoute from './routes/authRoute.js'
+import adminRoute from "./routes/adminRoute.js";
+import userRoute from "./routes/userRoute.js";
 
 import { protectedRoute } from "./middlewares/authMiddleware.js";
 import { adminOnly } from './middlewares/adminMiddleware.js';
@@ -37,7 +36,7 @@ app.use("/api/auth", authRoute);
 app.use("/api/users", protectedRoute, userRoute);
 
 // admin routes (CẦN đăng nhập + quyền admin)
-app.use("/api/admin", protectedRoute, adminOnly, adminRoute, productRoute);
+app.use("/api/admin", protectedRoute, adminOnly, adminRoute);
 
 
 

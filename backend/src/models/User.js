@@ -36,6 +36,10 @@ const userSChema = new  mongoose.Schema ({
     avatarId: {
         type: String,
     },
+    bio : {
+        type: String,
+        maxlength: 500,
+    },
     phone: {
         type: String,
         sparse: true,
