@@ -7,9 +7,12 @@ import Typography from "@mui/material/Typography";
 import ProductGallery, { type GalleryImage } from "./ProductGallery";
 import ProductInfo, { type ProductRating } from "./ProductInfo";
 import ProductOptions, { type OptionValue } from "./ProductOptions";
-import { type ProductSizeVariant } from "../../../../../services/productdetailsServices";
-// Import type Promotion (lấy từ file fake tạm thời)
-import { type Promotion } from "../../../../../services/fakeProductDetailsServices";
+
+// --- 1. SỬA IMPORT: Lấy tất cả Type từ service chính ---
+import {
+  type BackendSizeVariant,
+  type Promotion, // Import Promotion từ đây luôn
+} from "../../../../../services/productdetailsServices";
 
 export type ProductFormProps = {
   name: string;
@@ -21,7 +24,7 @@ export type ProductFormProps = {
   description?: string[];
   sizes: OptionValue[];
   colors: OptionValue[];
-  variantsData: ProductSizeVariant[];
+  variantsData: BackendSizeVariant[];
 
   // Prop Promotion
   promotion: Promotion | null;
@@ -29,7 +32,7 @@ export type ProductFormProps = {
   onSubmit?: (payload: any) => void;
   onBuyNow?: () => void;
 
-  // --- THÊM PROPS WISHLIST ---
+  // --- PROPS WISHLIST ---
   isLiked: boolean;
   onToggleLike: () => void;
 };
@@ -48,8 +51,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
   promotion,
   onSubmit,
   onBuyNow,
-
-  // Destructuring props mới
   isLiked,
   onToggleLike,
 }) => {
@@ -59,18 +60,27 @@ const ProductForm: React.FC<ProductFormProps> = ({
   );
   const [quantity, setQuantity] = useState(1);
 
+  // --- 2. CẬP NHẬT LOGIC TÌM VARIANT (An toàn hơn) ---
   const currentVariant = useMemo(() => {
-    const selectedSizeObj = variantsData.find((s) => String(s.size) === size);
+    // Ép kiểu String cho size để so sánh ("36" === "36")
+    const selectedSizeObj = variantsData.find(
+      (s) => String(s.size) === String(size)
+    );
     if (!selectedSizeObj) return null;
+
+    // So sánh màu không phân biệt hoa thường
     const selectedColorObj = selectedSizeObj.colors.find(
-      (c) => c.color === color
+      (c) => c.color.toLowerCase() === color.toLowerCase()
     );
     return selectedColorObj || null;
   }, [size, color, variantsData]);
 
+  // Logic hiển thị giá & stock
+  // Nếu không tìm thấy variant (vd chưa chọn màu), fallback về giá mặc định
   const displayPrice = currentVariant ? currentVariant.price : defaultPrice;
   const currentStock = currentVariant ? currentVariant.stock : 0;
   const isOutOfStock = currentStock <= 0;
+
   const formattedPrice =
     new Intl.NumberFormat("vi-VN").format(displayPrice) + " đ";
 

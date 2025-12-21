@@ -1,10 +1,12 @@
-// IMPORT TẤT CẢ TYPE TỪ FILE CHÍNH
+// 1. IMPORT TYPE TỪ FILE CHÍNH (Đã cập nhật theo cấu trúc Backend)
 import type {
   Product,
-  ProductImage,
-  Rating,
-  ProductSizeVariant,
-  // --- Import các Type mới ---
+  // ProductImage, // <-- Đã xóa type này
+  // ProductSizeVariant, // <-- Đã xóa type này
+
+  // --- Import Type Mới ---
+  BackendSizeVariant,
+  BackendColorVariant,
   ProductReview,
   Promotion,
   AddToCartRequest,
@@ -53,75 +55,72 @@ const mockPromotion: Promotion = {
     "Vì những ấn tượng đầu tiên luôn đặc biệt, [Tên thương hiệu] dành tặng bạn ưu đãi 10% cho lần mua sắm đầu tiên.",
 };
 
-// --- CÁC HÀM FAKE GIỮ NGUYÊN ---
-// (Chỉ cần đảm bảo tên Type khớp với file import là được)
-
+// --- HÀM FAKE GET PRODUCT DETAILS ---
 export async function getProductDetailsFake(id: string): Promise<Product> {
-  // ... (Code cũ giữ nguyên)
-  const images: ProductImage[] = [
-    {
-      id: "img-1",
-      src: "/imgs/giay-mira-ballet-sneaker-xanh-duong-nu.avif",
-      alt: "Main image",
-    },
-    {
-      id: "img-2",
-      src: "/imgs/giay-mira-ballet-sneaker-hong-nu.avif",
-      alt: "Thumb 1",
-    },
-    {
-      id: "img-3",
-      src: "/imgs/giay-mira-ballet-sneaker-vang-nu.avif",
-      alt: "Thumb 2",
-    },
-  ];
-
+  // 1. Tạo biến thể (Variant) theo cấu trúc mới
   const sizeList = [35, 36, 37, 38, 39];
   const colorNames = ["Vàng", "Hồng", "Xanh"];
   const BASE_PRICE = 500000;
   const STEP_PRICE = 20000;
   let counter = 0;
 
-  const sizes: ProductSizeVariant[] = sizeList.map((s) => ({
+  // Map sang BackendSizeVariant
+  const sizes: BackendSizeVariant[] = sizeList.map((s) => ({
     sizeId: `size-${s}`,
-    size: s,
+    size: String(s), // QUAN TRỌNG: Backend trả về chuỗi "35"
     colors: colorNames.map((cName) => {
       const currentPrice = BASE_PRICE + counter * STEP_PRICE;
       counter++;
       let stock = 100;
       if (s === 38) stock = 0;
       if (s === 39 && cName === "Hồng") stock = 0;
+
+      // Map sang BackendColorVariant
       return {
         colorId: `color-${cName}-${s}`,
         color: cName,
         price: currentPrice,
         stock: stock,
-      };
+        // Giả lập mỗi màu có 1 ảnh riêng (để test gallery)
+        avatar:
+          cName === "Vàng"
+            ? "/imgs/giay-mira-ballet-sneaker-vang-nu.avif"
+            : cName === "Hồng"
+            ? "/imgs/giay-mira-ballet-sneaker-hong-nu.avif"
+            : "/imgs/giay-mira-ballet-sneaker-xanh-duong-nu.avif",
+      } as BackendColorVariant;
     }),
   }));
 
-  const rating: Rating = { value: 4.8, count: 253 };
-
+  // 2. Tạo Product theo cấu trúc mới
   const product: Product = {
     id,
+    productId: "MIRA-001", // Thêm mã SP
     title: "MIRA MARY SNEAKER",
+
+    // Cấu trúc Category mới (categoryId thay vì id)
     category: {
-      id: "cat-suc-bup-be",
+      categoryId: "cat-suc-bup-be",
       name: "Giày Sục & Giày Búp Bê",
       slug: "giay-suc-va-giay-bup-be",
-      parent: { id: "cat-giay-nu", name: "Giày Dép Nữ", slug: "giay-dep-nu" },
+      parent: {
+        categoryId: "cat-giay-nu",
+        name: "Giày Dép Nữ",
+        slug: "giay-dep-nu",
+      },
     },
-    description: [
-      "Bạn nào mê phong cách retro - preppy kiểu Nhật...",
-      "Form MaryJane phối hai dây chéo cực xinh...",
-      "Mũi bo tròn, đế thấp dễ đi...",
-      "Các màu basic dễ phối.",
-      "👟 Hàng sẵn SL ít các nàng nhanh tay pick ẻm nha.",
-    ],
-    tag: ["Giày đi làm", "Giày đi chơi", "Giày Nhật"],
-    avatar: images,
-    rating,
-    sizes,
+
+    // Description: Chuỗi dài nối bằng \n (Thay vì mảng)
+    description: `Bạn nào mê phong cách retro - preppy kiểu Nhật...\nForm MaryJane phối hai dây chéo cực xinh...\nMũi bo tròn, đế thấp dễ đi...\nCác màu basic dễ phối.\n👟 Hàng sẵn SL ít các nàng nhanh tay pick ẻm nha.`,
+
+    // Avatar: 1 chuỗi String (Thay vì mảng object)
+    avatar: "/imgs/giay-mira-ballet-sneaker-xanh-duong-nu.avif",
+
+    stock: 500, // Tổng tồn kho giả định
+
+    rating: { value: 4.8, count: 253 },
+
+    sizes: sizes,
   };
 
   await delay(500);

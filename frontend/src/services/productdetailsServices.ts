@@ -1,67 +1,55 @@
 import api from "./axios";
 
 /* ============================
-   TYPES
+   1. TYPES KHỚP VỚI BACKEND
 ============================ */
 
-export type ProductImage = {
-  id: string;
-  src: string;
-  alt?: string;
+export type BackendCategory = {
+  categoryId: string;
+  name: string;
+  slug: string;
+  parent?: {
+    categoryId: string;
+    name: string;
+    slug: string;
+  };
 };
 
-// (Đã xóa ProductOption vì có vẻ không dùng đến, nếu cần thì giữ lại)
-
-export type Rating = {
-  value: number;
-  count: number;
-};
-
-// (Đã xóa Type Review cũ và RelatedProduct vì không còn dùng trong object Product)
-
-export type ProductColorVariant = {
+export type BackendColorVariant = {
   colorId: string;
   color: string;
   price: number;
   stock: number;
+  // Backend trả về avatar lúc thì string, lúc thì object -> dùng union type
+  avatar?: string | { url: string; publicId: string };
 };
 
-export type ProductSizeVariant = {
+export type BackendSizeVariant = {
   sizeId: string;
-  size: number;
-  colors: ProductColorVariant[];
+  size: string; // Backend trả về "36" (String)
+  colors: BackendColorVariant[];
 };
 
-export type ParentCategory = {
-  id: string;
-  name: string;
-  slug: string;
-};
-
-export type Category = {
-  id: string;
-  name: string;
-  slug: string;
-  parent?: ParentCategory;
-};
-
-// --- CẬP NHẬT TYPE PRODUCT CHÍNH ---
+// Đây là cấu trúc chính xác của Product từ Backend trả về
 export type Product = {
-  id: string;
+  id: string; // ObjectId MongoDB
+  productId: string; // Mã SP (SH104)
   title: string;
-  category: Category;
-  description: string[];
-  tag: string[];
-  avatar: ProductImage[];
-  rating: Rating;
-  sizes: ProductSizeVariant[];
-  // Đã xóa reviews và related để khớp với dữ liệu thực tế
+  description: string; // Chuỗi văn bản dài
+  avatar: string; // Link ảnh chính
+  category: BackendCategory;
+  stock: number;
+  sizes: BackendSizeVariant[];
+  // Rating backend chưa trả về trong JSON mẫu, để optional
+  rating?: {
+    value: number;
+    count: number;
+  };
 };
 
 /* ============================
-   NEW TYPES (Các type mới thêm)
+   2. TYPES PHỤ (Review, Cart...)
 ============================ */
-
 export type ProductReview = {
   reviewId: string;
   rating: number;
@@ -100,27 +88,25 @@ export type WishlistResponse = {
 };
 
 /* ============================
-   PRODUCT APIS
+   3. API CALLS
 ============================ */
 
-// 1. GET PRODUCT DETAILS
-// Endpoint: /users/products/:productid
+// GET PRODUCT DETAILS
 export const getProductDetails = async (
   id: string,
   signal?: AbortSignal
 ): Promise<Product> => {
   try {
-    // Bỏ encodeURIComponent -> URL gọn hơn
     const response = await api.get(`/users/products/${id}`, { signal });
-    return response.data;
+    // LƯU Ý: JSON của bạn bọc trong property "data", nên phải lấy response.data.data
+    return response.data.data;
   } catch (error) {
     console.error("Get product details error:", error);
     throw error;
   }
 };
 
-// 2. GET PRODUCT REVIEWS
-// Endpoint: /users/reviews/:productid
+// GET REVIEWS
 export const getProductReviews = async (
   productId: string,
   signal?: AbortSignal
@@ -129,13 +115,11 @@ export const getProductReviews = async (
     const response = await api.get(`/users/reviews/${productId}`, { signal });
     return response.data;
   } catch (error) {
-    console.error("Get reviews error:", error);
-    throw error;
+    return []; // Trả mảng rỗng nếu lỗi
   }
 };
 
-// 3. GET PROMOTION
-// Endpoint: /users/promotions?productId=...
+// GET PROMOTION
 export const getProductPromotion = async (
   productId: string,
   signal?: AbortSignal
@@ -151,8 +135,7 @@ export const getProductPromotion = async (
   }
 };
 
-// 4. ADD TO CART
-// Endpoint: /users/cart/item (POST)
+// ADD TO CART
 export const addToCart = async (
   payload: AddToCartRequest
 ): Promise<AddToCartResponse> => {
@@ -160,16 +143,14 @@ export const addToCart = async (
     const response = await api.post(`/users/cart/item`, payload);
     return response.data;
   } catch (error: any) {
-    console.error("Add to cart error:", error);
     return {
       success: false,
-      message: error.response?.data?.message || "Lỗi kết nối đến server",
+      message: error.response?.data?.message || "Lỗi server",
     };
   }
 };
 
-// 5. ADD TO WISHLIST
-// Endpoint: /users/favorites (POST)
+// WISHLIST APIs
 export const addToWishlist = async (
   productId: string
 ): Promise<WishlistResponse> => {
@@ -177,15 +158,10 @@ export const addToWishlist = async (
     const response = await api.post(`/users/favorites`, { productId });
     return response.data;
   } catch (error: any) {
-    return {
-      success: false,
-      message: error.response?.data?.message || "Lỗi thêm yêu thích",
-    };
+    return { success: false, message: "Lỗi thêm yêu thích" };
   }
 };
 
-// 6. REMOVE FROM WISHLIST
-// Endpoint: /users/favorites (DELETE)
 export const removeFromWishlist = async (
   productId: string
 ): Promise<WishlistResponse> => {
@@ -195,9 +171,6 @@ export const removeFromWishlist = async (
     });
     return response.data;
   } catch (error: any) {
-    return {
-      success: false,
-      message: error.response?.data?.message || "Lỗi xóa yêu thích",
-    };
+    return { success: false, message: "Lỗi xóa yêu thích" };
   }
 };
