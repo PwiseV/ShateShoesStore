@@ -19,17 +19,19 @@ import {
 
 import { createCategory } from "../controllers/category.controller.js";
 
+import { upload } from "../middlewares/upload.middleware.js";
+
 const router = express.Router();
 
 /* =========================
    CATEGORY
 ========================= */
-router.post("/categories", createCategory);
+router.post("/category", createCategory);
 
 /* =========================
    PRODUCT
 ========================= */
-router.post("/products", createProduct);
+router.post("/products",upload.single("avatar"), createProduct);
 router.get("/products", getProduct);
 router.patch("/products/:id", updateProduct);
 router.delete("/products/:id", deleteProduct);
@@ -53,6 +55,7 @@ router.get(
 
 router.post(
   "/product-sizes/:sizeId/colors",
+  upload.single("avatar"),
   createColorVariant
 );
 

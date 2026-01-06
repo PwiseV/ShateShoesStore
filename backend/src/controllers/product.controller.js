@@ -3,16 +3,23 @@ import Category from "../models/Category.js";
 import ProductSizeVariant from "../models/ProductSizeVariant.js";
 import ProductColorVariant from "../models/ProductColorVariant.js";
 import slugify from "slugify";
+import { uploadImageToCloudinary } from "../services/cloudinaryService.js";
 
 export const createProduct = async (req, res) => {
   try {
-    const { productId, title, description, category, avatar } = req.body;
+    const { productId, title, description, category, tag } = req.body;
 
     if (!productId || !title || !category) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const existProductId = await Product.findOne({ productId: productId });
+    if (!req.file) {
+      return res.status(400).json({
+        message: "Avatar image is required",
+      });
+    }
+
+    const existProductId = await Product.findOne({ productId });
     if (existProductId) {
       return res.status(409).json({
         message: "Product ID already exists",
@@ -38,14 +45,31 @@ export const createProduct = async (req, res) => {
       });
     }
 
+    //  upload cloudinary
+    const imageResult = await uploadImageToCloudinary(
+      req.file.buffer,
+      "products"
+    );
+
+    // tag (if string transform to array)
+    let finalTags = tag;
+    if (typeof tag === 'string') {
+      finalTags = tag.split(',').map(t => t.trim());
+    }
+
     await Product.create({
-      productId: productId,
+      productId,
       title,
       description,
       categoryId: categoryDoc._id,
-      productImage: avatar,
       slug,
+      tag: finalTags,
+      avatar: {
+        url: imageResult.url,
+        publicId: imageResult.publicId,
+      },
     });
+
     return res.status(201).json({
       message: "Create product success",
     });
@@ -72,16 +96,10 @@ export const getProduct = async (req, res) => {
       filter.title = { $regex: keyword, $options: "i" };
     }
 
-    // const products = await Product.find(filter)
-    //   .populate("categoryId", "name")
-    //   .skip((page - 1) * limit)
-    //   .limit(Number(limit))
-    //   .sort({ createdAt: -1 });
-
     const products = await Product.aggregate([
       { $match: filter },
 
-      // 👉 JOIN CATEGORY
+      // category
       {
         $lookup: {
           from: "categories",
@@ -90,14 +108,25 @@ export const getProduct = async (req, res) => {
           as: "category",
         },
       },
+      { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+
+      // parent category
+      {
+        $lookup: {
+          from: "categories",
+          localField: "category.parentId",
+          foreignField: "_id",
+          as: "parentCategory",
+        },
+      },
       {
         $unwind: {
-          path: "$category",
+          path: "$parentCategory",
           preserveNullAndEmptyArrays: true,
         },
       },
 
-      // join size
+      // size
       {
         $lookup: {
           from: "productsizevariants",
@@ -107,7 +136,7 @@ export const getProduct = async (req, res) => {
         },
       },
 
-      // join color
+      // color
       {
         $lookup: {
           from: "productcolorvariants",
@@ -117,16 +146,51 @@ export const getProduct = async (req, res) => {
         },
       },
 
-      // tính toán
+      // build sizes -> colors
       {
         $addFields: {
-          stock: { $sum: "$colors.stock" },
-          sizeList: { $setUnion: ["$sizes.size", []] },
-          colorList: { $setUnion: ["$colors.color", []] },
+          sizes: {
+            $map: {
+              input: "$sizes",
+              as: "size",
+              in: {
+                sizeId: "$$size._id",
+                size: "$$size.size",
+                colors: {
+                  $map: {
+                    input: {
+                      $filter: {
+                        input: "$colors",
+                        as: "color",
+                        cond: {
+                          $eq: ["$$color.sizeId", "$$size._id"],
+                        },
+                      },
+                    },
+                    as: "color",
+                    in: {
+                      colorId: "$$color._id",
+                      color: "$$color.color",
+                      price: "$$color.price",
+                      stock: "$$color.stock",
+                      avatar: "$$color.variantImage",
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
 
-      // chọn field trả về
+      // tính tổng stock
+      {
+        $addFields: {
+          stock: { $sum: "$colors.stock" },
+        },
+      },
+
+      // project
       {
         $project: {
           productId: 1,
@@ -134,9 +198,20 @@ export const getProduct = async (req, res) => {
           description: 1,
           productImage: 1,
           stock: 1,
-          sizeList: 1,
-          colorList: 1,
-          "category.name": 1,
+          tag: 1,
+
+          category: {
+            categoryId: "$category._id",
+            name: "$category.name",
+            slug: "$category.slug",
+            parent: {
+              categoryId: "$parentCategory._id",
+              name: "$parentCategory.name",
+              slug: "$parentCategory.slug",
+            },
+          },
+
+          sizes: 1,
         },
       },
 
@@ -147,22 +222,18 @@ export const getProduct = async (req, res) => {
 
     const total = await Product.countDocuments(filter);
 
-    const data = products.map((product) => ({
-      id: product._id,
-      productId: product.productId,
-      title: product.title,
-      description: product.description,
-      avatar: product.productImage,
-
-      category: product.category ? product.category.name : null,
-
-      stock: product.stock || 0,
-      size: product.sizeList || [],
-      color: product.colorList || [],
-    }));
-
     return res.status(200).json({
-      data,
+      data: products.map((p) => ({
+        id: p._id,
+        productId: p.productId,
+        title: p.title,
+        description: p.description,
+        avatar: p.productImage,
+        category: p.category,
+        tag: p.tag,
+        stock: p.stock || 0,
+        sizes: p.sizes || [],
+      })),
       pagination: {
         total,
         page: Number(page),
@@ -239,7 +310,6 @@ export const updateProduct = async (req, res) => {
 
     return res.status(200).json({
       message: "Update product success",
-
     });
   } catch (error) {
     console.error("Update product error:", error);
@@ -395,45 +465,54 @@ export const deleteSizeVariant = async (req, res) => {
 export const createColorVariant = async (req, res) => {
   try {
     const { sizeId } = req.params;
-    const { price, color, stock, avatar } = req.body;
+    const { price, color, stock } = req.body;
 
+    // input validation
     if (!price || !color || !stock) {
-      return res.status(400).json({
-        message: "Missing required fields",
-      });
+      return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const product = await ProductSizeVariant.findById(sizeId);
-    if (!product) {
-      return res.status(404).json({
-        message: "Size not found",
-      });
+    // file validation
+    if (!req.file) {
+      return res.status(400).json({ message: "Color variant image (avatar) is required" });
     }
 
-    const existColor = await ProductColorVariant.findOne({
-      sizeId: sizeId,
-      color,
-    });
+    // size existence check
+    const sizeDoc = await ProductSizeVariant.findById(sizeId);
+    if (!sizeDoc) {
+      return res.status(404).json({ message: "Size not found" });
+    }
 
+    // size-color uniqueness check
+    const existColor = await ProductColorVariant.findOne({ sizeId, color });
     if (existColor) {
-      return res.status(409).json({
-        message: "Color already exists for this size",
-      });
+      return res.status(409).json({ message: "Color already exists for this size" });
     }
 
-    const sizeVariant = await ProductColorVariant.create({
+    // upload cloudinary
+    const imageResult = await uploadImageToCloudinary(
+      req.file.buffer,
+      "variants"
+    );
+
+    // save to database
+    const newVariant = await ProductColorVariant.create({
       sizeId,
       color,
       price,
       stock,
-      variantImage: avatar,
+      avatar: {
+        url: imageResult.url,
+        publicId: imageResult.publicId,
+      },
     });
 
     return res.status(201).json({
       message: "Create color variant success",
+      data: newVariant
     });
   } catch (error) {
-    console.error("Create size variant error:", error);
+    console.error("Create color variant error:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };
