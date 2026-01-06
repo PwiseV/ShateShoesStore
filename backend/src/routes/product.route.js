@@ -31,7 +31,7 @@ router.post("/category", createCategory);
 /* =========================
    PRODUCT
 ========================= */
-router.post("/products",upload.single("image"), createProduct);
+router.post("/products",upload.single("avatar"), createProduct);
 router.get("/products", getProduct);
 router.patch("/products/:id", updateProduct);
 router.delete("/products/:id", deleteProduct);
@@ -55,7 +55,7 @@ router.get(
 
 router.post(
   "/product-sizes/:sizeId/colors",
-  upload.single("image"),
+  upload.single("avatar"),
   createColorVariant
 );
 

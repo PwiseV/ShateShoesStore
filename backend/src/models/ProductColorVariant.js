@@ -35,7 +35,7 @@ const productColorVariantSchema = new mongoose.Schema(
       min: 0,
     },
 
-    variantImage: {
+    avatar: {
       url: { type: String, default: "" },
       publicId: { type: String, default: "" }
     },

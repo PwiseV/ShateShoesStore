@@ -36,7 +36,7 @@ const productSchema = new mongoose.Schema(
       ref: "Category",
       required: true,
     },
-    productImage: {
+    avatar: {
       url: {
       required: true,
       type: String,

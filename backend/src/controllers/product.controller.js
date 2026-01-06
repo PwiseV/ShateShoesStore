@@ -15,7 +15,7 @@ export const createProduct = async (req, res) => {
 
     if (!req.file) {
       return res.status(400).json({
-        message: "Product image is required",
+        message: "Avatar image is required",
       });
     }
 
@@ -51,14 +51,20 @@ export const createProduct = async (req, res) => {
       "products"
     );
 
+    // tag (if string transform to array)
+    let finalTags = tag;
+    if (typeof tag === 'string') {
+      finalTags = tag.split(',').map(t => t.trim());
+    }
+
     await Product.create({
       productId,
       title,
       description,
       categoryId: categoryDoc._id,
       slug,
-      tag,
-      productImage: {
+      tag: finalTags,
+      avatar: {
         url: imageResult.url,
         publicId: imageResult.publicId,
       },
@@ -461,43 +467,44 @@ export const createColorVariant = async (req, res) => {
     const { sizeId } = req.params;
     const { price, color, stock } = req.body;
 
-    // 1. Kiểm tra input cơ bản
+    // input validation
     if (!price || !color || !stock) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // 2. Kiểm tra xem Size có tồn tại không
+    // file validation
+    if (!req.file) {
+      return res.status(400).json({ message: "Color variant image (avatar) is required" });
+    }
+
+    // size existence check
     const sizeDoc = await ProductSizeVariant.findById(sizeId);
     if (!sizeDoc) {
       return res.status(404).json({ message: "Size not found" });
     }
 
-    // 3. Kiểm tra xem màu này đã tồn tại cho size này chưa
+    // size-color uniqueness check
     const existColor = await ProductColorVariant.findOne({ sizeId, color });
     if (existColor) {
       return res.status(409).json({ message: "Color already exists for this size" });
     }
 
-    // 4. Xử lý Upload ảnh (nếu có gửi file lên)
-    let imageData = { url: "", publicId: "" };
-    if (req.file) {
-      const imageResult = await uploadImageToCloudinary(
-        req.file.buffer,
-        "variants" // Cậu có thể để trong folder 'variants' cho dễ quản lý
-      );
-      imageData = {
-        url: imageResult.url,
-        publicId: imageResult.publicId
-      };
-    }
+    // upload cloudinary
+    const imageResult = await uploadImageToCloudinary(
+      req.file.buffer,
+      "variants"
+    );
 
-    // 5. Lưu vào Database
+    // save to database
     const newVariant = await ProductColorVariant.create({
       sizeId,
       color,
       price,
       stock,
-      variantImage: imageData,
+      avatar: {
+        url: imageResult.url,
+        publicId: imageResult.publicId,
+      },
     });
 
     return res.status(201).json({
