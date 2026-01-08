@@ -22,3 +22,13 @@ export const uploadImageToCloudinary = (buffer, folder = "products") => {
     stream.end(buffer);
   });
 };
+
+export const deleteImageFromCloudinary = (publicId) => {
+  return new Promise((resolve, reject) => {
+    // cloudinary.uploader.destroy to delete image by publicId
+    cloudinary.uploader.destroy(publicId, (error, result) => {
+      if (error) return reject(error);
+      resolve(result);
+    });
+  });
+};

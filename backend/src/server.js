@@ -10,6 +10,7 @@ import authRoute from './routes/auth.route.js'
 import adminRoute from "./routes/admin.route.js";
 import userRoute from "./routes/user.route.js";
 import productRoute from "./routes/product.route.js"
+import postRoute from "./routes/post.route.js"
 import cartRoute from "./routes/cart.route.js"
 import orderRoute from "./routes/order.route.js"
 
@@ -40,7 +41,7 @@ app.use("/api/auth", authRoute);
 app.use("/api/users", protectedRoute, userRoute, cartRoute, orderRoute);
 
 // admin routes (CẦN đăng nhập + quyền admin)
-app.use("/api/admin", protectedRoute, adminOnly, adminRoute, productRoute);
+app.use("/api/admin", protectedRoute, adminOnly, adminRoute, productRoute, postRoute);
 
 
 
