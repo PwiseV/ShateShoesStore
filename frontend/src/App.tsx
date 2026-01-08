@@ -13,6 +13,11 @@ import HomePage from "./pages/Costumer/Homepage/Homepage.tsx";
 import Login from "./pages/Signin/SigninForm.tsx";
 import Signup from "./pages/Signup/SignupForm";
 import Users from "./pages/Admin/Users/Users.tsx";
+import AboutUs from "./pages/Costumer/StaticPages/About/AboutUs.tsx";
+import PrivacyPolicy from "./pages/Costumer/StaticPages/PrivacyPolicy.tsx";
+import ReturnPolicy from "./pages/Costumer/StaticPages/ReturnPolicy.tsx";
+import ContactUs from "./pages/Costumer/Contact/ContactUs.tsx";
+import NotFound from "./pages/Costumer/StaticPages/NotFound.tsx";
 
 export default function AppRoutes() {
   return (
@@ -31,6 +36,11 @@ export default function AppRoutes() {
 
           <Route element={<ProtectedRoute role="customer" />}>
             <Route path="/homepage" element={<HomePage />} />
+            <Route path="/about-us" element={<AboutUs />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/return-policy" element={<ReturnPolicy />} />
+            <Route path="/contact-us" element={<ContactUs />} />
+            <Route path="*" element={<NotFound />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />
