@@ -1,5 +1,5 @@
 import React from "react";
-import { Paper, Box, Chip, Pagination, CircularProgress, Typography } from "@mui/material";
+import { Paper, Box, Pagination, CircularProgress, Typography } from "@mui/material";
 import type { OrderData } from "../types";
 import { paymentStatusConfig, statusConfig } from "../constants";
 import { formatCurrency } from "../utils";
@@ -16,15 +16,15 @@ interface Props {
 const OrdersTable: React.FC<Props> = ({ orders, loading, onRowClick, page, totalPages, onPageChange }) => {
   return (
     <>
-      <Box>
-        <Box sx={{ display: "grid", gridTemplateColumns: "140px 1fr 140px 140px 120px 160px 120px", gap: 1, mb: 1, px: 1 }}>
-          <Typography sx={{ fontSize: 13, fontWeight: 700, color: "#666" }}>Mã đơn hàng</Typography>
-          <Typography sx={{ fontSize: 13, fontWeight: 700, color: "#666" }}>Tên khách hàng</Typography>
-          <Typography sx={{ fontSize: 13, fontWeight: 700, color: "#666" }}>Số điện thoại</Typography>
-          <Typography sx={{ fontSize: 13, fontWeight: 700, color: "#666" }}>Ngày đặt</Typography>
-          <Typography sx={{ fontSize: 13, fontWeight: 700, color: "#666", textAlign: "right" }}>Tổng tiền</Typography>
-          <Typography sx={{ fontSize: 13, fontWeight: 700, color: "#666" }}>Phương thức thanh toán</Typography>
-          <Typography sx={{ fontSize: 13, fontWeight: 700, color: "#666", textAlign: "center" }}>Trạng thái</Typography>
+      <Box sx={{ overflow: "auto" }}>
+        <Box sx={{ display: "grid", gridTemplateColumns: "100px 1fr 110px 110px 110px 130px 90px", gap: 1, mb: 1, px: 1, alignItems: 'center' }}>
+          <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#000", whiteSpace: "normal", overflowWrap: "break-word" }}>Mã đơn hàng</Typography>
+          <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#000", whiteSpace: "normal", overflowWrap: "break-word" }}>Tên khách hàng</Typography>
+          <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#000", whiteSpace: "normal", overflowWrap: "break-word" }}>Số điện thoại</Typography>
+          <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#000", whiteSpace: "normal", overflowWrap: "break-word" }}>Ngày đặt</Typography>
+          <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#000", textAlign: "right", whiteSpace: "normal", overflowWrap: "break-word" }}>Tổng tiền</Typography>
+          <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#000", whiteSpace: "normal", overflowWrap: "break-word" }}>Phương thức thanh toán</Typography>
+          <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#000", textAlign: "center", whiteSpace: "normal", overflowWrap: "break-word" }}>Trạng thái</Typography>
         </Box>
 
         {loading ? (
@@ -33,18 +33,44 @@ const OrdersTable: React.FC<Props> = ({ orders, loading, onRowClick, page, total
           </Box>
         ) : orders.length > 0 ? (
           orders.map((order) => (
-            <Paper key={order.id} onClick={() => onRowClick(order)} sx={{ p: 1.5, mb: 1.25, cursor: "pointer", borderRadius: "12px", display: "grid", gridTemplateColumns: "140px 1fr 140px 140px 120px 160px 120px", alignItems: "center", boxShadow: "0 1px 6px rgba(16,24,40,0.04)", '&:hover': { boxShadow: '0 6px 18px rgba(92,106,196,0.08)' } }}>
-              <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{order.orderNumber}</Typography>
-              <Typography sx={{ fontSize: 14 }}>{order.name}</Typography>
-              <Typography sx={{ fontSize: 14 }}>{order.phone}</Typography>
-              <Typography sx={{ fontSize: 14 }}>{order.createdAt}</Typography>
-              <Typography sx={{ fontSize: 14, fontWeight: 600, textAlign: "right" }}>{formatCurrency(order.total)}</Typography>
-              <Box>
-                <Typography sx={{ fontSize: 14, color: "#111", fontWeight: 500 }}>{paymentStatusConfig[order.paymentMethod]?.label || order.paymentMethod}</Typography>
-              </Box>
-              <Box sx={{ display: "flex", justifyContent: "center" }}>
-                <Chip label={statusConfig[order.status]?.label || order.status} size="small" color={statusConfig[order.status]?.color || "default"} variant="filled" sx={{ fontWeight: 500 }} />
-              </Box>
+            <Paper
+              key={order.id}
+              onClick={() => onRowClick(order)}
+              sx={{
+                p: 1.5,
+                mb: 1.25,
+                height: 60,
+                cursor: "pointer",
+                borderRadius: "12px",
+                display: "grid",
+                gridTemplateColumns: "100px 1fr 110px 110px 110px 130px 90px",
+                alignItems: "center",
+                gap: 1,
+                boxShadow: "0 1px 6px rgba(16,24,40,0.04)",
+                '&:hover': { boxShadow: '0 6px 18px rgba(92,106,196,0.08)' },
+              }}
+            >
+              <Typography sx={{ fontSize: 14, fontWeight: 600, whiteSpace: "normal", overflowWrap: "break-word" }}>{order.orderNumber}</Typography>
+              <Typography sx={{ fontSize: 14, whiteSpace: "normal", overflowWrap: "break-word" }}>{order.name}</Typography>
+              <Typography sx={{ fontSize: 14, whiteSpace: "normal", overflowWrap: "break-word" }}>{order.phone}</Typography>
+              <Typography sx={{ fontSize: 14, whiteSpace: "normal", overflowWrap: "break-word" }}>{order.createdAt}</Typography>
+              <Typography sx={{ fontSize: 14, fontWeight: 600, textAlign: "right", whiteSpace: "normal", overflowWrap: "break-word" }}>{formatCurrency(order.total)}</Typography>
+              <Typography sx={{ fontSize: 14, color: "#111", fontWeight: 500, whiteSpace: "normal", overflowWrap: "break-word" }}>{paymentStatusConfig[order.paymentMethod]?.label || order.paymentMethod}</Typography>
+              <Typography sx={{ fontSize: 14, textAlign: "center", whiteSpace: "normal", overflowWrap: "break-word", fontWeight: 600, color: (() => {
+                const c = statusConfig[order.status]?.color;
+                switch (c) {
+                  case "warning":
+                    return "#C7BE41";
+                  case "info":
+                    return "#5691F6";
+                  case "success":
+                    return "#3CE039";
+                  case "error":
+                    return "#842029";
+                  default:
+                    return "#333";
+                }
+              })() }}>{statusConfig[order.status]?.label || order.status}</Typography>
             </Paper>
           ))
         ) : (
