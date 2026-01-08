@@ -17,6 +17,6 @@ export interface OrderData {
   createdAt: string;
   total: number;
   paymentMethod: string;
-  status: "pending" | "paid" | "processing" | "shipped" | "delivered" | "cancelled";
+  status: "waittingApproval" | "processing" | "shipped" | "delivered" | "cancelled";
   items?: OrderItem[];
 }

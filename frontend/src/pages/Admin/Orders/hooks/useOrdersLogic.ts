@@ -68,7 +68,25 @@ export default function useOrdersLogic() {
     fetchOrders();
 
     return () => { active = false };
-  }, [searchTerm, orders, statusFilter, paymentFilter, priceRange]);
+  }, [searchTerm, statusFilter, paymentFilter, priceRange]);
+
+  // Apply filters when orders change (e.g., after save)
+  useEffect(() => {
+    const filtered = orders.filter((order) => {
+      const matchSearch =
+        order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.phone.includes(searchTerm);
+
+      const matchStatus = !statusFilter || order.status === statusFilter;
+      const matchPayment = !paymentFilter || order.paymentMethod === paymentFilter;
+      const matchPrice = order.total >= priceRange[0] && order.total <= priceRange[1];
+
+      return matchSearch && matchStatus && matchPayment && matchPrice;
+    });
+
+    setFilteredOrders(filtered);
+  }, [orders, searchTerm, statusFilter, paymentFilter, priceRange]);
 
   const handleOpenDetail = (order: OrderData) => {
     setSelectedOrder(order);

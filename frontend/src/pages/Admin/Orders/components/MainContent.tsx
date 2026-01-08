@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, TextField, InputAdornment, Button, Typography } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import TuneIcon from '@mui/icons-material/Tune';
 import OrdersTable from "./OrdersTable";
 import FiltersModal from "./FiltersModal";
 import OrderDetailDialog from "./OrderDetailDialog";
@@ -65,7 +66,7 @@ const MainContent: React.FC<MainContentProps> = ({
     <Box sx={{ width: "100%", overflow: "auto", minHeight: 0 }}>
       <Box component="section" sx={{ bgcolor: "#faf7ff", borderRadius: "16px", p: 2, boxShadow: "0 6px 18px rgba(92,106,196,0.06)", overflow: "hidden" }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-          <Typography sx={{ fontSize: "22px", fontWeight: 700, color: "#2e2e2e" }}>Quản lý đơn hàng</Typography>
+          <Typography sx={{ fontSize: "22px", fontWeight: 700, color: "#5D5A88" }}>Quản lý đơn hàng</Typography>
 
           <Box sx={{ display: "flex", gap: 1, alignItems: "center", width: "420px" }}>
             <TextField
@@ -88,15 +89,19 @@ const MainContent: React.FC<MainContentProps> = ({
                 boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.03)",
               }}
             />
-
-            <Button
-              variant="outlined"
-              onClick={() => onOpenFilterModal(true)}
-              sx={{ textTransform: "none", borderRadius: "20px", px: 2, color: "#5c6ac4", borderColor: "#e3def8" }}
-            >
-              Lọc
-            </Button>
           </Box>
+        </Box>
+
+        <Box sx={{ mb: 2, display: "flex", justifyContent: "flex-end" }}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => onOpenFilterModal(true)}
+            endIcon={<TuneIcon />}
+            sx={{ textTransform: "none", color: "#000", borderRadius: "24px", bgcolor: "#FFDDDD", boxShadow: "0 4px 12px rgba(108,99,255,0.3)", '&:hover': { bgcolor: "#FFDDD" } }}
+          >
+            Lọc
+          </Button>
         </Box>
 
         <OrdersTable

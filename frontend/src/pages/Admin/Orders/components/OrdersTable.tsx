@@ -65,8 +65,10 @@ const OrdersTable: React.FC<Props> = ({ orders, loading, onRowClick, page, total
                     return "#5691F6";
                   case "success":
                     return "#3CE039";
+                  case "done":
+                    return "#D977F4";
                   case "error":
-                    return "#842029";
+                    return "#F12A14";
                   default:
                     return "#333";
                 }
