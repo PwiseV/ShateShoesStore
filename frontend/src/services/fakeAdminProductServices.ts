@@ -4,7 +4,7 @@ import type {
   Colors,
   ProductResponse,
   ProductQueryParams,
-} from "./adminProductServices";
+} from "../pages/Admin/Products/types";
 
 /* ============================
    MOCK DATA
@@ -317,7 +317,6 @@ export const updateProductColor = async (
     for (const s of p.sizes) {
       const color = s.colors.find((c) => c.colorId === colorId);
       if (color) {
-        // Update properties including avatar
         Object.assign(color, patch);
         return color;
       }

@@ -1,45 +1,11 @@
 import api from "./axios";
-
-export type Colors = {
-  colorId: number;
-  color: string;
-  price: number;
-  stock: number;
-  avatar: string;
-};
-
-export type SizeOption = {
-  sizeID: number;
-  size: string;
-  colors: Colors[];
-};
-
-export type Product = {
-  id: number;
-  productId: string;
-  description: string;
-  avatar: string;
-  title: string;
-  category: string;
-  sizes: SizeOption[];
-  tags?: string[];
-};
-
-export interface ProductQueryParams {
-  page: number;
-  pageSize: number;
-  keyword?: string;
-  category?: string;
-  minPrice?: number;
-  maxPrice?: number;
-}
-
-export interface ProductResponse {
-  data: Product[];
-  total: number;
-  page: number;
-  pageSize: number;
-}
+import type {
+  Product,
+  ProductQueryParams,
+  ProductResponse,
+  SizeOption,
+  Colors,
+} from "../pages/Admin/Products/types";
 
 // ===== PRODUCT ENDPOINTS =====
 
