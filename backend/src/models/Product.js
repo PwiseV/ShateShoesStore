@@ -1,9 +1,8 @@
 import mongoose from "mongoose";
-import ProductSizeVariant from "./ProductSizeVariant.js";
 
 const productSchema = new mongoose.Schema(
   {
-    productId: {
+    code: {
       type: String,
       required: true,
       unique: true,
@@ -51,21 +50,6 @@ const productSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
-productSchema.pre("findOneAndDelete", async function (next) {
-  const product = await this.model.findOne(this.getFilter());
-  if (!product) return next();
-
-  const sizes = await ProductSizeVariant.find({
-    productId: product._id,
-  });
-
-  for (const size of sizes) {
-    await ProductSizeVariant.findByIdAndDelete(size._id);
-  }
-
-  next();
-});
 
 const Product = mongoose.model("Product", productSchema);
 

@@ -1,14 +1,14 @@
-import express from "express";
+// import express from "express";
 
-import { createOrder } from "../controllers/order.controller.js";
-
-
-const router = express.Router();
+// import { createOrder } from "../controllers/order.controller.js";
 
 
-/* =========================
-   PRODUCT
-========================= */
-router.post("/order", createOrder);
+// const router = express.Router();
 
-export default router;
+
+// /* =========================
+//    PRODUCT
+// ========================= */
+// router.post("/order", createOrder);
+
+// export default router;

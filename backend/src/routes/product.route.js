@@ -2,19 +2,11 @@ import express from "express";
 import {
   createProduct,
   getProduct,
+  createProductVariant,
   updateProduct,
   deleteProduct,
-
-  // Size
-  createSizeVariant,
-  getSizeVariant,
-  deleteSizeVariant,
-
-  // Color
-  createColorVariant,
-  getColorVariant,
-  updateColorVariant,
-  deleteColorVariant,
+  updateProductVariant,
+  deleteProductVariant,
 } from "../controllers/product.controller.js";
 
 import { createCategory } from "../controllers/category.controller.js";
@@ -33,40 +25,15 @@ router.post("/category", createCategory);
 ========================= */
 router.post("/products",upload.single("avatar"), createProduct);
 router.get("/products", getProduct);
-router.patch("/products/:id", updateProduct);
+router.patch("/products/:id", upload.single("avatar"), updateProduct);
 router.delete("/products/:id", deleteProduct);
-
 /* =========================
-   SIZE VARIANT (FK -> Product)
+   VARIANT (FK -> Product)
 ========================= */
 
-router.get("/products/:productId/sizes", getSizeVariant);
-router.post("/products/:productId/sizes", createSizeVariant);
-router.delete("/product-sizes/:sizeId", deleteSizeVariant);
+router.post("/products/:id/variants", upload.single("avatar"), createProductVariant);
+router.patch("/products/:id/variants", upload.single("avatar"), updateProductVariant);
+router.delete("/products/:id/variants", deleteProductVariant);
 
-/* =========================
-   COLOR VARIANT (FK -> Size)
-========================= */
-
-router.get(
-  "/product-sizes/:sizeId/colors",
-  getColorVariant
-);
-
-router.post(
-  "/product-sizes/:sizeId/colors",
-  upload.single("avatar"),
-  createColorVariant
-);
-
-router.patch(
-  "/product-colors/:colorId",
-  updateColorVariant
-);
-
-router.delete(
-  "/product-colors/:colorId",
-  deleteColorVariant
-);
 
 export default router;

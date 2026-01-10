@@ -86,6 +86,8 @@ api.interceptors.response.use(
         isRefreshing = false;
       }
     }
+    const errorMessage = error.response?.data?.message || error.message || "Something went wrong";
+    error.message = errorMessage;
 
     return Promise.reject(error);
   }
