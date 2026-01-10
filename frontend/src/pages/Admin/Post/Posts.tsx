@@ -1,5 +1,5 @@
 // pages/Admin/Posts/Posts.tsx
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   Box,
   Button,
@@ -28,14 +28,13 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
-// import Grid from '@mui/material/Grid2';
 
 // Layout
 import Header from "../../../components/Admin/Header";
 import Footer from "../../../components/Admin/Footer";
 import SideBar from "../../../components/Admin/SideBar";
 
-// Services (Sử dụng Real API)
+// Services (Chọn 1 trong 2 để import)
 // import {
 //   getPosts,
 //   deletePost,
@@ -43,7 +42,7 @@ import SideBar from "../../../components/Admin/SideBar";
 //   updatePost,
 //   updatePostStatus,
 //   type Post,
-// } from "../../../services/adminPostServices";
+// } from "../../../services/adminPostServices"; // <-- Real API
 
 import {
   getPosts,
@@ -52,14 +51,13 @@ import {
   updatePost,
   updatePostStatus,
   type Post,
-} from "../../../services/fakeAdminPostServices";
+} from "../../../services/fakeAdminPostServices"; // <-- Fake API
 
 // Context Mock
 const useToast = () => {
   return {
     showToast: (msg: string, type: "success" | "error") => {
       console.log(`[${type.toUpperCase()}] ${msg}`);
-      // Thực tế bạn nên thay bằng thư viện toast (react-toastify, notistack...)
     },
   };
 };
@@ -91,7 +89,6 @@ const Posts: React.FC = () => {
   const [editingId, setEditingId] = useState<number | null>(null);
 
   // Form Data
-  // Lưu ý: Không cần trường slug ở đây vì service sẽ tự generate từ title
   const [formData, setFormData] = useState({
     title: "",
     category: "Phối đồ",
@@ -102,6 +99,31 @@ const Posts: React.FC = () => {
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // --- LOGIC MỚI: Tự động lấy danh sách tháng ---
+  const availableMonths = useMemo(() => {
+    const uniqueMonths = new Set<string>();
+
+    // 1. Luôn thêm tháng hiện tại vào danh sách (để khi vừa tạo bài xong là có options lọc ngay)
+    const now = new Date();
+    const currentMonthStr = `${now.getFullYear()}-${String(
+      now.getMonth() + 1
+    ).padStart(2, "0")}`;
+    uniqueMonths.add(currentMonthStr);
+
+    // 2. Quét qua các bài viết đang có để lấy thêm các tháng cũ
+    posts.forEach((post) => {
+      if (post.createdAt) {
+        // post.createdAt dạng "2025-10-15" => lấy 7 ký tự đầu "2025-10"
+        const monthStr = post.createdAt.substring(0, 7);
+        uniqueMonths.add(monthStr);
+      }
+    });
+
+    // 3. Chuyển về mảng và sắp xếp giảm dần (tháng mới nhất lên đầu)
+    return Array.from(uniqueMonths).sort().reverse();
+  }, [posts]);
+  // ------------------------------------------------
 
   // --- API ---
   const fetchPosts = async (page = currentPage, customParams?: any) => {
@@ -117,6 +139,8 @@ const Posts: React.FC = () => {
 
       const res = await getPosts(params);
       setPosts(res.data);
+      // Giả sử API trả về total record để tính trang
+      // Nếu fake service trả về total item thì công thức này đúng
       setTotalPages(Math.ceil(res.total / pageSize));
     } catch (error) {
       console.error(error);
@@ -209,8 +233,7 @@ const Posts: React.FC = () => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      // Lưu ý: Ở đây chỉ lưu tên file giả lập.
-      // Thực tế bạn cần upload file lên server rồi lấy URL trả về.
+      // Mock: Lấy tên file
       setFormData({ ...formData, thumbnail: e.target.files[0].name });
     }
   };
@@ -223,16 +246,14 @@ const Posts: React.FC = () => {
 
     try {
       if (isEditMode && editingId) {
-        // Update: Service có thể tự update slug nếu title thay đổi (tùy logic service)
         await updatePost(editingId, formData);
         showToast("Cập nhật thành công", "success");
       } else {
-        // Create: Service sẽ tự tạo slug từ formData.title
         await createPost(formData);
         showToast("Tạo bài viết thành công", "success");
       }
       setOpenModal(false);
-      fetchPosts(currentPage); // Refresh list
+      fetchPosts(currentPage); // Refresh list -> trigger useMemo -> cập nhật month filter
     } catch (error) {
       showToast("Có lỗi xảy ra", "error");
     }
@@ -306,10 +327,12 @@ const Posts: React.FC = () => {
               mb: 3,
               borderRadius: 3,
               display: "flex",
-              gap: 2,
               alignItems: "center",
-              flexWrap: "wrap",
+              gap: 1.5, // Giảm gap chút xíu cho gọn
+              flexWrap: "nowrap", // <--- QUAN TRỌNG: Không cho phép xuống dòng
               backgroundColor: "white",
+              overflowX: "auto", // Thêm cuộn ngang nếu màn hình quá bé
+              "&::-webkit-scrollbar": { display: "none" }, // Ẩn thanh cuộn cho đẹp (tuỳ chọn)
             }}
           >
             <TextField
@@ -324,25 +347,36 @@ const Posts: React.FC = () => {
                   </InputAdornment>
                 ),
               }}
-              sx={{ width: 220, bgcolor: "#f9f9f9" }}
+              // Thay width cố định bằng minWidth để co giãn tốt hơn
+              sx={{ minWidth: 200, bgcolor: "#f9f9f9" }}
             />
 
+            {/* Select Tháng */}
             <Select
               size="small"
               value={filterMonth}
               onChange={(e) => setFilterMonth(e.target.value)}
-              sx={{ width: 180, bgcolor: "#f9f9f9" }}
+              displayEmpty
+              sx={{ minWidth: 160, bgcolor: "#f9f9f9" }}
             >
               <MenuItem value="All">Toàn bộ thời gian</MenuItem>
-              <MenuItem value="2025-10">Tháng 10/2025</MenuItem>
-              <MenuItem value="2025-11">Tháng 11/2025</MenuItem>
+              {availableMonths.map((m) => {
+                const [year, month] = m.split("-");
+                return (
+                  <MenuItem key={m} value={m}>
+                    Tháng {month}/{year}
+                  </MenuItem>
+                );
+              })}
             </Select>
 
+            {/* Select Danh mục */}
             <Select
               size="small"
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
-              sx={{ width: 150, bgcolor: "#f9f9f9" }}
+              displayEmpty
+              sx={{ minWidth: 150, bgcolor: "#f9f9f9" }}
             >
               <MenuItem value="All">Tất cả chủ đề</MenuItem>
               <MenuItem value="Phối đồ">Phối đồ</MenuItem>
@@ -350,15 +384,22 @@ const Posts: React.FC = () => {
               <MenuItem value="Review">Review</MenuItem>
             </Select>
 
+            {/* Nút Lọc */}
             <Button
               variant="contained"
-              sx={{ bgcolor: "#2C3E50", textTransform: "none" }}
+              sx={{
+                bgcolor: "#2C3E50",
+                textTransform: "none",
+                whiteSpace: "nowrap", // Giữ chữ không bị ngắt dòng
+                minWidth: "fit-content",
+              }}
               startIcon={<FilterListIcon />}
               onClick={handleFilter}
             >
               Lọc
             </Button>
 
+            {/* Nút Đặt lại */}
             <Button
               variant="outlined"
               color="error"
@@ -366,6 +407,8 @@ const Posts: React.FC = () => {
                 textTransform: "none",
                 borderColor: "#e74c3c",
                 color: "#e74c3c",
+                whiteSpace: "nowrap", // Giữ chữ không bị ngắt dòng
+                minWidth: "fit-content",
               }}
               startIcon={<RestartAltIcon />}
               onClick={handleResetFilter}
@@ -448,10 +491,14 @@ const Posts: React.FC = () => {
                     >
                       {post.title}
                     </Typography>
-                    {/* Nếu muốn hiện slug nhỏ bên dưới tiêu đề */}
-                    {/* <Typography fontSize="0.75rem" color="#999" fontStyle="italic">
-                        {post.slug}
-                    </Typography> */}
+                    {/* Hiển thị ngày tạo bên dưới title nếu cần */}
+                    <Typography
+                      fontSize="0.7rem"
+                      color="#999"
+                      fontStyle="italic"
+                    >
+                      {post.createdAt}
+                    </Typography>
                   </Box>
 
                   <Box>
@@ -480,7 +527,11 @@ const Posts: React.FC = () => {
                     {post.content}
                   </Typography>
 
-                  <Typography fontSize="0.85rem" fontWeight={500}>
+                  <Typography
+                    fontSize="0.85rem"
+                    fontWeight={500}
+                    color="#2C3E50"
+                  >
                     {post.author}
                   </Typography>
 
@@ -504,7 +555,6 @@ const Posts: React.FC = () => {
                         mr: 0.5,
                       }}
                     />
-
                     {post.status === "active" ? (
                       <Typography
                         fontSize="0.75rem"
@@ -614,9 +664,8 @@ const Posts: React.FC = () => {
               />
             </Box>
 
-            {/* GRID: Danh mục + Tác giả */}
+            {/* --- FIX GRID ITEM ERROR (MUI v6) --- */}
             <Grid container spacing={3}>
-              {/* Cột 1: Danh mục */}
               <Grid size={6}>
                 <Typography fontWeight={600} fontSize="0.9rem" mb={0.5}>
                   Danh mục
@@ -637,7 +686,6 @@ const Posts: React.FC = () => {
                 </Select>
               </Grid>
 
-              {/* Cột 2: Tác giả */}
               <Grid size={6}>
                 <Typography fontWeight={600} fontSize="0.9rem" mb={0.5}>
                   Tác giả
@@ -657,8 +705,8 @@ const Posts: React.FC = () => {
                 />
               </Grid>
             </Grid>
+            {/* ------------------------------------ */}
 
-            {/* Ảnh thumbnail */}
             <Box>
               <Typography fontWeight={600} fontSize="0.9rem" mb={0.5}>
                 Ảnh thumbnail
@@ -711,7 +759,9 @@ const Posts: React.FC = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, content: e.target.value })
                 }
-                sx={{ "& .MuiOutlinedInput-root": { borderRadius: "12px" } }}
+                sx={{
+                  "& .MuiOutlinedInput-root": { borderRadius: "12px" },
+                }}
               />
             </Box>
 
