@@ -43,6 +43,10 @@ const ProductTable: React.FC<ProductTableProps> = ({
     setSelectedColors((prev) => ({ ...prev, [productId]: 0 }));
   };
 
+  const handleDelete = (productId: number) => {
+    onDelete(productId);
+  };
+
   return (
     <>
       {/* Header */}
@@ -112,7 +116,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
                   {index + 1 + (currentPage - 1) * pageSize}
                 </Typography>
                 <Typography fontWeight={600} fontSize="0.85rem" color="#2C3E50">
-                  {product.productId}
+                  {product.code}
                 </Typography>
                 <Box sx={{ display: "flex", justifyContent: "center" }}>
                   <img
@@ -139,7 +143,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
                   {currentColor?.price.toLocaleString() || "---"}
                 </Typography>
                 <Typography color="#7f8c8d" fontSize="0.85rem">
-                  {product.category}
+                  {product.category.name}
                 </Typography>
 
                 <Select
@@ -195,7 +199,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
                   <IconButton
                     size="small"
                     sx={{ color: "#567C8D" }}
-                    onClick={() => onDelete(product.id)}
+                    onClick={() => onDelete(product.productId)}
                   >
                     <DeleteIcon fontSize="small" />
                   </IconButton>

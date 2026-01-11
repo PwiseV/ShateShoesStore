@@ -113,12 +113,12 @@ export const getSizeColors = async (sizeId: number): Promise<Colors[]> => {
 };
 
 export const addSizeColor = async (
-  sizeId: number,
+  id: number,
   payload: Omit<Colors, "colorId">
 ): Promise<Colors> => {
   try {
     const response = await api.post(
-      `/admin/product-sizes/${sizeId}/colors`,
+      `/admin/products/${id}/variants`,
       payload
     );
     return response.data;
@@ -129,11 +129,11 @@ export const addSizeColor = async (
 };
 
 export const updateProductColor = async (
-  colorId: number,
+  id: number,
   patch: Partial<Colors>
 ): Promise<Colors> => {
   try {
-    const response = await api.put(`/admin/product-colors/${colorId}`, patch);
+    const response = await api.patch(`/admin/products/${id}/variants`, patch);
     return response.data;
   } catch (error) {
     console.error("updateProductColor error:", error);
@@ -142,16 +142,31 @@ export const updateProductColor = async (
 };
 
 export const deleteProductColor = async (
-  colorId: number
+  id: number,
+  payload: { size: string; color: string }
 ): Promise<{ message: string }> => {
   try {
-    const response = await api.delete(`/admin/product-colors/${colorId}`);
+    const response = await api.delete(`/admin/products/${id}/variants`, { data: payload });
     return response.data;
   } catch (error) {
     console.error("deleteProductColor error:", error);
     throw error;
   }
 };
+
+export const addProductColor = async (
+  id: number,
+  payload: { size: string; color: string, price: number; stock: number; avatar: string }
+): Promise<{ message: string }> => {
+  try {
+    const response = await api.post(`/admin/products/${id}/variants`, payload);
+    return response.data;
+  } catch (error) {
+    console.error("addProductColor error:", error);
+    throw error;
+  }
+};
+
 
 export const adjustStock = async (
   colorId: number,
@@ -161,6 +176,16 @@ export const adjustStock = async (
     return await updateProductColor(colorId, { stock: newStock });
   } catch (error) {
     console.error("adjustStock error:", error);
+    throw error;
+  }
+};
+
+export const getAllCategories = async (): Promise<string[]> => {
+  try {
+    const response = await api.get("/admin/category");
+    return response.data;
+  } catch (error) {
+    console.error("getAllCategories error:", error);
     throw error;
   }
 };
@@ -178,4 +203,5 @@ export default {
   updateProductColor,
   deleteProductColor,
   adjustStock,
+  getAllCategories
 };

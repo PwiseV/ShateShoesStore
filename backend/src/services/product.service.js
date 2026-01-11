@@ -31,18 +31,13 @@ export const createProduct = async ({
 
   const imageResult = await uploadImageToCloudinary(fileBuffer, "products");
 
-  let finalTags = tag;
-  if (typeof tag === "string") {
-    finalTags = tag.split(",").map((t) => t.trim());
-  }
-
   return await Product.create({
     code,
     title,
     description,
     categoryId: categoryDoc._id,
     slug,
-    tag: finalTags,
+    tag: tag,
     avatar: {
       url: imageResult.url,
       publicId: imageResult.publicId,
@@ -62,43 +57,58 @@ export const createVariant = async ({
     throw new Error("INVALID_INPUT");
   }
 
-  const parentProduct = await Product.findById(productId);
-  if (!parentProduct) {
-    throw new Error("PRODUCT_NOT_FOUND");
-  }
+  try {
+    const parentProduct = await Product.findById(productId);
+    if (!parentProduct) {
+      throw new Error("PRODUCT_NOT_FOUND");
+    }
 
-  let imageProduct = null;
-
-  const imageResult = await uploadImageToCloudinary(fileBuffer, "variants");
-  imageProduct = await ProductVariantImage.findOne({
-    productId: productId,
-    color: color,
-  });
-
-  if (!imageProduct) {
-    imageProduct = await ProductVariantImage.create({
-      color,
-      productId,
-      avatar: {
-        url: imageResult.url,
-        publicId: imageResult.publicId,
-      },
+    let imageProduct = null;
+    imageProduct = await ProductVariantImage.findOne({
+      productId: productId,
+      color: color,
     });
+
+    if (!imageProduct) {
+      if (fileBuffer) {
+        const imageResult = await uploadImageToCloudinary(
+          fileBuffer.buffer,
+          "variants"
+        );
+        imageProduct = await ProductVariantImage.create({
+          color,
+          productId,
+          avatar: {
+            url: imageResult.url,
+            publicId: imageResult.publicId,
+          },
+        });
+      }
+      else {
+        throw new Error("IMAGE_REQUIRED_FOR_NEW_COLOR");
+      }
+    }
+
+    // 2. Tạo SKU và Variant mới
+    const sku = `${parentProduct.code}-${color}-${size}`;
+
+    const newVariant = await ProductVariant.create({
+      productId,
+      sku,
+      stock,
+      price,
+      color,
+      size,
+      productVariantImageId: imageProduct._id,
+    });
+
+    return newVariant;
+  } catch (error) {
+    if (error.code === 11000) {
+      throw new Error("VARIANT_ALREADY_EXISTS");
+    }
+    throw error;
   }
-
-  const sku = `${parentProduct.code}-${color}-${size}`;
-
-  const newVariant = await ProductVariant.create({
-    productId,
-    sku,
-    stock,
-    price,
-    color,
-    size,
-    productVariantImageId: imageProduct._id,
-  });
-
-  return newVariant;
 };
 
 export const getProducts = async ({
@@ -234,15 +244,7 @@ export const updateProduct = async (id, updateData, fileBuffer) => {
     product.slug = slug;
   }
 
-  if (tag) {
-    let finalTags = tag;
-    if (typeof tag === "string") {
-      finalTags = tag.split(",").map((t) => t.trim());
-    }
-    product.tag = finalTags;
-  }
-
-  if (fileBuffer.buffer) {
+  if (fileBuffer) {
     const imageResult = await uploadImageToCloudinary(
       fileBuffer.buffer,
       "products"
@@ -256,6 +258,7 @@ export const updateProduct = async (id, updateData, fileBuffer) => {
   }
 
   if (description !== undefined) product.description = description;
+  if (tag !== undefined) product.tag = tag;
 
   await product.save();
 
@@ -301,7 +304,7 @@ export const updateVariant = async (id, updateData, fileBuffer) => {
     throw new Error("INVALID_INPUT");
   }
   const variant = await ProductVariant.findOne({
-    productId:id,
+    productId: id,
     size,
     color,
   }).populate("productVariantImageId");
@@ -313,11 +316,14 @@ export const updateVariant = async (id, updateData, fileBuffer) => {
   if (price !== undefined) variant.price = Number(price);
   if (stock !== undefined) variant.stock = Number(stock);
 
-  if (fileBuffer && fileBuffer.buffer) {
+  if (fileBuffer) {
     let currentImageDoc = await ProductVariantImage.findById(
       variant.productVariantImageId
     );
-    const imageResult = await uploadImageToCloudinary(file.buffer, "variants");
+    const imageResult = await uploadImageToCloudinary(
+      fileBuffer.buffer,
+      "variants"
+    );
 
     if (imageResult) {
       if (currentImageDoc) {
@@ -329,6 +335,8 @@ export const updateVariant = async (id, updateData, fileBuffer) => {
         await currentImageDoc.save();
       } else {
         const newImage = await ProductVariantImage.create({
+          color: variant.color,
+          productId: variant.productId,
           avatar: {
             url: imageResult.url,
             publicId: imageResult.publicId,
@@ -346,21 +354,31 @@ export const updateVariant = async (id, updateData, fileBuffer) => {
 };
 
 export const deleteProductVariant = async ({ productId, size, color }) => {
-    const variant = await ProductVariant.findOne({ productId, size, color })
-        .populate('productVariantImageId');
+  const variant = await ProductVariant.findOne({
+    productId,
+    size,
+    color,
+  }).populate("productVariantImageId");
 
-    if (!variant) {
-        throw new Error("VARIANT_NOT_FOUND");
-    }
+  if (!variant) {
+    throw new Error("VARIANT_NOT_FOUND");
+  }
 
-    if (variant.productVariantImageId && variant.productVariantImageId.avatar.publicId) {
-        await deleteImageFromCloudinary(variant.productVariantImageId.avatar.publicId);
+  if (
+    variant.productVariantImageId &&
+    variant.productVariantImageId.avatar.publicId
+  ) {
+    await deleteImageFromCloudinary(
+      variant.productVariantImageId.avatar.publicId
+    );
 
-        await ProductVariantImage.findByIdAndDelete(variant.productVariantImageId._id);
-    }
+    await ProductVariantImage.findByIdAndDelete(
+      variant.productVariantImageId._id
+    );
+  }
 
-    // 4. Xóa bản ghi trong bảng ProductVariant
-    await ProductVariant.findByIdAndDelete(variant._id);
+  // 4. Xóa bản ghi trong bảng ProductVariant
+  await ProductVariant.findByIdAndDelete(variant._id);
 
-    return true;
+  return true;
 };

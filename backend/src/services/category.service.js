@@ -32,3 +32,8 @@ export const createCategory = async ({ name, parentId }) => {
         parentId: parentId || null,
     });
 };
+
+
+export const getAllCategories = async () => {
+    return await Category.find({ parentId: { $ne: null } }).sort({ createdAt: -1 });
+}

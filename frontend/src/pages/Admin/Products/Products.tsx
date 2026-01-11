@@ -13,7 +13,7 @@ import ProductTable from "./components/ProductTable";
 import ProductCreateModal from "./components/ProductCreateModal";
 import ProductEditModal from "./components/ProductEditModal";
 import ColorEditModal from "./components/ColorEditModal";
-import ProductFiltersModal from "./components/ProductFiltersModal"; // Assuming this exists from previous step
+import ProductFiltersModal from "./components/ProductFiltersModal";
 
 // Hooks & Types
 import { useProductData } from "./hooks/useProductData";
@@ -51,8 +51,10 @@ const Products: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [openEdit, setOpenEdit] = useState(false);
 
-  // Edit Color Detail State
+  // --- Edit Color Detail State (Đã bổ sung activeSize và activeProductId) ---
   const [editingColor, setEditingColor] = useState<Colors | null>(null);
+  const [activeSize, setActiveSize] = useState<string>("");
+  const [activeProductId, setActiveProductId] = useState<number>(0);
   const [openColorEdit, setOpenColorEdit] = useState(false);
 
   // Handlers
@@ -66,13 +68,21 @@ const Products: React.FC = () => {
     setOpenEdit(true);
   };
 
-  const handleEditColorClick = (sIdx: number, cIdx: number) => {
-    // Note: We need the actual product to get color data.
-    // Since ProductEditModal is open, editingProduct is set.
-    if (editingProduct && editingProduct.sizes[sIdx]) {
-      setEditingColor(editingProduct.sizes[sIdx].colors[cIdx]);
-      setOpenColorEdit(true);
-    }
+  const handleEditColorClick = (
+    sIdx: number,
+    cIdx: number,
+    sizeData: any,
+    sizeName: string,
+    pId: number
+  ) => {
+    console.log("Cha đã nhận lệnh mở Modal Màu:", { sizeName, pId, cIdx });
+    const colorData =
+      cIdx === -1 || !sizeData.colors ? null : sizeData.colors[cIdx];
+    setEditingColor(colorData);
+    setActiveSize(sizeName); 
+    setActiveProductId(pId); 
+
+    setOpenColorEdit(true);
   };
 
   const handleFilterApply = () => {
@@ -83,7 +93,6 @@ const Products: React.FC = () => {
   const handleFilterClear = () => {
     setFilterCategory("All");
     setFilterPriceRange([0, 10000000]);
-    // fetchProducts triggered by useEffect
   };
 
   return (
@@ -176,7 +185,8 @@ const Products: React.FC = () => {
       </div>
       <Footer />
 
-      {/* --- MODALS --- */}
+      {/* --- CÁC MODAL QUẢN LÝ --- */}
+
       <ProductFiltersModal
         open={openFilter}
         onClose={() => setOpenFilter(false)}
@@ -193,23 +203,29 @@ const Products: React.FC = () => {
         onSuccess={refreshData}
       />
 
+      {/* Modal Chỉnh sửa thông tin sản phẩm & Danh sách Size */}
       <ProductEditModal
         open={openEdit}
         onClose={() => setOpenEdit(false)}
         product={editingProduct}
         onSuccess={refreshData}
-        onEditColor={(sIdx, cIdx) => handleEditColorClick(sIdx, cIdx)}
+        // Hứng 5 tham số từ ProductEditModal và truyền vào handler
+        onEditColor={(sIdx, cIdx, sizeData, sizeName, pId) =>
+          handleEditColorClick(sIdx, cIdx, sizeData, sizeName, pId)
+        }
       />
 
+      {/* Modal Chỉnh sửa chi tiết Màu & Kho (Biến thể) */}
       <ColorEditModal
         open={openColorEdit}
         onClose={() => setOpenColorEdit(false)}
         colorData={editingColor}
+        size={activeSize} // Truyền size đã lưu
+        productId={activeProductId} // Truyền productId đã lưu
         onSuccess={() => {
-          // Khi sửa màu xong, cần refresh lại data tổng (bao gồm cả modal edit đang mở nếu có)
           refreshData();
-          // Optional: Reload editingProduct state if needed, or rely on parent fetch
-          // Simple way: Close edit modal too or re-fetch product details
+          setOpenColorEdit(false);
+          // Để cập nhật lại UI của Modal ProductEdit, ta nên đóng nó hoặc fetch lại editingProduct
           setOpenEdit(false);
         }}
       />

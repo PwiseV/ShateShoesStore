@@ -9,7 +9,7 @@ import {
   deleteProductVariant,
 } from "../controllers/product.controller.js";
 
-import { createCategory } from "../controllers/category.controller.js";
+import { createCategory, getCategory } from "../controllers/category.controller.js";
 
 import { upload } from "../middlewares/upload.middleware.js";
 
@@ -19,6 +19,7 @@ const router = express.Router();
    CATEGORY
 ========================= */
 router.post("/category", createCategory);
+router.get("/category", getCategory);
 
 /* =========================
    PRODUCT

@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import {
   getProducts,
   deleteProduct,
-} from "../../../../services/fakeAdminProductServices";
+} from "../../../../services/adminProductServices";
 import type { Product } from "../types";
-import { useToast } from "../utils";
+import { useToast } from "../../../../context/useToast.ts";
 
 export const useProductData = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -15,26 +15,25 @@ export const useProductData = () => {
 
   // Filter States
   const [keyword, setKeyword] = useState("");
-  const [filterCategory, setFilterCategory] = useState("All");
+  const [filterCategory, setFilterCategory] = useState("");
   const [filterPriceRange, setFilterPriceRange] = useState<[number, number]>([
     0, 10000000,
   ]);
 
-  const pageSize = 10;
+  const limit = 10;
 
   const fetchProducts = async (page = currentPage) => {
     setLoading(true);
+    console.log("Fetching products with:", { page, limit, keyword, filterCategory });
     try {
       const res = await getProducts({
         page,
-        pageSize,
+        limit,
         keyword,
-        category: filterCategory,
-        minPrice: filterPriceRange[0],
-        maxPrice: filterPriceRange[1],
+        category: filterCategory
       });
       setProducts(res.data);
-      setTotalPages(Math.ceil(res.total / pageSize));
+      setTotalPages(Math.ceil(res.pagination.totalPages));
     } catch (err) {
       console.error(err);
       showToast("Lỗi tải danh sách sản phẩm", "error");

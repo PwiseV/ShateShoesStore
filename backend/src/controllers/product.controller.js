@@ -2,13 +2,16 @@ import * as productService from "../services/product.service.js";
 
 export const createProduct = async (req, res) => {
   try {
-    const { code, title, description, category, tag } = req.body;
-
+    const { code, title, description, category, tags } = req.body;
     if (!code || !title || !category) {
       return res.status(400).json({ message: "Missing required fields" });
     }
     if (!req.file) {
       return res.status(400).json({ message: "Avatar image is required" });
+    }
+    let processedTags = [];
+    if (tags) {
+      processedTags = Array.isArray(tags) ? tags : [tags];
     }
 
     const newProduct = await productService.createProduct({
@@ -16,7 +19,7 @@ export const createProduct = async (req, res) => {
       title,
       description,
       categoryName: category,
-      tag,
+      tag: processedTags,
       fileBuffer: req.file.buffer,
     });
 
@@ -74,8 +77,11 @@ export const getProduct = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { code, title, description, category, tag } = req.body;
-
+    const { code, title, description, category, tags } = req.body;
+    let processedTags = [];
+    if (tags) {
+      processedTags = Array.isArray(tags) ? tags : [tags];
+    }
     const updatedProduct = await productService.updateProduct(
       id,
       {
@@ -83,7 +89,7 @@ export const updateProduct = async (req, res) => {
         title,
         description,
         category,
-        tag,
+        tag: processedTags,
       },
       req.file
     );
@@ -146,7 +152,7 @@ export const createProductVariant = async (req, res) => {
       price: Number(price),
       color,
       size,
-      fileBuffer: req.file.buffer,
+      fileBuffer: req.file,
     });
 
     return res.status(201).json({
@@ -163,6 +169,14 @@ export const createProductVariant = async (req, res) => {
       return res
         .status(400)
         .json({ message: "Price or Stock must be a positive number" });
+    }
+    if (error.message === "VARIANT_ALREADY_EXISTS") {
+      return res
+        .status(409)
+        .json({ message: "Variant already exists" });
+    }
+    if (error.message === "IMAGE_REQUIRED_FOR_NEW_COLOR") {
+      return res.status(400).json({ message: "Image is required for new color" });
     }
 
     console.error("Variant Controller Error:", error);
@@ -187,7 +201,7 @@ export const updateProductVariant = async (req, res) => {
     );
 
     return res.status(200).json({
-      message: "Update product success",
+      message: "Update product variant success",
     });
   } catch (error) {
     if (error.message === "VARIANT_NOT_FOUND") {
