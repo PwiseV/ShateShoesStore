@@ -1,0 +1,43 @@
+import type { Promotion } from "./types";
+
+export const MOCK_PROMOTIONS: Promotion[] = [
+  {
+    id: 1,
+    code: "ASDFGHJKL1298765",
+    description: "Giảm giá khai trương",
+    discountType: "percentage",
+    discountValue: 10,
+    minOrderValue: 0,
+    startDate: "2025-10-01",
+    endDate: "2025-10-31",
+    totalQuantity: 30,
+    remainingQuantity: 10,
+    status: "Hoạt động",
+  },
+  {
+    id: 2,
+    code: "FREESHIP50",
+    description: "Miễn phí vận chuyển",
+    discountType: "fixed",
+    discountValue: 50000,
+    minOrderValue: 200000,
+    startDate: "2025-11-01",
+    endDate: "2025-11-30",
+    totalQuantity: 100,
+    remainingQuantity: 80,
+    status: "Tạm dừng",
+  },
+  {
+    id: 3,
+    code: "TET2026",
+    description: "Lì xì tết",
+    discountType: "percentage",
+    discountValue: 20,
+    minOrderValue: 500000,
+    startDate: "2026-01-01",
+    endDate: "2026-02-01",
+    totalQuantity: 50,
+    remainingQuantity: 0,
+    status: "Hết hạn",
+  },
+];
