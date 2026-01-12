@@ -73,6 +73,13 @@ const orderSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+
+    paymentMethod: {
+      enum: ["COD", "Banking", "Credit card", "Paypal"], // enable more methods later
+      type: String,
+      default: "COD",
+      required: true,       // update later in user-order flow      
+},
   },
   {
     timestamps: {
