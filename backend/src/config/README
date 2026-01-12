@@ -1,0 +1,3 @@
+# cài thêm package này để chạy được cloudinary
+
+npm install cloudinary multer

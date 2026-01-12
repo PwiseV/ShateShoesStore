@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Button } from "@mui/material";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
-import NavigateNextSharpIcon from '@mui/icons-material/NavigateNextSharp';
+import NavigateNextSharpIcon from "@mui/icons-material/NavigateNextSharp";
 
 import { useAuth } from "../../context/useAuth";
 

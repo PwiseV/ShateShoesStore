@@ -1,177 +1,91 @@
-import Product from "../models/Product.js";
-import Category from "../models/Category.js";
-import ProductSizeVariant from "../models/ProductSizeVariant.js";
-import ProductColorVariant from "../models/ProductColorVariant.js";
-import slugify from "slugify";
+import * as productService from "../services/product.service.js";
 
 export const createProduct = async (req, res) => {
   try {
-    const { productId, title, description, category, avatar } = req.body;
-
-    if (!productId || !title || !category) {
+    const { code, title, description, category, tags } = req.body;
+    if (!code || !title || !category) {
       return res.status(400).json({ message: "Missing required fields" });
     }
-
-    const existProductId = await Product.findOne({ productId: productId });
-    if (existProductId) {
-      return res.status(409).json({
-        message: "Product ID already exists",
-      });
+    if (!req.file) {
+      return res.status(400).json({ message: "Avatar image is required" });
+    }
+    let processedTags = [];
+    if (tags) {
+      processedTags = Array.isArray(tags) ? tags : [tags];
     }
 
-    const categoryDoc = await Category.findOne({ name: category });
-    if (!categoryDoc) {
-      return res.status(400).json({ message: "Category not found" });
-    }
-
-    const slug = slugify(title, {
-      lower: true,
-      strict: true,
-      locale: "vi",
-      trim: true,
-    });
-
-    const existSlug = await Product.findOne({ slug });
-    if (existSlug) {
-      return res.status(409).json({
-        message: "Product title already exists",
-      });
-    }
-
-    await Product.create({
-      productId: productId,
+    const newProduct = await productService.createProduct({
+      code,
       title,
       description,
-      categoryId: categoryDoc._id,
-      productImage: avatar,
-      slug,
+      categoryName: category,
+      tag: processedTags,
+      fileBuffer: req.file.buffer,
     });
+
     return res.status(201).json({
       message: "Create product success",
+      data: newProduct,
     });
   } catch (error) {
-    console.error("Create product error:", error);
+    if (error.message === "PRODUCT_CODE_EXISTS") {
+      return res.status(409).json({ message: "Product Code already exists" });
+    }
+    if (error.message === "CATEGORY_NOT_FOUND") {
+      return res.status(400).json({ message: "Category not found" });
+    }
+    if (error.message === "SLUG_EXISTS") {
+      return res
+        .status(409)
+        .json({ message: "Product title results in a duplicate slug" });
+    }
+
+    console.error("Controller Error:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };
 
 export const getProduct = async (req, res) => {
   try {
-    const { page = 1, limit = 6, category, keyword } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 6;
+    const { category, keyword } = req.query;
 
-    const filter = {};
-
-    if (category) {
-      const categoryDoc = await Category.findOne({ name: category });
-      if (categoryDoc) {
-        filter.categoryId = categoryDoc._id;
-      }
-    }
-
-    if (keyword) {
-      filter.title = { $regex: keyword, $options: "i" };
-    }
-
-    // const products = await Product.find(filter)
-    //   .populate("categoryId", "name")
-    //   .skip((page - 1) * limit)
-    //   .limit(Number(limit))
-    //   .sort({ createdAt: -1 });
-
-    const products = await Product.aggregate([
-      { $match: filter },
-
-      // 👉 JOIN CATEGORY
-      {
-        $lookup: {
-          from: "categories",
-          localField: "categoryId",
-          foreignField: "_id",
-          as: "category",
-        },
-      },
-      {
-        $unwind: {
-          path: "$category",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-
-      // join size
-      {
-        $lookup: {
-          from: "productsizevariants",
-          localField: "_id",
-          foreignField: "productId",
-          as: "sizes",
-        },
-      },
-
-      // join color
-      {
-        $lookup: {
-          from: "productcolorvariants",
-          localField: "sizes._id",
-          foreignField: "sizeId",
-          as: "colors",
-        },
-      },
-
-      // tính toán
-      {
-        $addFields: {
-          stock: { $sum: "$colors.stock" },
-          sizeList: { $setUnion: ["$sizes.size", []] },
-          colorList: { $setUnion: ["$colors.color", []] },
-        },
-      },
-
-      // chọn field trả về
-      {
-        $project: {
-          productId: 1,
-          title: 1,
-          description: 1,
-          productImage: 1,
-          stock: 1,
-          sizeList: 1,
-          colorList: 1,
-          "category.name": 1,
-        },
-      },
-
-      { $sort: { createdAt: -1 } },
-      { $skip: (page - 1) * Number(limit) },
-      { $limit: Number(limit) },
-    ]);
-
-    const total = await Product.countDocuments(filter);
-
-    const data = products.map((product) => ({
-      id: product._id,
-      productId: product.productId,
-      title: product.title,
-      description: product.description,
-      avatar: product.productImage,
-
-      category: product.category ? product.category.name : null,
-
-      stock: product.stock || 0,
-      size: product.sizeList || [],
-      color: product.colorList || [],
-    }));
+    const { products, total } = await productService.getProducts({
+      page,
+      limit,
+      category,
+      keyword,
+    });
 
     return res.status(200).json({
-      data,
+      success: "Fetch products success",
+      data: products,
       pagination: {
         total,
-        page: Number(page),
-        limit: Number(limit),
+        page,
+        limit,
         totalPages: Math.ceil(total / limit),
       },
     });
   } catch (error) {
-    console.error("Get products error:", error);
+    console.error("Get products controller error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const getOneProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const product = await productService.getOneProduct({ id });
+
+    return res.status(200).json({
+      success: "Fetch product success",
+      data: product,
+    });
+  } catch (error) {
+    console.error("Get products controller error:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };
@@ -179,70 +93,43 @@ export const getProduct = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { productId, title, description, category, avatar } = req.body;
-
-    const product = await Product.findById(id);
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
+    const { code, title, description, category, tags } = req.body;
+    let processedTags = [];
+    if (tags) {
+      processedTags = Array.isArray(tags) ? tags : [tags];
     }
-
-    if (productId) {
-      const existProductId = await Product.findOne({
-        productId,
-        _id: { $ne: id },
-      });
-
-      if (existProductId) {
-        return res.status(409).json({
-          message: "Product Id already exists",
-        });
-      }
-
-      product.productId = productId;
-    }
-
-    if (category) {
-      const categoryDoc = await Category.findOne({ name: category });
-      if (!categoryDoc) {
-        return res.status(400).json({ message: "Category not found" });
-      }
-      product.categoryId = categoryDoc._id;
-    }
-
-    if (title) {
-      const slug = slugify(title, {
-        lower: true,
-        strict: true,
-        locale: "vi",
-        trim: true,
-      });
-
-      const existSlug = await Product.findOne({
-        slug,
-        _id: { $ne: id },
-      });
-
-      if (existSlug) {
-        return res.status(409).json({
-          message: "Product title already exists",
-        });
-      }
-
-      product.title = title;
-      product.slug = slug;
-    }
-
-    if (description !== undefined) product.description = description;
-    if (avatar !== undefined) product.productImage = avatar;
-
-    await product.save();
+    const updatedProduct = await productService.updateProduct(
+      id,
+      {
+        code,
+        title,
+        description,
+        category,
+        tag: processedTags,
+      },
+      req.file
+    );
 
     return res.status(200).json({
       message: "Update product success",
-
     });
   } catch (error) {
-    console.error("Update product error:", error);
+    if (error.message === "PRODUCT_NOT_FOUND") {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    if (error.message === "PRODUCT_ID_EXISTS") {
+      return res.status(409).json({ message: "Product Id already exists" });
+    }
+    if (error.message === "CATEGORY_NOT_FOUND") {
+      return res.status(400).json({ message: "Category not found" });
+    }
+    if (error.message === "SLUG_EXISTS") {
+      return res
+        .status(409)
+        .json({ message: "Product title results in a duplicate slug" });
+    }
+
+    console.error("Controller Update Error:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };
@@ -251,270 +138,128 @@ export const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const product = await Product.findByIdAndDelete(id);
-
-    if (!product) {
-      return res.status(404).json({
-        message: "Product not found",
-      });
-    }
+    await productService.deleteProduct(id);
 
     return res.status(200).json({
-      message: "Delete product success",
+      message: "Delete product and related variants success",
     });
   } catch (error) {
-    console.error("Delete product error:", error);
+    if (error.message === "PRODUCT_NOT_FOUND") {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    console.error("Delete product controller error:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };
 
-export const createSizeVariant = async (req, res) => {
+export const createProductVariant = async (req, res) => {
   try {
-    const { productId } = req.params;
-    const { size } = req.body;
+    const id = req.params.id;
+    const { stock, price, color, size } = req.body;
 
-    if (!size) {
-      return res.status(400).json({
-        message: "Size is required",
-      });
+    if (color === undefined || price === undefined || stock === undefined) {
+      return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const product = await Product.findById(productId);
-    if (!product) {
-      return res.status(404).json({
-        message: "Product not found",
-      });
-    }
-
-    const existSize = await ProductSizeVariant.findOne({
-      productId: productId,
+    const newVariant = await productService.createVariant({
+      productId: id,
+      stock: Number(stock),
+      price: Number(price),
+      color,
       size,
-    });
-
-    if (existSize) {
-      return res.status(409).json({
-        message: "Size already exists for this product",
-      });
-    }
-
-    const sizeVariant = await ProductSizeVariant.create({
-      productId: productId,
-      size,
+      fileBuffer: req.file,
     });
 
     return res.status(201).json({
-      message: "Create size variant success",
-      data: sizeVariant,
+      message: "Create product variant success",
     });
   } catch (error) {
-    console.error("Create size variant error:", error);
-    return res.status(500).json({ message: "Server error" });
-  }
-};
-
-export const getSizeVariant = async (req, res) => {
-  try {
-    const { productId } = req.params;
-
-    const product = await Product.findById(productId);
-    if (!product) {
-      return res.status(404).json({
-        message: "Product not found",
-      });
+    if (error.message === "PRODUCT_NOT_FOUND") {
+      return res.status(404).json({ message: "Parent product not found" });
+    }
+    if (error.message === "SKU_EXISTS") {
+      return res.status(409).json({ message: "SKU code already exists" });
+    }
+    if (error.message === "INVALID_INPUT") {
+      return res
+        .status(400)
+        .json({ message: "Price or Stock must be a positive number" });
+    }
+    if (error.message === "VARIANT_ALREADY_EXISTS") {
+      return res
+        .status(409)
+        .json({ message: "Variant already exists" });
+    }
+    if (error.message === "IMAGE_REQUIRED_FOR_NEW_COLOR") {
+      return res.status(400).json({ message: "Image is required for new color" });
     }
 
-    // 2. Aggregate size + tổng stock
-    const sizeVariants = await ProductSizeVariant.aggregate([
-      {
-        $match: {
-          productId: product._id,
-        },
-      },
-      {
-        $lookup: {
-          from: "productcolorvariants", // tên collection (plural, lowercase)
-          localField: "_id",
-          foreignField: "sizeId",
-          as: "colors",
-        },
-      },
-      {
-        $addFields: {
-          stock: {
-            $sum: "$colors.stock",
-          },
-        },
-      },
-      {
-        $project: {
-          colors: 0, // ẩn mảng colors nếu không cần
-        },
-      },
-      {
-        $sort: { size: 1 },
-      },
-    ]);
-
-    const data = sizeVariants.map((sizeVariant) => ({
-      id: sizeVariant.id,
-      size: sizeVariant.size,
-      stock: sizeVariant.stock || 0,
-    }));
-
-    return res.status(200).json({
-      message: "Get size variants success",
-      data: data,
-    });
-  } catch (error) {
-    console.error("Get size variants error:", error);
+    console.error("Variant Controller Error:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };
 
-export const deleteSizeVariant = async (req, res) => {
+export const updateProductVariant = async (req, res) => {
   try {
-    const { sizeId } = req.params;
+    const { id } = req.params;
+    const { size, color, price, stock } = req.body;
 
-    const sizeVariant = await ProductSizeVariant.findByIdAndDelete(sizeId);
+    const updatedVariant = await productService.updateVariant(
+      id,
+      {
+        size,
+        color,
+        price,
+        stock,
+      },
+      req.file
+    );
 
-    if (!sizeVariant) {
-      return res.status(404).json({
-        message: "Size not found",
-      });
+    return res.status(200).json({
+      message: "Update product variant success",
+    });
+  } catch (error) {
+    if (error.message === "VARIANT_NOT_FOUND") {
+      return res.status(404).json({ message: "Variant not found" });
+    }
+    if (error.message === "INVALID_INPUT") {
+      return res
+        .status(400)
+        .json({ message: "Price and Stock must be positive numbers" });
+    }
+    if (error.message === "MISSING_UPDATE_FIELDS") {
+      return res.status(409).json({ message: "Missing update fields" });
     }
 
-    return res.status(200).json({
-      message: "Delete size variant success",
-    });
-  } catch (error) {
-    console.error("Delete size error:", error);
+    console.error("Controller Update Error:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };
 
-export const createColorVariant = async (req, res) => {
+export const deleteProductVariant = async (req, res) => {
   try {
-    const { sizeId } = req.params;
-    const { price, color, stock, avatar } = req.body;
+    const { id } = req.params;
+    const { size, color } = req.body;
 
-    if (!price || !color || !stock) {
+    if (!size || !color) {
       return res.status(400).json({
-        message: "Missing required fields",
+        message:
+          "Missing identifiers: size and color are required.",
       });
     }
 
-    const product = await ProductSizeVariant.findById(sizeId);
-    if (!product) {
-      return res.status(404).json({
-        message: "Size not found",
-      });
-    }
-
-    const existColor = await ProductColorVariant.findOne({
-      sizeId: sizeId,
-      color,
-    });
-
-    if (existColor) {
-      return res.status(409).json({
-        message: "Color already exists for this size",
-      });
-    }
-
-    const sizeVariant = await ProductColorVariant.create({
-      sizeId,
-      color,
-      price,
-      stock,
-      variantImage: avatar,
-    });
-
-    return res.status(201).json({
-      message: "Create color variant success",
-    });
-  } catch (error) {
-    console.error("Create size variant error:", error);
-    return res.status(500).json({ message: "Server error" });
-  }
-};
-
-export const getColorVariant = async (req, res) => {
-  try {
-    const { sizeId } = req.params;
-
-    const product = await ProductSizeVariant.findById(sizeId);
-    if (!product) {
-      return res.status(404).json({
-        message: "Size not found",
-      });
-    }
-
-    const colorVariants = await ProductColorVariant.find({
-      sizeId: sizeId,
-    }).sort({ color: 1 });
-
-    const data = colorVariants.map((colorVariant) => ({
-      id: colorVariant.id,
-      color: colorVariant.color,
-      price: colorVariant.price,
-      stock: colorVariant.stock,
-      avatar: colorVariant.variantImage,
-    }));
+    await productService.deleteProductVariant({ productId: id, size, color });
 
     return res.status(200).json({
-      message: "Get color variants success",
-      data: data,
+      message: "Delete product variant and its image success",
     });
   } catch (error) {
-    console.error("Get color variants error:", error);
-    return res.status(500).json({ message: "Server error" });
-  }
-};
-
-export const updateColorVariant = async (req, res) => {
-  try {
-    const { colorId } = req.params;
-    const { price, stock, avatar } = req.body;
-
-    const product = await ProductColorVariant.findById(colorId);
-    if (!product) {
-      return res.status(404).json({
-        message: "Color not found",
-      });
+    if (error.message === "VARIANT_NOT_FOUND") {
+      return res.status(404).json({ message: "Product variant not found" });
     }
 
-    if (price !== undefined) product.price = price;
-    if (avatar !== undefined) product.productImage = avatar;
-    if (stock !== undefined) product.stock = stock;
-
-    await product.save();
-
-    return res.status(200).json({
-      message: "Update color variant success",
-    });
-  } catch (error) {
-    console.error("Update color variant error:", error);
-    return res.status(500).json({ message: "Server error" });
-  }
-};
-
-export const deleteColorVariant = async (req, res) => {
-  try {
-    const { colorId } = req.params;
-
-    const colorVariant = await ProductSizeVariant.findByIdAndDelete(colorId);
-
-    if (!colorVariant) {
-      return res.status(404).json({
-        message: "Color not found",
-      });
-    }
-
-    return res.status(200).json({
-      message: "Delete color variant success",
-    });
-  } catch (error) {
-    console.error("Delete color variant error:", error);
+    console.error("Delete Variant Error:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };
