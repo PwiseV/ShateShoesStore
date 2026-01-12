@@ -15,7 +15,10 @@ interface UseOrderDetailLogicProps {
   onFieldChange: (field: keyof OrderData, value: any) => void;
 }
 
-export function useOrderDetailLogic({ editedOrder, onFieldChange }: UseOrderDetailLogicProps) {
+export function useOrderDetailLogic({
+  editedOrder,
+  onFieldChange,
+}: UseOrderDetailLogicProps) {
   const [selectedProductId, setSelectedProductId] = useState<string>("");
   const [newProductQty, setNewProductQty] = useState<number>(1);
 
@@ -41,15 +44,19 @@ export function useOrderDetailLogic({ editedOrder, onFieldChange }: UseOrderDeta
 
   const handleUpdateQuantity = (itemId: string, newQty: number) => {
     if (!editedOrder) return;
-    const updatedItems = editedOrder.items?.map((item) =>
-      item.id === itemId ? { ...item, quantity: newQty, total: item.price * newQty } : item
-    ) || [];
+    const updatedItems =
+      editedOrder.items?.map((item) =>
+        item.id === itemId
+          ? { ...item, quantity: newQty, total: item.price * newQty }
+          : item
+      ) || [];
     onFieldChange("items", updatedItems);
   };
 
   const handleDeleteItem = (itemId: string) => {
     if (!editedOrder) return;
-    const updatedItems = editedOrder.items?.filter((item) => item.id !== itemId) || [];
+    const updatedItems =
+      editedOrder.items?.filter((item) => item.id !== itemId) || [];
     onFieldChange("items", updatedItems);
   };
 

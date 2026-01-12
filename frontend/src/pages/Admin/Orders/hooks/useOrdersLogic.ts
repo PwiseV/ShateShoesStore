@@ -1,96 +1,65 @@
 import { useEffect, useState } from "react";
-import type { OrderData } from "../types";
-import { getAdminOrders } from "../../../../services/fakeAdminServices";
+import type { OrderData, UpdateOrderPayload } from "../types";
+import {
+  getAdminOrders,
+  updateAdminOrder,
+} from "../../../../services/adminOrdersServices"; // Import từ file service đã chỉnh
 
 export default function useOrdersLogic() {
   const [orders, setOrders] = useState<OrderData[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // Pagination & Filter States
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const itemsPerPage = 10;
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredOrders, setFilteredOrders] = useState<OrderData[]>(orders);
-  const [page, setPage] = useState(1);
-  const [loading] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [paymentFilter, setPaymentFilter] = useState("");
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 3000000]);
+
+  // Modal States
+  const [openFilterModal, setOpenFilterModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
   const [openDetailModal, setOpenDetailModal] = useState(false);
   const [editedOrder, setEditedOrder] = useState<OrderData | null>(null);
   const [isEditing, setIsEditing] = useState(false);
 
-  // Filter states
-  const [statusFilter, setStatusFilter] = useState("");
-  const [paymentFilter, setPaymentFilter] = useState("");
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 3000000]);
-  const [openFilterModal, setOpenFilterModal] = useState(false);
+  // 1. Fetch Orders (GET)
+  const fetchOrders = async () => {
+    setLoading(true);
+    try {
+      const response = await getAdminOrders({
+        page,
+        limit: itemsPerPage,
+        keyword: searchTerm,
+        status: statusFilter,
+        paymentMethod: paymentFilter,
+        minPrice: priceRange[0],
+        maxPrice: priceRange[1],
+      });
 
-  const itemsPerPage = 9;
+      setOrders(response.data);
+      setTotalPages(response.pagination.totalPages);
+    } catch (error) {
+      console.error("Failed to fetch orders:", error);
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // Re-fetch when dependencies change
   useEffect(() => {
-    let active = true;
-    const fetchOrders = async () => {
-      try {
-        const data = await getAdminOrders();
-        if (!active) return;
-        // map to OrderData loosely
-        const mapped = data.map((o: any) => ({
-          id: o.id,
-          orderNumber: o.orderNumber,
-          name: o.name,
-          email: o.email,
-          phone: o.phone,
-          address: o.address,
-          createdAt: o.createdAt,
-          total: o.total,
-          paymentMethod: o.paymentMethod,
-          status: o.status,
-          items: o.items || [],
-        }));
-        setOrders(mapped);
-        // apply current filters/search on fetched data
-        const filtered = mapped.filter((order) => {
-          const matchSearch =
-            order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            order.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            order.phone.includes(searchTerm);
-
-          const matchStatus = !statusFilter || order.status === statusFilter;
-          const matchPayment = !paymentFilter || order.paymentMethod === paymentFilter;
-          const matchPrice = order.total >= priceRange[0] && order.total <= priceRange[1];
-
-          return matchSearch && matchStatus && matchPayment && matchPrice;
-        });
-
-        setFilteredOrders(filtered);
-        setPage(1);
-      } catch (err) {
-        // keep empty on error
-        console.error("getAdminOrders error", err);
-      }
-    };
-
     fetchOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, searchTerm, statusFilter, paymentFilter, priceRange]);
 
-    return () => { active = false };
-  }, [searchTerm, statusFilter, paymentFilter, priceRange]);
-
-  // Apply filters when orders change (e.g., after save)
-  useEffect(() => {
-    const filtered = orders.filter((order) => {
-      const matchSearch =
-        order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.phone.includes(searchTerm);
-
-      const matchStatus = !statusFilter || order.status === statusFilter;
-      const matchPayment = !paymentFilter || order.paymentMethod === paymentFilter;
-      const matchPrice = order.total >= priceRange[0] && order.total <= priceRange[1];
-
-      return matchSearch && matchStatus && matchPayment && matchPrice;
-    });
-
-    setFilteredOrders(filtered);
-  }, [orders, searchTerm, statusFilter, paymentFilter, priceRange]);
-
+  // Handle Modal Actions
   const handleOpenDetail = (order: OrderData) => {
     setSelectedOrder(order);
-    setEditedOrder({ ...order });
+    setEditedOrder({ ...order }); // Clone object để edit không ảnh hưởng list gốc ngay
     setOpenDetailModal(true);
     setIsEditing(false);
   };
@@ -102,16 +71,52 @@ export default function useOrdersLogic() {
     setIsEditing(false);
   };
 
-  const handleSaveChanges = () => {
-    if (editedOrder) {
-      setOrders(
-        orders.map((o) => (o.id === editedOrder.id ? editedOrder : o))
+  // 2. Handle Save Changes (PATCH)
+  const handleSaveChanges = async () => {
+    if (!editedOrder) return;
+
+    try {
+      setLoading(true);
+
+      // ✅ Chuẩn hóa Payload: Chỉ gửi những gì cần thiết
+      const payload: UpdateOrderPayload = {
+        name: editedOrder.name,
+        phone: editedOrder.phone,
+        address: editedOrder.address,
+        status: editedOrder.status,
+        paymentMethod: editedOrder.paymentMethod,
+        // Map items để chỉ lấy field cần thiết gửi về BE
+        items: editedOrder.items.map((item) => ({
+          id: item.id,
+          sku: item.sku,
+          quantity: item.quantity,
+        })),
+      };
+
+      // Gọi API PATCH
+      const response = await updateAdminOrder(editedOrder.id, payload);
+
+      // ✅ Cập nhật UI ngay lập tức từ response.data (Server Authority)
+      const updatedOrderFromServer = response.data;
+
+      setOrders((prevOrders) =>
+        prevOrders.map((o) =>
+          o.id === updatedOrderFromServer.id ? updatedOrderFromServer : o
+        )
       );
-      setFilteredOrders(
-        filteredOrders.map((o) => (o.id === editedOrder.id ? editedOrder : o))
-      );
+
+      // Update lại selectedOrder để UI Modal hiển thị đúng dữ liệu mới nhất
+      setSelectedOrder(updatedOrderFromServer);
+      setEditedOrder(updatedOrderFromServer);
+
+      alert(response.message || "Cập nhật thành công!");
       setIsEditing(false);
-      handleCloseDetail();
+      handleCloseDetail(); // Hoặc giữ lại Modal tùy trải nghiệm UX bạn muốn
+    } catch (error: any) {
+      console.error("Update failed:", error);
+      alert(error.message || "Có lỗi xảy ra khi cập nhật");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -121,20 +126,13 @@ export default function useOrdersLogic() {
     }
   };
 
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
-  const paginatedOrders = filteredOrders.slice(
-    (page - 1) * itemsPerPage,
-    page * itemsPerPage
-  );
-
   const handlePageChange = (_event: unknown, value: number) => {
     setPage(value);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return {
-    orders,
-    paginatedOrders,
+    paginatedOrders: orders, // API đã trả về đúng page nên không cần slice ở FE nữa
     loading,
     searchTerm,
     setSearchTerm,
@@ -159,5 +157,4 @@ export default function useOrdersLogic() {
     handleSaveChanges,
     handleFieldChange,
   };
-
 }
