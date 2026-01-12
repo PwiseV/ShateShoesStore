@@ -104,8 +104,9 @@ const ColorEditModal: React.FC<Props> = ({
         await addProductColor(productId, data);
         showToast("Thêm màu mới thành công", "success");
       }
+      onClose();
       onSuccess();
-      // onClose();
+      
     } catch (error: any) {
       showToast(error.response?.data?.message || "Lỗi hệ thống", "error");
     }
