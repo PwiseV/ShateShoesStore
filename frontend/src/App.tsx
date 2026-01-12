@@ -11,7 +11,7 @@ import ProtectedRoute from "./routes/protectedRoutes.tsx";
 import Dashboard from "./pages/Admin/Dashboard/Dashboard.tsx";
 import HomePage from "./pages/Costumer/Homepage/Homepage.tsx";
 import Login from "./pages/Signin/SigninForm.tsx";
-import Signup from "./pages/Signup/SignupForm";
+import Signup from "./pages/Signup/SignupForm.tsx";
 import Users from "./pages/Admin/Users/Users.tsx";
 import Orders from "./pages/Admin/Orders/Orders.tsx";
 

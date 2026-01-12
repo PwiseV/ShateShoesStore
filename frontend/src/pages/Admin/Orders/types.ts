@@ -14,9 +14,10 @@ export interface OrderData {
   email: string;
   phone: string;
   address: string;
+  note?: string;
   createdAt: string;
   total: number;
   paymentMethod: string;
-  status: "waittingApproval" | "processing" | "shipped" | "delivered" | "cancelled";
+  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
   items?: OrderItem[];
 }

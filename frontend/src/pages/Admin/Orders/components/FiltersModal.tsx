@@ -20,7 +20,7 @@ const FiltersModal: React.FC<Props> = ({ open, onClose, statusFilter, setStatusF
   const [expanded, setExpanded] = useState<string | false>(false);
   const [tempStatus, setTempStatus] = useState<string>(statusFilter || "");
   const [tempPayment, setTempPayment] = useState<string>(paymentFilter || "");
-  const [tempPrice, setTempPrice] = useState<[number, number]>(priceRange || [0, 3000000]);
+  const [tempPrice, setTempPrice] = useState<[number, number]>(priceRange || [0, 10000000]);
 
   const handleChange = (panel: string) => (_: any, isExpanded: boolean) => {
     setExpanded(isExpanded ? panel : false);

@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import type { OrderData } from "../types";
-import { getAdminOrders } from "../../../../services/fakeAdminServices";
+// import { getAdminOrders } from "../../../../services/fakeAdminServices";
+import { getAdminOrders, updateAdminOrder } from "../../../../services/adminServices";
 
 export default function useOrdersLogic() {
   const [orders, setOrders] = useState<OrderData[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredOrders, setFilteredOrders] = useState<OrderData[]>(orders);
@@ -17,7 +19,7 @@ export default function useOrdersLogic() {
   // Filter states
   const [statusFilter, setStatusFilter] = useState("");
   const [paymentFilter, setPaymentFilter] = useState("");
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 3000000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000000]);
   const [openFilterModal, setOpenFilterModal] = useState(false);
 
   const itemsPerPage = 9;
@@ -26,67 +28,51 @@ export default function useOrdersLogic() {
     let active = true;
     const fetchOrders = async () => {
       try {
-        const data = await getAdminOrders();
-        if (!active) return;
-        // map to OrderData loosely
-        const mapped = data.map((o: any) => ({
-          id: o.id,
-          orderNumber: o.orderNumber,
-          name: o.name,
-          email: o.email,
-          phone: o.phone,
-          address: o.address,
-          createdAt: o.createdAt,
-          total: o.total,
-          paymentMethod: o.paymentMethod,
-          status: o.status,
-          items: o.items || [],
-        }));
-        setOrders(mapped);
-        // apply current filters/search on fetched data
-        const filtered = mapped.filter((order) => {
-          const matchSearch =
-            order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            order.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            order.phone.includes(searchTerm);
+      // 1. Gọi API thật với đầy đủ params
+      const res = await getAdminOrders({
+        page,
+        pageSize: itemsPerPage,
+        keyword: searchTerm,
+        status: statusFilter,
+        paymentMethod: paymentFilter,
+        minPrice: priceRange[0],
+        maxPrice: priceRange[1]
+      });
 
-          const matchStatus = !statusFilter || order.status === statusFilter;
-          const matchPayment = !paymentFilter || order.paymentMethod === paymentFilter;
-          const matchPrice = order.total >= priceRange[0] && order.total <= priceRange[1];
+      if (!active) return;
 
-          return matchSearch && matchStatus && matchPayment && matchPrice;
-        });
-
-        setFilteredOrders(filtered);
-        setPage(1);
-      } catch (err) {
-        // keep empty on error
-        console.error("getAdminOrders error", err);
-      }
+      // 2. Set thẳng dữ liệu từ BE vào state
+      setOrders(res.data as OrderData[]);
+      setFilteredOrders(res.data as OrderData[]);
+      setTotalPages(Math.ceil(res.total / itemsPerPage));
+      
+    } catch (err) {
+      console.error("Lỗi lấy data thật:", err);
+    }
     };
 
     fetchOrders();
 
     return () => { active = false };
-  }, [searchTerm, statusFilter, paymentFilter, priceRange]);
+  }, [searchTerm, statusFilter, paymentFilter, priceRange, page]);
 
   // Apply filters when orders change (e.g., after save)
-  useEffect(() => {
-    const filtered = orders.filter((order) => {
-      const matchSearch =
-        order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.phone.includes(searchTerm);
+  // useEffect(() => {
+  //   const filtered = orders.filter((order) => {
+  //     const matchSearch =
+  //       order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //       order.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //       order.phone.includes(searchTerm);
 
-      const matchStatus = !statusFilter || order.status === statusFilter;
-      const matchPayment = !paymentFilter || order.paymentMethod === paymentFilter;
-      const matchPrice = order.total >= priceRange[0] && order.total <= priceRange[1];
+  //     const matchStatus = !statusFilter || order.status === statusFilter;
+  //     const matchPayment = !paymentFilter || order.paymentMethod === paymentFilter;
+  //     const matchPrice = order.total >= priceRange[0] && order.total <= priceRange[1];
 
-      return matchSearch && matchStatus && matchPayment && matchPrice;
-    });
+  //     return matchSearch && matchStatus && matchPayment && matchPrice;
+  //   });
 
-    setFilteredOrders(filtered);
-  }, [orders, searchTerm, statusFilter, paymentFilter, priceRange]);
+  //   setFilteredOrders(filtered);
+  // }, [orders, searchTerm, statusFilter, paymentFilter, priceRange]);
 
   const handleOpenDetail = (order: OrderData) => {
     setSelectedOrder(order);
@@ -102,17 +88,27 @@ export default function useOrdersLogic() {
     setIsEditing(false);
   };
 
-  const handleSaveChanges = () => {
+  const handleSaveChanges = async () => {
     if (editedOrder) {
-      setOrders(
-        orders.map((o) => (o.id === editedOrder.id ? editedOrder : o))
-      );
-      setFilteredOrders(
-        filteredOrders.map((o) => (o.id === editedOrder.id ? editedOrder : o))
-      );
+    try {
+      await updateAdminOrder(editedOrder.id, {
+        name: editedOrder.name,
+        phone: editedOrder.phone,
+        address: editedOrder.address,
+        status: editedOrder.status,
+        note: editedOrder.note,
+        // Nếu muốn lưu cả danh sách items đã sửa (như xóa bớt sp):
+        items: editedOrder.items 
+      });
+
       setIsEditing(false);
       handleCloseDetail();
+      // Gọi lại danh sách để cập nhật tiền và thông tin mới nhất
+      // fetchOrders(); 
+    } catch (error) {
+      alert("Cập nhật thất bại!");
     }
+  }
   };
 
   const handleFieldChange = (field: keyof OrderData, value: any) => {
@@ -121,7 +117,7 @@ export default function useOrdersLogic() {
     }
   };
 
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  // const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   const paginatedOrders = filteredOrders.slice(
     (page - 1) * itemsPerPage,
     page * itemsPerPage

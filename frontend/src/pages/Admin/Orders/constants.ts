@@ -1,5 +1,5 @@
 export const statusConfig: Record<string, { label: string; color: "error" | "warning" | "success" | "info" | "done" | "default" }> = {
-  waitting_approval: { label: "Chờ duyệt", color: "warning" },
+  pending: { label: "Chờ duyệt", color: "warning" },
   processing: { label: "Đang xử lý", color: "info" },
   shipped: { label: "Đã gửi hàng", color: "done" },
   delivered: { label: "Đã giao", color: "success" },

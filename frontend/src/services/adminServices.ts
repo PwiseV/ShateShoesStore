@@ -125,15 +125,24 @@ export interface OrderData {
   createdAt: string;
   total: number;
   paymentMethod: string;
-  status: string;
+  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
   items?: OrderItem[];
 }
 
+// Response type for paginated orders
+export interface OrderResponse {
+  data: OrderData[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 // Fetch all admin orders
-export const getAdminOrders = async (): Promise<OrderData[]> => {
+export const getAdminOrders = async (params: any): Promise<OrderResponse> => {
   try {
-    const response = await api.get("/admin/orders");
-    return response.data;
+    //  params (page, keyword, status...) to BE
+    const response = await api.get("/admin/orders", { params });
+    return response.data; 
   } catch (error) {
     console.error("Get admin orders error:", error);
     throw error;
@@ -141,15 +150,11 @@ export const getAdminOrders = async (): Promise<OrderData[]> => {
 };
 
 // Update an order by id. Payload can be partial OrderData.
-export const updateAdminOrder = async (
-  id: string,
-  payload: Partial<OrderData>
-): Promise<OrderData> => {
+export const updateAdminOrder = async (id: string, payload: any): Promise<OrderData> => {
   try {
-    const response = await api.put(`/admin/orders/${id}`, payload);
+    const response = await api.patch(`/admin/orders/${id}`, payload);
     return response.data;
   } catch (error) {
-    console.error("Update admin order error:", error);
     throw error;
   }
 };
