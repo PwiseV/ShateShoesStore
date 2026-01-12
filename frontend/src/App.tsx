@@ -13,6 +13,7 @@ import HomePage from "./pages/Costumer/Homepage/Homepage.tsx";
 import Login from "./pages/Signin/SigninForm.tsx";
 import Signup from "./pages/Signup/SignupForm";
 import Users from "./pages/Admin/Users/Users.tsx";
+import Favourite from "./pages/Costumer/Favourite/Favourite.tsx";
 
 export default function AppRoutes() {
   return (
@@ -24,6 +25,7 @@ export default function AppRoutes() {
           <Route path="/homepage" element={<HomePage />} />
           <Route path="/admin/dashboard" element={<Dashboard />} />
           <Route path="/admin/users" element={<Users />} />
+          <Route path="/favourite" element={<Favourite />} />
           <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/admin/dashboard" element={<Dashboard />} />
             <Route path="/admin/users" element={<Users />} />
