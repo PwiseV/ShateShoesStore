@@ -11,7 +11,7 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import type { Product } from "../types";
-import { TABLE_GRID, COLOR_DISPLAY_MAP } from "../constants";
+import { TABLE_GRID, COLOR_DISPLAY_MAP, COLOR_MAP } from "../constants";
 
 interface ProductTableProps {
   loading: boolean;
@@ -174,7 +174,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
                         width: 18,
                         height: 18,
                         borderRadius: "50%",
-                        bgcolor: COLOR_DISPLAY_MAP[c.color] || "#ccc",
+                        bgcolor: COLOR_DISPLAY_MAP[COLOR_MAP[c.color]] || "#ccc",
                         border:
                           (selectedColors[product.id] ?? 0) === idx
                             ? "2px solid #2C3E50"

@@ -179,9 +179,6 @@ const ProductCreateModal: React.FC<Props> = ({ open, onClose, onSuccess }) => {
         }}
       >
         <Stack direction="row" spacing={1.5} alignItems="center">
-          <Avatar sx={{ bgcolor: PRIMARY_COLOR, width: 32, height: 32 }}>
-            <AddBoxIcon fontSize="small" />
-          </Avatar>
           <Typography variant="h6" fontWeight={700} color="#37474f">
             Thêm Sản Phẩm Mới
           </Typography>

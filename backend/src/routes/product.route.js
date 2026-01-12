@@ -2,6 +2,7 @@ import express from "express";
 import {
   createProduct,
   getProduct,
+  getOneProduct,
   createProductVariant,
   updateProduct,
   deleteProduct,
@@ -26,6 +27,7 @@ router.get("/category", getCategory);
 ========================= */
 router.post("/products",upload.single("avatar"), createProduct);
 router.get("/products", getProduct);
+router.get("/products/:id", getOneProduct);
 router.patch("/products/:id", upload.single("avatar"), updateProduct);
 router.delete("/products/:id", deleteProduct);
 /* =========================

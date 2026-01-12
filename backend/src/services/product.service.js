@@ -201,6 +201,67 @@ export const getProducts = async ({
   return { products: formattedProducts, total };
 };
 
+export const getOneProduct = async ({ id }) => {
+  const product = await Product.findById(id)
+    .populate({
+      path: "categoryId",
+      populate: { path: "parentId" },
+    })
+    .lean();
+
+  if (!product) {
+    throw new Error("Sản phẩm không tồn tại");
+  }
+  const variants = await ProductVariant.find({ productId: product._id })
+    .populate("productVariantImageId")
+    .lean();
+
+  const sizesMap = {};
+  let totalStock = 0;
+
+  variants.forEach((v) => {
+    totalStock += v.stock;
+    if (!sizesMap[v.size]) {
+      sizesMap[v.size] = {
+        size: v.size,
+        colors: [],
+      };
+    }
+    sizesMap[v.size].colors.push({
+      color: v.color,
+      price: v.price,
+      stock: v.stock,
+      avatar: v.productVariantImageId?.avatar?.url || null,
+    });
+  });
+  const formattedProduct = {
+    productId: product._id,
+    code: product.code,
+    title: product.title,
+    description: product.description,
+    tag: product.tag,
+    slug: product.slug,
+    avatar: product.avatar?.url,
+    category: {
+      categoryId: product.categoryId?._id,
+      name: product.categoryId?.name,
+      slug: product.categoryId?.slug,
+      parent: product.categoryId?.parentId
+        ? {
+            categoryId: product.categoryId.parentId._id,
+            name: product.categoryId.parentId.name,
+            slug: product.categoryId.parentId.slug,
+          }
+        : null,
+    },
+    stock: totalStock,
+    sizes: Object.values(sizesMap),
+  };
+
+  return formattedProduct; 
+};
+
+
 export const updateProduct = async (id, updateData, fileBuffer) => {
   const { code, title, description, category, tag } = updateData;
 

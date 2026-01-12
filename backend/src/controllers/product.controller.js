@@ -74,6 +74,22 @@ export const getProduct = async (req, res) => {
   }
 };
 
+export const getOneProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const product = await productService.getOneProduct({ id });
+
+    return res.status(200).json({
+      success: "Fetch product success",
+      data: product,
+    });
+  } catch (error) {
+    console.error("Get products controller error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
 export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
