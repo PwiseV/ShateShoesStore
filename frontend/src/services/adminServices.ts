@@ -101,3 +101,60 @@ export const getDashboardComments = async (): Promise<CommentItem[]> => {
     throw error;
   }
 };
+
+/* ============================
+   ORDERS APIS
+============================ */
+
+export interface OrderItem {
+  id: string;
+  productName: string;
+  sku?: string;
+  quantity: number;
+  price: number;
+  total: number;
+}
+
+export interface OrderData {
+  id: string;
+  orderNumber: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  createdAt: string;
+  total: number;
+  paymentMethod: string;
+  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
+  items?: OrderItem[];
+}
+
+// Response type for paginated orders
+export interface OrderResponse {
+  data: OrderData[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+// Fetch all admin orders
+export const getAdminOrders = async (params: any): Promise<OrderResponse> => {
+  try {
+    //  params (page, keyword, status...) to BE
+    const response = await api.get("/admin/orders", { params });
+    return response.data; 
+  } catch (error) {
+    console.error("Get admin orders error:", error);
+    throw error;
+  }
+};
+
+// Update an order by id. Payload can be partial OrderData.
+export const updateAdminOrder = async (id: string, payload: any): Promise<OrderData> => {
+  try {
+    const response = await api.patch(`/admin/orders/${id}`, payload);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

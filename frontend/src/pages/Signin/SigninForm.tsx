@@ -96,8 +96,6 @@ const LoginForm: React.FC = () => {
           ? err
           : "Something went wrong";
 
-      console.log("Signin error:", err);
-
       showToast(message, "error");
     }
   };

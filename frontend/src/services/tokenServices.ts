@@ -1,15 +1,13 @@
-let accessToken: string | null = null;
-
-/**
- * Lưu access token vào memory (RAM)
- * @param t token string hoặc null để clear
- */
 export const setAccessToken = (t: string | null) => {
-  accessToken = t;
+  if (t) {
+    localStorage.setItem("accessToken", t); // Lưu vào máy
+  } else {
+    localStorage.removeItem("accessToken"); // Xóa khi logout
+  }
 };
 
-/** Lấy access token hiện tại (có thể là null) */
-export const getAccessToken = (): string | null => accessToken;
+export const getAccessToken = (): string | null => {
+  return localStorage.getItem("accessToken"); // Lấy từ máy ra
+};
 
-/** Check quick */
-export const hasAccessToken = () => !!accessToken;
+export const hasAccessToken = () => !!localStorage.getItem("accessToken");
