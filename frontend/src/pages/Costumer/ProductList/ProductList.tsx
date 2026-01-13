@@ -20,7 +20,7 @@ import {
   getAllCategories,
   type Product,
   type Category,
-} from "../../../services/fakeProductListServices";
+} from "../../../services/productListServices";
 
 const PAGE_SIZE = 6;
 

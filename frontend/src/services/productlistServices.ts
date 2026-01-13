@@ -37,7 +37,6 @@ export const getAllProducts = async (params?: {
   keyword?: string;
   page?: number;
   limit?: number;
-  // Backend chưa hỗ trợ sort, nhưng ta cứ truyền lên, nếu BE update thì tự chạy
   sort?: string;
 }): Promise<Product[]> => {
   try {
@@ -62,7 +61,7 @@ export const getAllProducts = async (params?: {
 
 export const getAllCategories = async (): Promise<Category[]> => {
   try {
-    const response = await api.get("/users/category");
+    const response = await api.get("/users/category/list");
     const data = response.data?.data || [];
     // Lấy trường 'name' từ object category
     return data.map((cat: any) => cat.name);

@@ -29,7 +29,7 @@ export default function AppRoutes() {
           <Route path="/admin/promotions" element={<Promotions />} />
           <Route path="/admin/dashboard" element={<Dashboard />} />
           <Route path="/admin/users" element={<Users />} />
-
+          <Route path="/products" element={<ProductList />} />
           <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/admin/dashboard" element={<Dashboard />} />
             <Route path="/admin/users" element={<Users />} />
