@@ -10,6 +10,7 @@ import authRoute from './routes/auth.route.js'
 import adminRoute from "./routes/admin.route.js";
 import userRoute from "./routes/user.route.js";
 import productRoute from "./routes/product.route.js"
+import promotionRoute from "./routes/promotion.route.js"
 // import cartRoute from "./routes/cart.route.js"
 // import orderRoute from "./routes/order.route.js"
 
