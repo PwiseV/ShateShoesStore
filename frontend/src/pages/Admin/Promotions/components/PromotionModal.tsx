@@ -14,7 +14,7 @@ import {
   Stack,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import type { Promotion, PromotionStatus } from "../types";
+import type { Promotion } from "../types";
 
 interface PromotionModalProps {
   open: boolean;
@@ -23,7 +23,6 @@ interface PromotionModalProps {
   initialData?: Promotion | null;
 }
 
-// Style chung cho Input
 const inputStyle = {
   "& .MuiOutlinedInput-root": {
     borderRadius: "12px",
@@ -53,20 +52,18 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
   onSave,
   initialData,
 }) => {
-  // Thêm trường status vào state
   const [formData, setFormData] = useState({
     code: "",
     description: "",
     discountType: "percentage",
-    quantity: 10,
+    quantity: 100,
     discountValue: "",
     minOrderValue: "",
     startDate: "",
     endDate: "",
-    status: "Hoạt động", // Mặc định là Hoạt động
+    status: "inactive",
   });
 
-  // Load dữ liệu khi mở Modal (Edit mode)
   useEffect(() => {
     if (initialData && open) {
       setFormData({
@@ -76,12 +73,11 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
         quantity: initialData.totalQuantity,
         discountValue: initialData.discountValue.toString(),
         minOrderValue: initialData.minOrderValue.toString(),
-        startDate: initialData.startDate,
-        endDate: initialData.endDate,
-        status: initialData.status, // Load status cũ lên
+        startDate: initialData.startDate.split("T")[0], // Đảm bảo định dạng yyyy-MM-dd cho input date
+        endDate: initialData.endDate.split("T")[0],
+        status: initialData.status, // Load status từ data cũ
       });
     } else if (!initialData && open) {
-      // Reset form khi tạo mới
       setFormData({
         code: "",
         description: "",
@@ -91,7 +87,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
         minOrderValue: "",
         startDate: "",
         endDate: "",
-        status: "Hoạt động",
+        status: "active",
       });
     }
   }, [initialData, open]);
@@ -108,13 +104,12 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
       code: formData.code,
       description: formData.description,
       discountType: formData.discountType as any,
-      discountValue: Number(formData.discountValue),
-      minOrderValue: Number(formData.minOrderValue),
-      startDate: formData.startDate,
-      endDate: formData.endDate,
-      totalQuantity: Number(formData.quantity),
-      remainingQuantity: Number(formData.quantity), // Reset sl còn lại = tổng sl (hoặc giữ nguyên tùy logic)
-      status: formData.status as PromotionStatus, // Lưu status người dùng chọn
+      discountAmount: Number(formData.discountValue), 
+      minOrderAmount: Number(formData.minOrderValue), 
+      startedAt: formData.startDate,
+      expiredAt: formData.endDate,
+      stock: Number(formData.quantity), // Map đúng tên trường backend stock
+      status: formData.status as any,
     });
   };
 
@@ -126,28 +121,17 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
       fullWidth
       PaperProps={{ sx: { borderRadius: "24px", padding: 2 } }}
     >
-      <DialogTitle
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          pb: 1,
-        }}
-      >
+      <DialogTitle sx={{ display: "flex", justifyContent: "center", alignItems: "center", pb: 1 }}>
         <Typography variant="h5" sx={{ fontWeight: 800, color: "#2C3E50" }}>
           {initialData ? "Chỉnh sửa mã giảm giá" : "Tạo mã giảm giá"}
         </Typography>
-        <IconButton
-          onClick={onClose}
-          sx={{ position: "absolute", right: 16, top: 16, color: "#999" }}
-        >
+        <IconButton onClick={onClose} sx={{ position: "absolute", right: 16, top: 16, color: "#999" }}>
           <CloseIcon />
         </IconButton>
       </DialogTitle>
 
       <DialogContent sx={{ pt: 2 }}>
         <Stack spacing={2.5}>
-          {/* Mã giảm giá */}
           <Box>
             <Typography sx={labelStyle}>Mã giảm giá</Typography>
             <TextField
@@ -159,7 +143,6 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
             />
           </Box>
 
-          {/* Mô tả */}
           <Box>
             <Typography sx={labelStyle}>Mô tả</Typography>
             <TextField
@@ -171,9 +154,8 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
             />
           </Box>
 
-          {/* Grid 1: Loại giảm & Số lượng */}
           <Grid container spacing={2}>
-            <Grid size={6}>
+            <Grid item xs={6}>
               <Typography sx={labelStyle}>Loại giảm giá</Typography>
               <Select
                 fullWidth
@@ -185,7 +167,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                 <MenuItem value="fixed">Số tiền cố định</MenuItem>
               </Select>
             </Grid>
-            <Grid size={6}>
+            <Grid item xs={6}>
               <Typography sx={labelStyle}>Số lượng phát hành</Typography>
               <TextField
                 fullWidth
@@ -197,9 +179,8 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
             </Grid>
           </Grid>
 
-          {/* Grid 2: Giá trị giảm & Đơn tối thiểu */}
           <Grid container spacing={2}>
-            <Grid size={6}>
+            <Grid item xs={6}>
               <Typography sx={labelStyle}>Giá trị giảm</Typography>
               <TextField
                 fullWidth
@@ -209,7 +190,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                 sx={inputStyle}
               />
             </Grid>
-            <Grid size={6}>
+            <Grid item xs={6}>
               <Typography sx={labelStyle}>Đơn tối thiểu</Typography>
               <TextField
                 fullWidth
@@ -221,62 +202,53 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
             </Grid>
           </Grid>
 
-          {/* [UPDATE] Grid 3: Thời gian & Trạng thái */}
-          {/* Tôi gộp Trạng thái vào chung với phần Thời gian hoặc tách riêng */}
-          <Box>
-            <Typography sx={labelStyle}>Trạng thái hoạt động</Typography>
-            <Select
-              fullWidth
-              value={formData.status}
-              onChange={(e) => handleChange("status", e.target.value)}
-              sx={inputStyle}
-            >
-              <MenuItem value="Hoạt động">
-                <Box
-                  component="span"
-                  sx={{ color: "#2ECC71", fontWeight: 600 }}
-                >
-                  Hoạt động
-                </Box>
-              </MenuItem>
-              <MenuItem value="Tạm dừng">
-                <Box
-                  component="span"
-                  sx={{ color: "#F1C40F", fontWeight: 600 }}
-                >
-                  Tạm dừng
-                </Box>
-              </MenuItem>
-              <MenuItem value="Hết hạn">
-                <Box
-                  component="span"
-                  sx={{ color: "#E74C3C", fontWeight: 600 }}
-                >
-                  Hết hạn
-                </Box>
-              </MenuItem>
-            </Select>
-          </Box>
+          {/* CHỈ HIỂN THỊ KHI EDIT (CÓ INITIALDATA) */}
+          {initialData && (
+            <Box>
+              <Typography sx={labelStyle}>Trạng thái hoạt động</Typography>
+              <Select
+                fullWidth
+                value={formData.status}
+                onChange={(e) => handleChange("status", e.target.value)}
+                sx={inputStyle}
+              >
+                <MenuItem value="active">
+                  <Typography sx={{ color: "#2ECC71", fontWeight: 600 }}>Hoạt động</Typography>
+                </MenuItem>
+                <MenuItem value="inactive">
+                  <Typography sx={{ color: "#999", fontWeight: 600 }}>Tạm dừng</Typography>
+                </MenuItem>
+                <MenuItem value="upcoming">
+                  <Typography sx={{ color: "#F1C40F", fontWeight: 600 }}>Sắp diễn ra</Typography>
+                </MenuItem>
+                <MenuItem value="expired">
+                  <Typography sx={{ color: "#E74C3C", fontWeight: 600 }}>Hết hạn</Typography>
+                </MenuItem>
+              </Select>
+            </Box>
+          )}
 
           <Box>
             <Typography sx={labelStyle}>Thời gian áp dụng</Typography>
             <Grid container spacing={2}>
-              <Grid size={6}>
+              <Grid item xs={6}>
                 <TextField
                   type="date"
                   fullWidth
                   value={formData.startDate}
                   onChange={(e) => handleChange("startDate", e.target.value)}
                   sx={inputStyle}
+                  InputLabelProps={{ shrink: true }}
                 />
               </Grid>
-              <Grid size={6}>
+              <Grid item xs={6}>
                 <TextField
                   type="date"
                   fullWidth
                   value={formData.endDate}
                   onChange={(e) => handleChange("endDate", e.target.value)}
                   sx={inputStyle}
+                  InputLabelProps={{ shrink: true }}
                 />
               </Grid>
             </Grid>

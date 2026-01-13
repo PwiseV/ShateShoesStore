@@ -8,7 +8,6 @@ import { getStatusColor } from "../utils";
 interface PromotionListProps {
   promotions: Promotion[];
   onDelete: (id: number) => void;
-  // Chỉ thêm dòng này để nhận hàm sửa
   onEdit: (item: Promotion) => void;
 }
 
@@ -49,7 +48,7 @@ const PromotionList: React.FC<PromotionListProps> = ({
           </Grid>
           <Grid size={1.5}>
             <Typography fontWeight="bold" fontSize={14} align="center">
-              Còn lại
+              Loại
             </Typography>
           </Grid>
           <Grid size={1.5}>
@@ -128,8 +127,8 @@ const PromotionList: React.FC<PromotionListProps> = ({
 
               {/* Remaining Quantity */}
               <Grid size={1.5} textAlign="center">
-                <Typography color="#2C3E50" fontWeight={600} fontSize={14}>
-                  {item.remainingQuantity}
+                <Typography fontSize={13} color="#6B7280">
+                  {item.discountType}
                 </Typography>
               </Grid>
 

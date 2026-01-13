@@ -1,4 +1,4 @@
-export type PromotionStatus = "Hoạt động" | "Tạm dừng" | "Hết hạn";
+export type PromotionStatus = "active" | "inactive" | "expired" | "upcoming";
 export type DiscountType = "percentage" | "fixed";
 
 // Interface cho bộ lọc
@@ -9,17 +9,16 @@ export interface PromotionFilterState {
   status: string;
 }
 
-// Interface chính cho Promotion
+
 export interface Promotion {
   id: number;
   code: string;
-  description?: string; // Có thể null
+  description?: string; 
   discountType: DiscountType;
-  discountValue: number;
+  discountAmount: number;
   minOrderValue: number;
   startDate: string;
   endDate: string;
   totalQuantity: number;
-  remainingQuantity: number;
   status: PromotionStatus;
 }
