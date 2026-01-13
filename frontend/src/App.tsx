@@ -14,6 +14,7 @@ import Login from "./pages/Signin/SigninForm.tsx";
 import Signup from "./pages/Signup/SignupForm";
 import Users from "./pages/Admin/Users/Users.tsx";
 import Products from "./pages/Admin/Products/Products.tsx";
+import Promotions from "./pages/Admin/Promotions/Promotions.tsx";
 
 export default function AppRoutes() {
   return (
@@ -28,6 +29,7 @@ export default function AppRoutes() {
             <Route path="/admin/dashboard" element={<Dashboard />} />
             <Route path="/admin/users" element={<Users />} />
             <Route path="/admin/products" element={<Products />} />
+            <Route path="/admin/promotions" element={<Promotions />} />
           </Route>
 
           <Route element={<ProtectedRoute role="customer" />}>
