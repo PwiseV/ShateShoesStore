@@ -18,6 +18,7 @@ import PrivacyPolicy from "./pages/Costumer/StaticPages/PrivacyPolicy.tsx";
 import ReturnPolicy from "./pages/Costumer/StaticPages/ReturnPolicy.tsx";
 import ContactUs from "./pages/Costumer/Contact/ContactUs.tsx";
 import NotFound from "./pages/Costumer/StaticPages/NotFound.tsx";
+import SizeGuide from "./pages/Costumer/StaticPages/SizeGuide.tsx";
 
 export default function AppRoutes() {
   return (
@@ -40,6 +41,7 @@ export default function AppRoutes() {
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/return-policy" element={<ReturnPolicy />} />
             <Route path="/contact-us" element={<ContactUs />} />
+            <Route path="/size-guide" element={<SizeGuide />} />
             <Route path="*" element={<NotFound />} />
           </Route>
 

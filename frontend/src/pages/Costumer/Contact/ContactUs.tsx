@@ -4,7 +4,6 @@ import Header from "../../../components/Customer/Header";
 import Footer from "../../../components/Customer/Footer";
 
 // --- CẤU HÌNH API URL ---
-// Bạn thay đường dẫn này bằng API thật của Backend nhé
 const API_URL = "https://your-backend-api.com/api/contact";
 
 const ContactContent: React.FC = () => {
@@ -17,38 +16,79 @@ const ContactContent: React.FC = () => {
     message: "",
   });
 
-  // 2. Thêm state để quản lý trạng thái Loading (đang gửi)
-  const [isLoading, setIsLoading] = useState(false);
+  // 2. State quản lý lỗi (Validation)
+  const [errors, setErrors] = useState({
+    phone: "",
+    email: "",
+    general: "", // Lỗi chung (ví dụ: lỗi mạng)
+  });
 
-  // Xử lý nhập liệu
+  // 3. State quản lý trạng thái
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false); // Trạng thái gửi thành công
+
+  // Hàm kiểm tra định dạng (Validate)
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = { phone: "", email: "", general: "" };
+
+    // Regex kiểm tra email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email) {
+      newErrors.email = "Vui lòng nhập Email.";
+      isValid = false;
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = "Email không đúng định dạng.";
+      isValid = false;
+    }
+
+    // Regex kiểm tra số điện thoại (10-11 số)
+    const phoneRegex = /^(0|\+84)[0-9]{9,10}$/;
+    if (!formData.phone) {
+      newErrors.phone = "Vui lòng nhập số điện thoại.";
+      isValid = false;
+    } else if (!phoneRegex.test(formData.phone)) {
+      newErrors.phone = "Số điện thoại không hợp lệ.";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  // Xử lý nhập liệu (Xóa lỗi khi người dùng bắt đầu gõ lại)
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Reset lỗi của trường đang nhập
+    if (errors[name as keyof typeof errors]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+    // Reset trạng thái thành công nếu người dùng sửa form
+    if (isSuccess) setIsSuccess(false);
   };
 
-  // 3. Xử lý gửi API (Async/Await)
+  // 4. Xử lý gửi API
   const handleSubmit = async () => {
-    // Validate cơ bản (ví dụ: bắt buộc nhập email và sđt)
-    if (!formData.email || !formData.phone) {
-      alert("Vui lòng nhập Email và Số điện thoại!");
-      return;
-    }
+    // Bước 1: Validate trước khi gửi
+    if (!validateForm()) return;
+
+    setIsLoading(true);
+    setErrors((prev) => ({ ...prev, general: "" })); // Reset lỗi chung
 
     try {
-      setIsLoading(true); // Bắt đầu gửi -> Bật loading
-
       // --- GỌI API ---
+      // Lưu ý: Nếu chưa có Backend thật, bạn có thể comment dòng axios và uncomment dòng setTimeout để test giao diện
       const response = await axios.post(API_URL, formData);
 
-      // Nếu thành công
+      // Giả lập test (Xóa dòng này khi chạy thật):
+      // await new Promise(resolve => setTimeout(resolve, 2000)); const response = { status: 200 };
+
       if (response.status === 200 || response.status === 201) {
-        alert("Gửi tin nhắn thành công! Chúng tôi sẽ liên hệ sớm.");
-        // Reset form về rỗng
+        setIsSuccess(true);
         setFormData({
           firstName: "",
           lastName: "",
@@ -58,11 +98,14 @@ const ContactContent: React.FC = () => {
         });
       }
     } catch (error) {
-      // Nếu thất bại
       console.error("Lỗi gửi form:", error);
-      alert("Gửi thất bại. Vui lòng thử lại sau!");
+      setErrors((prev) => ({
+        ...prev,
+        general:
+          "Gửi thất bại. Vui lòng kiểm tra kết nối mạng hoặc thử lại sau!",
+      }));
     } finally {
-      setIsLoading(false); // Kết thúc (dù thành công hay thất bại) -> Tắt loading
+      setIsLoading(false);
     }
   };
 
@@ -95,7 +138,7 @@ const ContactContent: React.FC = () => {
             padding: "0 20px",
           }}
         >
-          {/* --- CỘT TRÁI (GIỮ NGUYÊN) --- */}
+          {/* --- CỘT TRÁI (GIỮ NGUYÊN CODE CŨ CỦA BẠN) --- */}
           <div
             style={{
               flex: "1 1 450px",
@@ -233,7 +276,7 @@ const ContactContent: React.FC = () => {
             </div>
           </div>
 
-          {/* --- CỘT PHẢI: FORM (CẬP NHẬT PHẦN BUTTON) --- */}
+          {/* --- CỘT PHẢI: FORM (ĐÃ CẬP NHẬT) --- */}
           <div
             style={{
               flex: "1 1 500px",
@@ -244,8 +287,41 @@ const ContactContent: React.FC = () => {
               textAlign: "left",
             }}
           >
+            {/* Thông báo thành công */}
+            {isSuccess && (
+              <div
+                style={{
+                  backgroundColor: "#D4EDDA",
+                  color: "#155724",
+                  padding: "15px",
+                  borderRadius: "10px",
+                  marginBottom: "20px",
+                  border: "1px solid #C3E6CB",
+                  textAlign: "center",
+                }}
+              >
+                🎉 Gửi tin nhắn thành công! Chúng tôi sẽ liên hệ sớm.
+              </div>
+            )}
+
+            {/* Thông báo lỗi chung */}
+            {errors.general && (
+              <div
+                style={{
+                  backgroundColor: "#F8D7DA",
+                  color: "#721C24",
+                  padding: "15px",
+                  borderRadius: "10px",
+                  marginBottom: "20px",
+                  border: "1px solid #F5C6CB",
+                  textAlign: "center",
+                }}
+              >
+                ⚠️ {errors.general}
+              </div>
+            )}
+
             <form style={{ display: "grid", gap: "25px" }}>
-              {/* Các input giữ nguyên, chỉ đảm bảo name, value, onChange đúng */}
               <div
                 style={{
                   display: "grid",
@@ -278,7 +354,6 @@ const ContactContent: React.FC = () => {
                       outline: "none",
                       backgroundColor: "#fff",
                       color: "#333",
-                      fontSize: "0.95rem",
                       fontFamily: "'Lexend', sans-serif",
                     }}
                   />
@@ -308,7 +383,6 @@ const ContactContent: React.FC = () => {
                       outline: "none",
                       backgroundColor: "#fff",
                       color: "#333",
-                      fontSize: "0.95rem",
                       fontFamily: "'Lexend', sans-serif",
                     }}
                   />
@@ -338,19 +412,31 @@ const ContactContent: React.FC = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    placeholder="(123) 456 - 789"
+                    placeholder="090 123 4567"
                     style={{
                       width: "100%",
                       padding: "18px 25px",
                       borderRadius: "50px",
-                      border: "none",
+                      border: errors.phone ? "2px solid #E74C3C" : "none", // Viền đỏ khi lỗi
                       outline: "none",
                       backgroundColor: "#fff",
                       color: "#333",
-                      fontSize: "0.95rem",
                       fontFamily: "'Lexend', sans-serif",
                     }}
                   />
+                  {errors.phone && (
+                    <span
+                      style={{
+                        color: "#E74C3C",
+                        fontSize: "0.8rem",
+                        marginLeft: "15px",
+                        marginTop: "5px",
+                        display: "block",
+                      }}
+                    >
+                      {errors.phone}
+                    </span>
+                  )}
                 </div>
                 <div>
                   <label
@@ -373,14 +459,26 @@ const ContactContent: React.FC = () => {
                       width: "100%",
                       padding: "18px 25px",
                       borderRadius: "50px",
-                      border: "none",
+                      border: errors.email ? "2px solid #E74C3C" : "none", // Viền đỏ khi lỗi
                       outline: "none",
                       backgroundColor: "#fff",
                       color: "#333",
-                      fontSize: "0.95rem",
                       fontFamily: "'Lexend', sans-serif",
                     }}
                   />
+                  {errors.email && (
+                    <span
+                      style={{
+                        color: "#E74C3C",
+                        fontSize: "0.8rem",
+                        marginLeft: "15px",
+                        marginTop: "5px",
+                        display: "block",
+                      }}
+                    >
+                      {errors.email}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -416,29 +514,28 @@ const ContactContent: React.FC = () => {
                 />
               </div>
 
-              {/* --- 4. CẬP NHẬT NÚT BẤM (XỬ LÝ LOADING) --- */}
               <div>
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  disabled={isLoading} // Khóa nút khi đang gửi
+                  disabled={isLoading}
                   style={{
-                    backgroundColor: isLoading ? "#78909C" : "#546E7A", // Đổi màu khi loading
+                    backgroundColor: isLoading ? "#78909C" : "#546E7A",
                     color: "#fff",
                     border: "none",
                     padding: "16px 45px",
                     fontSize: "1rem",
                     fontWeight: "500",
                     borderRadius: "50px",
-                    cursor: isLoading ? "not-allowed" : "pointer", // Đổi con trỏ chuột
+                    cursor: isLoading ? "not-allowed" : "pointer",
                     marginTop: "10px",
                     boxShadow: "0 5px 15px rgba(84, 110, 122, 0.3)",
                     transition: "all 0.2s ease",
                     fontFamily: "'Lexend', sans-serif",
-                    opacity: isLoading ? 0.7 : 1, // Làm mờ nhẹ
                     display: "flex",
                     alignItems: "center",
                     gap: "10px",
+                    opacity: isLoading ? 0.8 : 1,
                   }}
                   onMouseOver={(e) => {
                     if (!isLoading) e.currentTarget.style.opacity = "0.9";
@@ -447,12 +544,32 @@ const ContactContent: React.FC = () => {
                     if (!isLoading) e.currentTarget.style.opacity = "1";
                   }}
                 >
-                  {isLoading ? "Sending..." : "Send message"}
+                  {isLoading ? (
+                    <>
+                      <span
+                        style={{
+                          width: "16px",
+                          height: "16px",
+                          border: "2px solid #fff",
+                          borderTop: "2px solid transparent",
+                          borderRadius: "50%",
+                          animation: "spin 1s linear infinite",
+                        }}
+                      ></span>
+                      Sending...
+                    </>
+                  ) : (
+                    "Send message"
+                  )}
                 </button>
               </div>
             </form>
           </div>
         </div>
+        {/* CSS Animation cho loading spinner */}
+        <style>
+          {`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}
+        </style>
       </div>
     </>
   );
