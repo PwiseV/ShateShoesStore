@@ -4,7 +4,7 @@ import api from "./axios";
 // ===== 1. TYPE DEFINITIONS =====
 
 export interface Post {
-  id: number;
+  id: string;
   title: string;
   slug: string; // <-- Thêm trường Slug
   category: string;
@@ -65,49 +65,31 @@ export const getPosts = async (
   }
 };
 
-export const createPost = async (
-  // Payload nhận vào chưa có id, createdAt
-  // Slug có thể truyền vào hoặc tự sinh bên trong (tùy logic bạn muốn)
-  payload: Omit<Post, "id" | "createdAt" | "slug"> & { slug?: string }
-): Promise<Post> => {
-  try {
-    // Nếu payload chưa có slug thì tự tạo từ title
-    const finalPayload = {
-      ...payload,
-      slug: payload.slug || generateSlug(payload.title),
-    };
+export const createPost = async (payload: any, file: File): Promise<Post> => {
+  const formData = new FormData();
+  // Pack dữ liệu chữ
+  Object.keys(payload).forEach(key => formData.append(key, payload[key]));
+  // Pack dữ liệu ảnh
+  formData.append("thumbnail", file); 
 
-    const response = await api.post("/admin/posts", finalPayload);
-    return response.data;
-  } catch (error) {
-    console.error("createPost error:", error);
-    throw error;
-  }
+  const response = await api.post("/admin/posts", formData, {
+    headers: { "Content-Type": "multipart/form-data" }
+  });
+  return response.data;
 };
 
-export const updatePost = async (
-  id: number,
-  patch: Partial<Post>
-): Promise<Post> => {
-  try {
-    // Logic phụ: Nếu người dùng sửa Title mà muốn Slug đổi theo
-    // thì ở Frontend cần gọi hàm generateSlug rồi truyền vào patch.
-    // Hoặc xử lý tại đây:
-    const finalPatch = { ...patch };
-    if (finalPatch.title && !finalPatch.slug) {
-      // Tùy chọn: Tự động cập nhật slug khi sửa title (nếu cần)
-      // finalPatch.slug = generateSlug(finalPatch.title);
-    }
+export const updatePost = async (id: string, payload: any, file?: File | null): Promise<Post> => {
+  const formData = new FormData();
+  Object.keys(payload).forEach(key => formData.append(key, payload[key]));
+  if (file) formData.append("thumbnail", file);
 
-    const response = await api.patch(`/admin/posts/${id}`, finalPatch);
-    return response.data;
-  } catch (error) {
-    console.error("updatePost error:", error);
-    throw error;
-  }
+  const response = await api.patch(`/admin/posts/${id}`, formData, {
+    headers: { "Content-Type": "multipart/form-data" }
+  });
+  return response.data;
 };
 
-export const deletePost = async (id: number): Promise<{ message: string }> => {
+export const deletePost = async (id: string): Promise<{ message: string }> => {
   try {
     const response = await api.delete(`/admin/posts/${id}`);
     return response.data;
@@ -118,7 +100,7 @@ export const deletePost = async (id: number): Promise<{ message: string }> => {
 };
 
 export const updatePostStatus = async (
-  id: number,
+  id: string,
   status: "active" | "hidden"
 ): Promise<Post> => {
   try {

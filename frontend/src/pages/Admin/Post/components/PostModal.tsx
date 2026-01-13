@@ -24,6 +24,7 @@ interface PostModalProps {
   isEditMode: boolean;
   formData: PostFormData;
   setFormData: React.Dispatch<React.SetStateAction<PostFormData>>;
+  onFileChange: (file: File | null) => void;
   onSubmit: () => void;
 }
 
@@ -33,15 +34,18 @@ const PostModal: React.FC<PostModalProps> = ({
   isEditMode,
   formData,
   setFormData,
+  onFileChange,
   onSubmit,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFormData({ ...formData, thumbnail: e.target.files[0].name });
-    }
-  };
+  const handleOnChangeFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  if (e.target.files && e.target.files[0]) {
+    const file = e.target.files[0];
+    setFormData({ ...formData, thumbnail: file.name }); // Hiện tên file
+    onFileChange(file); // Gửi file thật lên Hook
+  }
+};
 
   return (
     <Dialog
@@ -161,7 +165,7 @@ const PostModal: React.FC<PostModalProps> = ({
                 type="file"
                 hidden
                 ref={fileInputRef}
-                onChange={handleFileChange}
+                onChange={handleOnChangeFile}
                 accept="image/*"
               />
             </Box>

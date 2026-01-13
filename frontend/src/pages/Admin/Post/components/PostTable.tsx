@@ -19,7 +19,7 @@ interface PostTableProps {
   totalPages: number;
   onPageChange: (page: number) => void;
   onEdit: (post: Post) => void;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
   onToggleStatus: (post: Post) => void;
 }
 

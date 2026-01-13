@@ -38,6 +38,7 @@ const Posts: React.FC = () => {
     handleToggleStatus,
     handleOpenAdd,
     handleOpenEdit,
+    handleFileChange,
     handleSubmitModal,
   } = usePosts();
 
@@ -143,6 +144,7 @@ const Posts: React.FC = () => {
         isEditMode={isEditMode}
         formData={formData}
         setFormData={setFormData}
+        onFileChange={handleFileChange}
         onSubmit={handleSubmitModal}
       />
     </div>

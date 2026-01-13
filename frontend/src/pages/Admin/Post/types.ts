@@ -1,6 +1,6 @@
 // Định nghĩa kiểu Post (khớp với service cũ của bạn)
 export interface Post {
-  id: number;
+  id: string;
   title: string;
   category: string;
   thumbnail?: string;

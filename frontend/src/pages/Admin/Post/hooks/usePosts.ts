@@ -5,7 +5,7 @@ import {
   createPost,
   updatePost,
   updatePostStatus,
-} from "../../../../services/fakeAdminPostServices"; // Sửa đường dẫn import service của bạn cho đúng
+} from "../../../../services/adminPostServices"; // Sửa đường dẫn import service của bạn cho đúng
 import type { Post, PostFormData } from "../types";
 import { PAGE_SIZE } from "../constants";
 import { getAvailableMonths } from "../utils";
@@ -28,7 +28,7 @@ export const usePosts = () => {
   // State Modal
   const [openModal, setOpenModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<PostFormData>({
     title: "",
     category: "Phối đồ",
@@ -91,7 +91,7 @@ export const usePosts = () => {
   };
 
   // --- HANDLERS ACTIONS ---
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa bài viết này?")) return;
     try {
       await deletePost(id);
@@ -145,6 +145,11 @@ export const usePosts = () => {
     setOpenModal(true);
   };
 
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const handleFileChange = (file: File | null) => {
+    setSelectedFile(file);
+  };
+
   const handleSubmitModal = async () => {
     if (!formData.title || !formData.content || !formData.author) {
       showToast("Vui lòng nhập đủ: Tiêu đề, Tác giả và Nội dung", "error");
@@ -153,10 +158,11 @@ export const usePosts = () => {
 
     try {
       if (isEditMode && editingId) {
-        await updatePost(editingId, formData);
+        await updatePost(editingId, formData, selectedFile);
         showToast("Cập nhật thành công", "success");
       } else {
-        await createPost(formData);
+        if (!selectedFile) return showToast("Chọn ảnh thumbnail!", "error");
+        await createPost(formData, selectedFile);
         showToast("Tạo bài viết thành công", "success");
       }
       setOpenModal(false);
@@ -192,6 +198,7 @@ export const usePosts = () => {
     handleToggleStatus,
     handleOpenAdd,
     handleOpenEdit,
+    handleFileChange,
     handleSubmitModal,
   };
 };
