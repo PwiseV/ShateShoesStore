@@ -1,15 +1,27 @@
-// src/pages/Costumer/ProductList/components/SortBar.tsx
 import React from "react";
-import { Box, Typography, FormControl, Select, MenuItem } from "@mui/material";
+import {
+  Box,
+  Typography,
+  FormControl,
+  Select,
+  MenuItem,
+  // 1. Thêm từ khóa 'type' vào trước SelectChangeEvent
+  type SelectChangeEvent,
+} from "@mui/material";
 
-export type SortValue = "popular" | "priceAsc" | "priceDesc";
+export type SortValue = "priceAsc" | "priceDesc";
 
 type SortBarProps = {
-  sort: SortValue;
-  onSortChange: (value: SortValue) => void;
+  value: SortValue;
+  onChange: (value: SortValue) => void;
 };
 
-const SortBar: React.FC<SortBarProps> = ({ sort, onSortChange }) => {
+const SortBar: React.FC<SortBarProps> = ({ value, onChange }) => {
+  // 2. Sử dụng type SelectChangeEvent bình thường
+  const handleChange = (event: SelectChangeEvent) => {
+    onChange(event.target.value as SortValue);
+  };
+
   return (
     <Box
       sx={{
@@ -20,15 +32,14 @@ const SortBar: React.FC<SortBarProps> = ({ sort, onSortChange }) => {
       }}
     >
       <Typography sx={{ mr: 1, color: "#667", fontSize: "0.9rem" }}>
-        Sort by
+        Sắp xếp theo
       </Typography>
       <FormControl size="small">
         <Select
-          value={sort}
-          onChange={(e) => onSortChange(e.target.value as SortOption)}
+          value={value}
+          onChange={handleChange}
           sx={{ borderRadius: "12px", bgcolor: "white", minWidth: 160 }}
         >
-          <MenuItem value="popular">Phổ biến</MenuItem>
           <MenuItem value="priceAsc">Giá tăng dần</MenuItem>
           <MenuItem value="priceDesc">Giá giảm dần</MenuItem>
         </Select>

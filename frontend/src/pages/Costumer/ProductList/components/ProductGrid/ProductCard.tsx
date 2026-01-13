@@ -1,5 +1,7 @@
 import { Box, Paper, Typography } from "@mui/material";
 import StarRateIcon from "@mui/icons-material/StarRate";
+// 1. Import useNavigate
+import { useNavigate } from "react-router-dom";
 
 export type Product = {
   id: string;
@@ -19,11 +21,22 @@ type Props = {
 
 const ProductCard = ({ product, p }: Props) => {
   const item = product ?? p;
+  // 2. Khởi tạo hook navigate
+  const navigate = useNavigate();
+
   if (!item) return null;
+
+  // 3. Hàm xử lý khi click vào card
+  const handleCardClick = () => {
+    // Chuyển hướng đến đường dẫn /products/ID_SẢN_PHẨM
+    navigate(`/products/${item.id}`);
+  };
 
   return (
     <Paper
       elevation={0}
+      // 4. Gắn sự kiện onClick vào Paper
+      onClick={handleCardClick}
       sx={{
         borderRadius: "20px",
         overflow: "hidden",
@@ -31,9 +44,9 @@ const ProductCard = ({ product, p }: Props) => {
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        textAlign: "left", // QUAN TRỌNG: Ép nội dung trong card căn trái lại
+        textAlign: "left",
         transition: "all 0.3s ease",
-        cursor: "pointer",
+        cursor: "pointer", // Đổi con trỏ chuột thành bàn tay
         "&:hover": {
           transform: "translateY(-5px)",
           boxShadow: "0 10px 20px rgba(0,0,0,0.05)",
@@ -75,7 +88,7 @@ const ProductCard = ({ product, p }: Props) => {
             WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical",
             overflow: "hidden",
-            textAlign: "left", // Ép căn trái cho tên
+            textAlign: "left",
           }}
         >
           {item.name}
@@ -105,7 +118,7 @@ const ProductCard = ({ product, p }: Props) => {
             fontWeight: 800,
             color: "#222",
             fontFamily: '"Lexend", sans-serif',
-            textAlign: "left", // Ép căn trái cho giá
+            textAlign: "left",
           }}
         >
           {currencyVND(item.priceVnd)}

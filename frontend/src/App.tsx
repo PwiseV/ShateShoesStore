@@ -25,7 +25,6 @@ export default function AppRoutes() {
           <Route path="/homepage" element={<HomePage />} />
           <Route path="/admin/dashboard" element={<Dashboard />} />
           <Route path="/admin/users" element={<Users />} />
-          <Route path="/products" element={<ProductList />} />
 
           <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/admin/dashboard" element={<Dashboard />} />
@@ -34,6 +33,7 @@ export default function AppRoutes() {
 
           <Route element={<ProtectedRoute role="customer" />}>
             <Route path="/homepage" element={<HomePage />} />
+            <Route path="/products" element={<ProductList />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />

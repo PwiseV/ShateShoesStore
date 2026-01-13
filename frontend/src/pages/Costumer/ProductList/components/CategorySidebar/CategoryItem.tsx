@@ -27,7 +27,7 @@ const CategoryItem: React.FC<CategoryItemProps> = ({ name }) => {
         sx={{
           fontSize: "1rem",
           fontWeight: 500,
-          fontFamily: '"DM Sans", sans-serif',
+          fontFamily: '"Lexend", sans-serif',
         }}
       >
         {name}

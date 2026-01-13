@@ -1,114 +1,92 @@
 import { useEffect, useMemo, useState } from "react";
-// Import Header/Footer (đường dẫn tùy project của bạn)
+import { Box, Grid } from "@mui/material";
+
+// Import Header/Footer
 import Header from "../../../components/Customer/Header";
 import Footer from "../../../components/Customer/Footer";
-import { Box, Grid, Typography, Container } from "@mui/material";
 
+// Import Components con
 import SearchBar from "./components/SearchBar";
 import SortBar from "./components/SortBar";
 import type { SortValue } from "./components/SortBar";
 import CategorySidebar from "./components/CategorySidebar/CategorySidebar";
 import ProductGrid from "./components/ProductGrid/ProductGrid";
 import Pagination from "./components/Pagination/Pagination";
-import type { Product } from "./components/ProductGrid/ProductCard";
 
-// DATA MẪU (Đã update ảnh đẹp)
-const PRODUCTS: Product[] = [
-  {
-    id: "p1",
-    name: "Giày vintage sneaker",
-    priceVnd: 399000,
-    rating: 5.0,
-    image:
-      "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: "p2",
-    name: "MIRA MARY SNEAKER",
-    priceVnd: 349000,
-    rating: 4.8,
-    image:
-      "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: "p3",
-    name: "Moca Miu Loafer",
-    priceVnd: 552000,
-    rating: 5.0,
-    image:
-      "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: "p4",
-    name: "Giày D-I-E-SEL Heels",
-    priceVnd: 580000,
-    rating: 4.5,
-    image:
-      "https://images.unsplash.com/photo-1519415943484-9fa1873496d4?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: "p5",
-    name: "Giày Shizuka Flat",
-    priceVnd: 380000,
-    rating: 5.0,
-    image:
-      "https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: "p6",
-    name: "Brownie Ballet",
-    priceVnd: 322000,
-    rating: 4.9,
-    image:
-      "https://images.unsplash.com/photo-1515347619252-60a4bf4fff4f?auto=format&fit=crop&w=600&q=80",
-  },
-  // Thêm 1 sản phẩm để test trang 2
-  {
-    id: "p7",
-    name: "Classic White",
-    priceVnd: 450000,
-    rating: 4.7,
-    image:
-      "https://images.unsplash.com/photo-1562183241-b937e95585b6?auto=format&fit=crop&w=600&q=80",
-  },
-];
-
-const CATEGORIES = [
-  "Giày thể thao",
-  "Mary Jane",
-  "Boots",
-  "Khuyến mãi",
-  "Giày cao gót",
-  "Loafer",
-  "Giày búp bê",
-  "Sandal",
-  "Phụ kiện",
-];
+// --- THAY ĐỔI 1: Import Service và Type từ file service ---
+// Khi nào muốn dùng API thật, bạn chỉ cần đổi đường dẫn import thành "./productlistServices"
+import {
+  getAllProducts,
+  getAllCategories,
+  type Product,
+  type Category,
+} from "../../../services/fakeProductListServices";
 
 const PAGE_SIZE = 6;
 
 const ProductList = () => {
-  const [query, setQuery] = useState("");
-  const [sort, setSort] = useState<SortValue>("popular");
-  const [page, setPage] = useState(1);
-  const [expandCats, setExpandCats] = useState(true);
+  // --- THAY ĐỔI 2: Thêm State để chứa dữ liệu từ API ---
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
 
+  // State quản lý trạng thái tải trang
+  const [loading, setLoading] = useState<boolean>(true);
+
+  // State bộ lọc
+  const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<SortValue>("priceAsc");
+  const [page, setPage] = useState(1);
+
+  // --- THAY ĐỔI 3: useEffect để gọi API khi component mount ---
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // Gọi song song cả 2 API để tiết kiệm thời gian
+        const [productsData, categoriesData] = await Promise.all([
+          getAllProducts(),
+          getAllCategories(),
+        ]);
+
+        setAllProducts(productsData);
+        setCategories(categoriesData);
+      } catch (error) {
+        console.error("Failed to fetch product list data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Scroll lên đầu trang khi chuyển page
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [page]);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    let arr = PRODUCTS.filter((p) => !q || p.name.toLowerCase().includes(q));
-    if (sort === "priceAsc")
-      arr = [...arr].sort((a, b) => a.priceVnd - b.priceVnd);
-    if (sort === "priceDesc")
-      arr = [...arr].sort((a, b) => b.priceVnd - a.priceVnd);
-    return arr;
-  }, [query, sort]);
-
+  // Reset về trang 1 khi filter thay đổi
   useEffect(() => setPage(1), [query, sort]);
 
+  // --- THAY ĐỔI 4: Logic lọc dữ liệu dựa trên State 'allProducts' (thay vì biến PRODUCTS cũ) ---
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    // Lọc theo tên
+    let arr = allProducts.filter((p) => !q || p.name.toLowerCase().includes(q));
+
+    // Sắp xếp
+    if (sort === "priceAsc") {
+      // Sắp xếp giá tăng dần (đảm bảo trừ 2 số)
+      arr = [...arr].sort((a, b) => (a.priceVnd || 0) - (b.priceVnd || 0));
+    } else if (sort === "priceDesc") {
+      // Sắp xếp giá giảm dần
+      arr = [...arr].sort((a, b) => (b.priceVnd || 0) - (a.priceVnd || 0));
+    }
+
+    return arr;
+  }, [query, sort, allProducts]); // Thêm allProducts vào dependency
+
+  // Tính toán phân trang
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = useMemo(
     () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
@@ -121,11 +99,22 @@ const ProductList = () => {
         background: "#F5EFEB",
         borderRadius: "40px",
         minHeight: "100vh",
+        display: "flex", // Thêm flex để footer luôn ở dưới đáy nếu nội dung ngắn
+        flexDirection: "column",
       }}
     >
       <Header />
 
-      <Box sx={{ maxWidth: 1200, mx: "auto", width: "100%", px: 2, py: 4 }}>
+      <Box
+        sx={{
+          maxWidth: 1200,
+          mx: "auto",
+          width: "100%",
+          px: 2,
+          py: 4,
+          flex: 1,
+        }}
+      >
         <SearchBar value={query} onChange={setQuery} />
 
         <Grid container spacing={3} alignItems="flex-start">
@@ -140,17 +129,30 @@ const ProductList = () => {
                 fontFamily: '"Lexend", sans-serif',
               }}
             >
-              Danh Mục (100+)
+              Danh Mục
             </Box>
-            <CategorySidebar categories={CATEGORIES} onSelect={() => {}} />
+            {/* Truyền dữ liệu categories từ state vào */}
+            <CategorySidebar
+              categories={categories}
+              onSelect={(cat) => console.log("Selected:", cat)}
+            />
           </Grid>
 
           {/* RIGHT: Products */}
           <Grid size={{ xs: 12, md: 9 }}>
-            <SortBar value={sort ?? "popular"} onChange={setSort} />
-            {/* PAGE_SIZE = 6 để đảm bảo 2 hàng × 3 cột */}
-            <ProductGrid products={paginated} />
-            <Pagination current={page} total={totalPages} onChange={setPage} />
+            <SortBar value={sort} onChange={setSort} />
+
+            {/* Truyền loading prop xuống Grid để hiện Skeleton */}
+            <ProductGrid products={paginated} loading={loading} />
+
+            {/* Chỉ hiện phân trang khi không loading và có dữ liệu */}
+            {!loading && filtered.length > 0 && (
+              <Pagination
+                current={page}
+                total={totalPages}
+                onChange={setPage}
+              />
+            )}
           </Grid>
         </Grid>
       </Box>
