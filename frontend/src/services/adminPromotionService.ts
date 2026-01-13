@@ -35,7 +35,7 @@ export const createPromotion = async (promotionData: Partial<Promotion>): Promis
 
 export const updatePromotion = async (id: string, updateData: Partial<Promotion>): Promise<any> => {
   try {
-    const response = await api.put(`/admin/promotions/${id}`, updateData);
+    const response = await api.patch(`/admin/promotions/${id}`, updateData);
     return response.data;
   } catch (error: any) {
     console.error("Update promotion error:", error);

@@ -4,7 +4,8 @@ export type DiscountType = "percentage" | "fixed";
 // Interface cho bộ lọc
 export interface PromotionFilterState {
   keyword: string;
-  timeRange: string;
+  endDate: string;
+  startDate: string;
   discountType: string;
   status: string;
 }
@@ -16,9 +17,16 @@ export interface Promotion {
   description?: string; 
   discountType: DiscountType;
   discountAmount: number;
-  minOrderValue: number;
+  minOrderAmount: number;
   startDate: string;
   endDate: string;
   totalQuantity: number;
   status: PromotionStatus;
 }
+
+export const STATUS_MAP = {
+  active: "Hoạt động",
+  upcoming: "Sắp diễn ra",
+  expired: "Hết hạn",
+  inactive: "Tạm dừng"
+};

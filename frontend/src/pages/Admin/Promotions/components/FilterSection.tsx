@@ -21,7 +21,6 @@ const FilterSection: React.FC<FilterSectionProps> = ({
 
   // Logic kiểm tra xem có đang lọc không (để hiện chấm đỏ)
   const isFiltered =
-    filters.timeRange !== "All" ||
     filters.discountType !== "All" ||
     filters.status !== "All";
 
@@ -34,7 +33,6 @@ const FilterSection: React.FC<FilterSectionProps> = ({
   const handleClearFilters = () => {
     setFilters((prev) => ({
       ...prev,
-      timeRange: "All",
       discountType: "All",
       status: "All",
     }));

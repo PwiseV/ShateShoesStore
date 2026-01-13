@@ -46,10 +46,18 @@ const ProductFilterBar: React.FC<ProductFilterBarProps> = ({
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && onSearch()}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "12px",
+              bgcolor: "#F8F9FD",
+              "& fieldset": { border: "none" },
+              "&.Mui-focused fieldset": { border: "1px solid #567C8D" },
+            },
+          }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon color="action" />
+                <SearchIcon sx={{ color: "#9FA0BF" }} />
               </InputAdornment>
             ),
           }}

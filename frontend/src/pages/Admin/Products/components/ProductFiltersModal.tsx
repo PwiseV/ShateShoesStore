@@ -67,8 +67,9 @@ const ProductFiltersModal: React.FC<Props> = ({
   };
 
   const handleClear = () => {
-    setTempCategory("All");
+    setTempCategory("");
     onClear();
+    onClose();
   };
 
   return (

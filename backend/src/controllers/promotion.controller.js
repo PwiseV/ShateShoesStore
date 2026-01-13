@@ -26,10 +26,13 @@ export const createPromotion = async (req, res) => {
       return res.status(409).json({ message: "Promotion Code already exists" });
     }
     if (error.message === "EXPIRED_DATE_INVALID") {
-      return res.status(400).json({ message: "Expired date must be in the future" });
+      return res.status(400).json({ message: "End date must be in the future" });
+    }
+    if (error.message === "STARTED_DATE_INVALID") {
+      return res.status(400).json({ message: "Start date must be in the future" });
     }
     if (error.message === "INVALID_DATE_RANGE") {
-      return res.status(400).json({ message: "Invalid date range: started date must be before expired date" });
+      return res.status(400).json({ message: "Invalid date range: start date must be before end date" });
     }
     console.error("Controller Error:", error);
     return res.status(500).json({ message: "Server error" });

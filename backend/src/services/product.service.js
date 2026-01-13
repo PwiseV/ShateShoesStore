@@ -17,6 +17,7 @@ export const createProduct = async ({
   const existProductCode = await Product.findOne({ code });
   if (existProductCode) throw new Error("PRODUCT_CODE_EXISTS");
 
+
   const categoryDoc = await Category.findOne({ name: categoryName });
   if (!categoryDoc) throw new Error("CATEGORY_NOT_FOUND");
 
@@ -120,12 +121,12 @@ export const getProducts = async ({
   const skip = (page - 1) * limit;
   const filter = {};
 
-  if (category) {
+  if (category && category != "All") {
     const categoryDoc = await Category.findOne({ name: category });
     if (categoryDoc) {
       filter.categoryId = categoryDoc._id;
     } else {
-      return { products: [], total: 0 };
+      return { products: [], total: 0 }; 
     }
   }
 

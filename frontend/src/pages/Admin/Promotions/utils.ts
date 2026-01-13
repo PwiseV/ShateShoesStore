@@ -2,17 +2,18 @@ import type { PromotionStatus } from "./types";
 
 export const getStatusColor = (status: PromotionStatus): string => {
   switch (status) {
-    case "Hoạt động":
-      return "#2ECC71";
-    case "Tạm dừng":
-      return "#F1C40F";
-    case "Hết hạn":
-      return "#E74C3C";
+    case "active":
+      return "#27AE60"; 
+    case "upcoming":
+      return "#2D9CDB"; 
+    case "inactive":
+      return "#F2994A"; 
+    case "expired":
+      return "#EB5757"; 
     default:
-      return "#000";
+      return "#828282"; 
   }
 };
-
 // Hàm kiểm tra xem ngày có hết hạn so với hôm nay không
 export const isDateExpired = (dateString: string): boolean => {
   if (!dateString) return false;

@@ -21,9 +21,8 @@ export const createPromotion = async ({
 
   if (start >= end) throw new Error("INVALID_DATE_RANGE");
   let active = "inactive";
-  if (start > now) {
-    active = "upcoming"
-  }
+
+  if (start < now) throw new Error("STARTED_DATE_INVALID");
 
   return await Promotion.create({
     code,
@@ -66,8 +65,14 @@ export const getPromotions = async ({ page, limit, keyword, discountType, active
 
   if (startDate || expiredDate) {
     filter.expiredAt = {};
-    if (startDate) filter.expiredAt.$gte = new Date(startDate);
-    if (expiredDate) filter.expiredAt.$lte = new Date(expiredDate); 
+    if (startDate) {
+      filter.expiredAt.$gte = new Date(startDate); 
+    }
+    if (expiredDate) {
+      const end = new Date(expiredDate);
+      end.setHours(23, 59, 59, 999);
+      filter.expiredAt.$lte = end;
+    }
   }
 
   const skip = (page - 1) * limit;

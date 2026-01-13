@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import type { Promotion } from "../types";
+import { getStatusColor } from "../utils";
 
 interface PromotionModalProps {
   open: boolean;
@@ -57,8 +58,8 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
     description: "",
     discountType: "percentage",
     quantity: 100,
-    discountValue: "",
-    minOrderValue: "",
+    discountAmount: "",
+    minOrderAmount: "",
     startDate: "",
     endDate: "",
     status: "inactive",
@@ -66,16 +67,17 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
 
   useEffect(() => {
     if (initialData && open) {
+      console.log(initialData);
       setFormData({
         code: initialData.code,
         description: initialData.description || "",
         discountType: initialData.discountType,
-        quantity: initialData.totalQuantity,
-        discountValue: initialData.discountValue.toString(),
-        minOrderValue: initialData.minOrderValue.toString(),
-        startDate: initialData.startDate.split("T")[0], // Đảm bảo định dạng yyyy-MM-dd cho input date
-        endDate: initialData.endDate.split("T")[0],
-        status: initialData.status, // Load status từ data cũ
+        quantity: initialData.stock,
+        discountAmount: initialData.discountAmount.toString(),
+        minOrderAmount: initialData.minOrderAmount.toString(),
+        startDate: initialData.startedAt.split("T")[0],
+        endDate: initialData.expiredAt.split("T")[0],
+        status: initialData.active,
       });
     } else if (!initialData && open) {
       setFormData({
@@ -83,8 +85,8 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
         description: "",
         discountType: "percentage",
         quantity: 100,
-        discountValue: "",
-        minOrderValue: "",
+        discountAmount: "",
+        minOrderAmount: "",
         startDate: "",
         endDate: "",
         status: "active",
@@ -104,11 +106,11 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
       code: formData.code,
       description: formData.description,
       discountType: formData.discountType as any,
-      discountAmount: Number(formData.discountValue), 
-      minOrderAmount: Number(formData.minOrderValue), 
-      startedAt: formData.startDate,
-      expiredAt: formData.endDate,
-      stock: Number(formData.quantity), // Map đúng tên trường backend stock
+      discountAmount: Number(formData.discountAmount),
+      minOrderAmount: Number(formData.minOrderAmount),
+      startDate: formData.startDate,
+      endDate: formData.endDate,
+      totalQuantity: Number(formData.quantity),
       status: formData.status as any,
     });
   };
@@ -121,11 +123,21 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
       fullWidth
       PaperProps={{ sx: { borderRadius: "24px", padding: 2 } }}
     >
-      <DialogTitle sx={{ display: "flex", justifyContent: "center", alignItems: "center", pb: 1 }}>
+      <DialogTitle
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          pb: 1,
+        }}
+      >
         <Typography variant="h5" sx={{ fontWeight: 800, color: "#2C3E50" }}>
           {initialData ? "Chỉnh sửa mã giảm giá" : "Tạo mã giảm giá"}
         </Typography>
-        <IconButton onClick={onClose} sx={{ position: "absolute", right: 16, top: 16, color: "#999" }}>
+        <IconButton
+          onClick={onClose}
+          sx={{ position: "absolute", right: 16, top: 16, color: "#999" }}
+        >
           <CloseIcon />
         </IconButton>
       </DialogTitle>
@@ -185,8 +197,8 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
               <TextField
                 fullWidth
                 placeholder="10"
-                value={formData.discountValue}
-                onChange={(e) => handleChange("discountValue", e.target.value)}
+                value={formData.discountAmount}
+                onChange={(e) => handleChange("discountAmount", e.target.value)}
                 sx={inputStyle}
               />
             </Grid>
@@ -195,8 +207,8 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
               <TextField
                 fullWidth
                 placeholder="0"
-                value={formData.minOrderValue}
-                onChange={(e) => handleChange("minOrderValue", e.target.value)}
+                value={formData.minOrderAmount}
+                onChange={(e) => handleChange("minOrderAmount", e.target.value)}
                 sx={inputStyle}
               />
             </Grid>
@@ -213,16 +225,35 @@ const PromotionModal: React.FC<PromotionModalProps> = ({
                 sx={inputStyle}
               >
                 <MenuItem value="active">
-                  <Typography sx={{ color: "#2ECC71", fontWeight: 600 }}>Hoạt động</Typography>
+                  <Typography
+                    sx={{ color: getStatusColor("active"), fontWeight: 600 }}
+                  >
+                    Hoạt động
+                  </Typography>
                 </MenuItem>
+
                 <MenuItem value="inactive">
-                  <Typography sx={{ color: "#999", fontWeight: 600 }}>Tạm dừng</Typography>
+                  <Typography
+                    sx={{ color: getStatusColor("inactive"), fontWeight: 600 }}
+                  >
+                    Tạm dừng
+                  </Typography>
                 </MenuItem>
+
                 <MenuItem value="upcoming">
-                  <Typography sx={{ color: "#F1C40F", fontWeight: 600 }}>Sắp diễn ra</Typography>
+                  <Typography
+                    sx={{ color: getStatusColor("upcoming"), fontWeight: 600 }}
+                  >
+                    Sắp diễn ra
+                  </Typography>
                 </MenuItem>
+
                 <MenuItem value="expired">
-                  <Typography sx={{ color: "#E74C3C", fontWeight: 600 }}>Hết hạn</Typography>
+                  <Typography
+                    sx={{ color: getStatusColor("expired"), fontWeight: 600 }}
+                  >
+                    Hết hạn
+                  </Typography>
                 </MenuItem>
               </Select>
             </Box>

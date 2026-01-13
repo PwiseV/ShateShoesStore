@@ -13,6 +13,7 @@ import {
   Radio,
   IconButton,
   Grid,
+  TextField
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import type { PromotionFilterState } from "../types";
@@ -86,38 +87,27 @@ const PromotionFilterModal: React.FC<Props> = ({
         <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
           {/* Thời gian */}
           <Box>
-            <Typography sx={labelStyle}>Thời gian</Typography>
-            <FormControl fullWidth>
-              <RadioGroup
-                row
-                value={tempFilters.timeRange}
-                onChange={(e) => handleChange("timeRange", e.target.value)}
-              >
-                <Grid container>
-                  <Grid size={6}>
-                    <FormControlLabel
-                      value="All"
-                      control={<Radio sx={radioStyle} />}
-                      label="Tất cả"
-                    />
-                  </Grid>
-                  <Grid size={6}>
-                    <FormControlLabel
-                      value="Newest"
-                      control={<Radio sx={radioStyle} />}
-                      label="Mới nhất"
-                    />
-                  </Grid>
-                  <Grid size={6}>
-                    <FormControlLabel
-                      value="Oldest"
-                      control={<Radio sx={radioStyle} />}
-                      label="Cũ nhất"
-                    />
-                  </Grid>
-                </Grid>
-              </RadioGroup>
-            </FormControl>
+            <Typography sx={labelStyle}>Thời gian kết thúc</Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <TextField
+                  type="date"
+                  fullWidth
+                  value={tempFilters.startDate}
+                  onChange={(e) => handleChange("startDate", e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  type="date"
+                  fullWidth
+                  value={tempFilters.endDate}
+                  onChange={(e) => handleChange("endDate", e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+            </Grid>
           </Box>
 
           {/* Loại giảm giá */}
@@ -175,43 +165,29 @@ const PromotionFilterModal: React.FC<Props> = ({
                   </Grid>
                   <Grid size={6}>
                     <FormControlLabel
-                      value="Hoạt động"
-                      control={
-                        <Radio
-                          sx={{
-                            ...radioStyle,
-                            "&.Mui-checked": { color: "#2ECC71" },
-                          }}
-                        />
-                      }
+                      value="active"
+                      control={<Radio sx={radioStyle} />}
                       label="Hoạt động"
                     />
                   </Grid>
                   <Grid size={6}>
                     <FormControlLabel
-                      value="Tạm dừng"
-                      control={
-                        <Radio
-                          sx={{
-                            ...radioStyle,
-                            "&.Mui-checked": { color: "#F1C40F" },
-                          }}
-                        />
-                      }
+                      value="inactive"
+                      control={<Radio sx={radioStyle} />}
                       label="Tạm dừng"
                     />
                   </Grid>
                   <Grid size={6}>
                     <FormControlLabel
-                      value="Hết hạn"
-                      control={
-                        <Radio
-                          sx={{
-                            ...radioStyle,
-                            "&.Mui-checked": { color: "#E74C3C" },
-                          }}
-                        />
-                      }
+                      value="expired"
+                      control={<Radio sx={radioStyle} />}
+                      label="Hết hạn"
+                    />
+                  </Grid>
+                  <Grid size={6}>
+                    <FormControlLabel
+                      value="upcoming"
+                      control={<Radio sx={radioStyle} />}
                       label="Hết hạn"
                     />
                   </Grid>

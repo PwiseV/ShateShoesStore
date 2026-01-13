@@ -3,6 +3,7 @@ import { Box, Typography, IconButton, Stack, Paper, Grid } from "@mui/material";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import EditIcon from "@mui/icons-material/Edit";
 import type { Promotion } from "../types";
+import { STATUS_MAP } from "../types";
 import { getStatusColor } from "../utils";
 
 interface PromotionListProps {
@@ -110,10 +111,15 @@ const PromotionList: React.FC<PromotionListProps> = ({
               <Grid size={3} textAlign="center">
                 <Box>
                   <Typography fontSize={13} color="#6B7280">
-                    {item.startDate}
+                    {/* Định dạng: 20/05/2024 */}
+                    {item.startedAt
+                      ? new Date(item.startedAt).toLocaleDateString("vi-VN")
+                      : "---"}
                   </Typography>
                   <Typography fontSize={13} color="#6B7280">
-                    {item.endDate}
+                    {item.expiredAt
+                      ? new Date(item.expiredAt).toLocaleDateString("vi-VN")
+                      : "---"}
                   </Typography>
                 </Box>
               </Grid>
@@ -121,7 +127,7 @@ const PromotionList: React.FC<PromotionListProps> = ({
               {/* Total Quantity */}
               <Grid size={1.5} textAlign="center">
                 <Typography color="#2C3E50" fontWeight={600} fontSize={14}>
-                  {item.totalQuantity}
+                  {item.stock}
                 </Typography>
               </Grid>
 
@@ -136,12 +142,12 @@ const PromotionList: React.FC<PromotionListProps> = ({
               <Grid size={1.5} textAlign="center">
                 <Typography
                   sx={{
-                    color: getStatusColor(item.status),
+                    color: getStatusColor(item.active),
                     fontWeight: 700,
                     fontSize: 13,
                   }}
                 >
-                  {item.status}
+                  {STATUS_MAP[item.active]}
                 </Typography>
               </Grid>
 
@@ -158,7 +164,7 @@ const PromotionList: React.FC<PromotionListProps> = ({
 
                 <IconButton
                   size="small"
-                  onClick={() => onDelete(item.id)}
+                  onClick={() => onDelete(item._id)}
                   sx={{ color: "#E74C3C" }}
                 >
                   <DeleteOutlineIcon fontSize="small" />
