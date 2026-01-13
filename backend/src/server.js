@@ -41,7 +41,7 @@ app.use("/api/auth", authRoute);
 app.use("/api/users", protectedRoute, userRoute);
 
 // admin routes (CẦN đăng nhập + quyền admin)
-app.use("/api/admin", protectedRoute, adminOnly, adminRoute, productRoute, promotionRoute);
+app.use("/api/admin",  adminRoute, productRoute, promotionRoute);
 
 
 

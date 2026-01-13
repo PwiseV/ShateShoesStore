@@ -43,3 +43,17 @@ export const getCategory = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+
+export const getCategoryList = async (req, res) => {
+  try {
+    const categories = await categoryService.getAllCategoryList();
+
+    return res.status(200).json({
+      success: "Fetch categories success",
+      data: categories,
+    });
+  } catch (error) {
+    console.error("Get categories controller error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};

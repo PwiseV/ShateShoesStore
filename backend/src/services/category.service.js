@@ -37,3 +37,25 @@ export const createCategory = async ({ name, parentId }) => {
 export const getAllCategories = async () => {
     return await Category.find({ parentId: { $ne: null } }).sort({ createdAt: -1 });
 }
+
+export const getAllCategoryList = async () => {
+  const allCategories = await Category.find().sort({ createdAt: -1 }).lean();
+  const parentCategories = allCategories.filter(cat => !cat.parentId);
+
+  const structuredCategories = parentCategories.map(parent => {
+    const children = allCategories
+      .filter(cat => cat.parentId && cat.parentId.toString() === parent._id.toString())
+      .map(child => ({
+        id: child._id,
+        name: child.name,
+      }));
+
+    return {
+      id: parent._id,
+      name: parent.name,
+      category: children,
+    };
+  });
+
+  return structuredCategories;
+};

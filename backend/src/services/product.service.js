@@ -156,9 +156,13 @@ export const getProducts = async ({
 
       const sizesMap = {};
       let totalStock = 0;
-
+      let minPrice = variants.length > 0 ? variants[0].price : 0;
       variants.forEach((v) => {
         totalStock += v.stock;
+
+        if (v.price < minPrice) {
+          minPrice = v.price;
+        }
         if (!sizesMap[v.size]) {
           sizesMap[v.size] = {
             size: v.size,
@@ -194,6 +198,8 @@ export const getProducts = async ({
             : null,
         },
         stock: totalStock,
+        rating: 5,
+        min_price: minPrice,
         sizes: Object.values(sizesMap),
       };
     })
