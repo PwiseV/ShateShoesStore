@@ -50,7 +50,7 @@ const Reviews = () => {
         <SideBar selectedMenu={selectedMenu} />
         <main
           style={{
-            backgroundColor: "white",
+            backgroundColor: "#C8D9E6",
             borderRadius: "20px",
             padding: "2rem",
             minHeight: "600px",
