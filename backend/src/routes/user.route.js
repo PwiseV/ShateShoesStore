@@ -1,9 +1,14 @@
 import express from "express";
-import { authMe } from "../controllers/user.controller.js";
+import { getUsers, getUser } from "../controllers/user.controller.js";
 
 const router = express.Router();
 
 // Những API users
-router.get("/me", authMe);
+router.get("/users", getUsers);
+router.get("/users/:id", getUser);
+// router.patch("/users/:id");
+// router.delete("/users/:id");
+
+
 
 export default router;
