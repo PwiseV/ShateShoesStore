@@ -21,6 +21,7 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
 import type { User, OrderHistoryItem } from "../type";
+// import Grid from "@mui/material/Grid";
 
 // Mock Data
 const MOCK_HISTORY: OrderHistoryItem[] = [
@@ -79,12 +80,13 @@ const UserDetailModal: React.FC<Props> = ({
     setFormData((prev) => (prev ? { ...prev, [field]: value } : null));
   };
 
-  const handleAddressChange = (val: string) => {
+  // Cập nhật địa chỉ theo index (Update trường street)
+  const handleAddressChange = (index: number, newVal: string) => {
     setFormData((prev) => {
       if (!prev) return null;
       const newAddresses = [...prev.addresses];
-      if (newAddresses.length > 0) {
-        newAddresses[0] = { ...newAddresses[0], street: val };
+      if (newAddresses[index]) {
+        newAddresses[index] = { ...newAddresses[index], street: newVal };
       }
       return { ...prev, addresses: newAddresses };
     });
@@ -121,7 +123,7 @@ const UserDetailModal: React.FC<Props> = ({
               size="small"
               variant="outlined"
               value={value}
-              onChange={(e) => handleAddressChange(e.target.value)}
+              onChange={(e) => handleChange(fieldKey, e.target.value)}
               sx={{
                 bgcolor: "#EFEFEF",
                 borderRadius: 1,
@@ -192,6 +194,17 @@ const UserDetailModal: React.FC<Props> = ({
                 height: "100%",
               }}
             >
+              {/* MỚI: Hiển thị Username */}
+              <Box sx={{ mb: 2, display: "flex", alignItems: "center" }}>
+                <Typography
+                  sx={{ width: "140px", fontWeight: 700, color: "#2C3E50" }}
+                >
+                  Username
+                </Typography>
+                <Typography sx={{ color: "#2C3E50", flex: 1, fontWeight: 700 }}>
+                  {formData.username}
+                </Typography>
+              </Box>
               {renderField("Họ tên", formData.displayName, "displayName")}
               {renderField("Email", formData.email, "email")}
               {renderField("Số điện thoại", formData.phone, "phone")}
@@ -210,6 +223,66 @@ const UserDetailModal: React.FC<Props> = ({
                 "addresses",
                 true
               )}
+
+              {/* --- LOGIC ĐỊA CHỈ NHIỀU DÒNG (UPDATE) --- */}
+              <Box sx={{ mb: 2, display: "flex", alignItems: "flex-start" }}>
+                <Box sx={{ flex: 1 }}>
+                  {formData.addresses && formData.addresses.length > 0 ? (
+                    formData.addresses.map((addr, index) => (
+                      <Box key={index} sx={{ mb: 1.5 }}>
+                        {isEditing ? (
+                          <Box>
+                            <TextField
+                              fullWidth
+                              size="small"
+                              variant="outlined"
+                              value={addr.street}
+                              onChange={(e) =>
+                                handleAddressChange(index, e.target.value)
+                              }
+                              sx={{
+                                bgcolor: "#EFEFEF",
+                                borderRadius: 1,
+                                "& fieldset": { border: "none" },
+                              }}
+                              placeholder={`Địa chỉ ${index + 1}`}
+                            />
+                            {/* Hiển thị Quận/TP bên dưới để user biết đang sửa cái nào */}
+                            <Typography
+                              sx={{
+                                fontSize: "11px",
+                                color: "#888",
+                                mt: 0.5,
+                                ml: 1,
+                              }}
+                            >
+                              {addr.ward}, {addr.district}, {addr.city}
+                            </Typography>
+                          </Box>
+                        ) : (
+                          // Chế độ Xem: Hiển thị list
+                          <Box sx={{ borderBottom: "1px dashed #eee", pb: 1 }}>
+                            <Typography sx={{ color: "#555", fontWeight: 500 }}>
+                              {index + 1}. {addr.street}
+                            </Typography>
+                            <Typography
+                              sx={{ color: "#777", fontSize: "12px" }}
+                            >
+                              {addr.ward}, {addr.district}, {addr.city}
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
+                    ))
+                  ) : (
+                    <Typography
+                      sx={{ color: "#999", fontStyle: "italic", mt: 1 }}
+                    >
+                      Chưa cập nhật địa chỉ
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
 
               {/* --- PHẦN VAI TRÒ (ĐÃ SỬA LỖI HIỂN THỊ) --- */}
               <Box sx={{ mb: 2, display: "flex", alignItems: "center" }}>

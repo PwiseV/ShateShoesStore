@@ -1,5 +1,4 @@
 import api from "./axios";
-// Sửa đường dẫn này trỏ đến file type.ts chứa interface User, Address, OrderHistoryItem của bạn
 import type {
   User,
   Address,
@@ -14,8 +13,8 @@ export interface GetUsersParams {
   page?: number;
   limit?: number;
   keyword?: string;
-  role?: string; // 'Admin' | 'Customer'
-  status?: string; // 'active' | 'blocked'
+  role?: "Admin" | "Customer";
+  status?: "active" | "blocked";
   order?: "asc" | "desc";
 }
 

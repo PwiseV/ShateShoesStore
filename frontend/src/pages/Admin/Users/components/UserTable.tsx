@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import type { User } from "../type";
-import { STATUS_LABELS } from "../constants";
+// import { STATUS_LABELS } from "../constants"; // Giả sử bạn có file này, nếu ko thì dùng cứng
 import { getStatusColor } from "../utils";
 
 interface Props {
@@ -33,12 +33,38 @@ const UserTable: React.FC<Props> = ({ loading, users, onEdit }) => {
     );
   }
 
-  const renderAddress = (user: User) => {
+  // Logic hiển thị địa chỉ: Show cái đầu tiên + số lượng còn lại
+  const renderAddressCell = (user: User) => {
     if (!user.addresses || user.addresses.length === 0) return "Chưa cập nhật";
-    const addr = user.addresses[0];
-    return `${addr.street}, ${addr.city}`;
+
+    // Địa chỉ chính để hiển thị
+    const firstAddr = user.addresses[0];
+    const displayText = `${firstAddr.street}, ${firstAddr.city}`;
+
+    // Nếu có nhiều hơn 1 địa chỉ
+    const extraCount = user.addresses.length - 1;
+    const finalDisplay =
+      extraCount > 0 ? `${displayText} (+${extraCount})` : displayText;
+
+    // Nội dung tooltip: Liệt kê tất cả địa chỉ
+    const tooltipContent = (
+      <div style={{ whiteSpace: "pre-line", fontSize: "12px" }}>
+        {user.addresses.map((addr, idx) => (
+          <div key={idx} style={{ marginBottom: "4px" }}>
+            - {addr.street}, {addr.ward}, {addr.district}, {addr.city}
+          </div>
+        ))}
+      </div>
+    );
+
+    return (
+      <Tooltip title={tooltipContent} arrow placement="top">
+        <span>{finalDisplay}</span>
+      </Tooltip>
+    );
   };
 
+  // Styles giữ nguyên như cũ
   const fontStyle = { fontFamily: "'Lexend', sans-serif", fontSize: "13px" };
   const headerStyle = {
     ...fontStyle,
@@ -61,18 +87,21 @@ const UserTable: React.FC<Props> = ({ loading, users, onEdit }) => {
       <Table sx={{ minWidth: 800 }} aria-label="user table" size="small">
         <TableHead sx={{ backgroundColor: "#F8F9FA", height: "40px" }}>
           <TableRow>
-            <TableCell sx={{ ...headerStyle, width: "50px" }}>ID</TableCell>
-
-            {/* CẬP NHẬT: Tăng minWidth cho cột Họ Tên để chiếm khoảng trống */}
-            <TableCell sx={{ ...headerStyle, minWidth: "100px" }}>
-              Họ Tên
+            {/* Cột 1: Đổi ID -> Username */}
+            <TableCell sx={{ ...headerStyle, width: "100px" }}>
+              Username
             </TableCell>
 
+            <TableCell sx={{ ...headerStyle, width: "100px" }}>
+              Họ Tên
+            </TableCell>
             <TableCell sx={headerStyle}>Email</TableCell>
             <TableCell sx={headerStyle}>SĐT</TableCell>
             <TableCell sx={headerStyle}>Địa chỉ</TableCell>
             <TableCell sx={headerStyle}>Chức vụ</TableCell>
-            <TableCell sx={headerStyle}>Trạng thái</TableCell>
+            <TableCell sx={{ ...headerStyle, width: "50px" }}>
+              Trạng thái
+            </TableCell>
             <TableCell
               sx={{ ...headerStyle, textAlign: "center", width: "80px" }}
             >
@@ -90,7 +119,12 @@ const UserTable: React.FC<Props> = ({ loading, users, onEdit }) => {
                 height: "48px",
               }}
             >
-              <TableCell sx={fontStyle}>#{user.userId}</TableCell>
+              {/* Hiển thị Username*/}
+              <TableCell
+                sx={{ ...fontStyle, fontWeight: 600, color: "#2C3E50" }}
+              >
+                {user.username}
+              </TableCell>
 
               <TableCell>
                 <Typography
@@ -102,7 +136,6 @@ const UserTable: React.FC<Props> = ({ loading, users, onEdit }) => {
                 </Typography>
               </TableCell>
 
-              {/* Email: Giữ nguyên nhỏ gọn */}
               <TableCell
                 sx={{
                   maxWidth: "120px",
@@ -122,7 +155,7 @@ const UserTable: React.FC<Props> = ({ loading, users, onEdit }) => {
                 {user.phone}
               </TableCell>
 
-              {/* Địa chỉ: Giữ nguyên nhỏ gọn */}
+              {/* Render Địa chỉ với logic mới */}
               <TableCell
                 sx={{
                   maxWidth: "150px",
@@ -131,25 +164,26 @@ const UserTable: React.FC<Props> = ({ loading, users, onEdit }) => {
                   textOverflow: "ellipsis",
                   color: "#555",
                   ...fontStyle,
+                  cursor: "help", // Icon chuột dấu hỏi nhỏ để gợi ý có tooltip
                 }}
               >
-                <Tooltip title={renderAddress(user)} arrow placement="top">
-                  <span>{renderAddress(user)}</span>
-                </Tooltip>
+                {renderAddressCell(user)}
               </TableCell>
 
-              <TableCell sx={fontStyle}>{user.role}</TableCell>
+              <TableCell sx={fontStyle}>
+                {user.role === "Admin" ? "Quản trị viên" : "Khách hàng"}
+              </TableCell>
 
               <TableCell>
                 <Typography
                   sx={{
+                    ...fontStyle,
                     color: getStatusColor(user.status),
                     fontWeight: 500,
                     fontSize: "12px",
-                    ...fontStyle,
                   }}
                 >
-                  {STATUS_LABELS[user.status] || user.status}
+                  {user.status === "active" ? "Khả dụng" : "Bị chặn"}
                 </Typography>
               </TableCell>
 
