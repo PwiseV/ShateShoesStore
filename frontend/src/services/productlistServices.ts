@@ -8,12 +8,14 @@ import api from "./axios";
 export interface ChildCategory {
   id: string;
   name: string;
+  slug: string;
 }
 
 // 2. Cấu trúc danh mục cha (Cấp 1) - chứa mảng con
 export interface ParentCategory {
   id: string;
   name: string;
+  slug: string;
   category: ChildCategory[]; // Backend trả về key là "category"
 }
 
@@ -22,13 +24,11 @@ interface BackendProductItem {
   id: string;
   title: string;
   avatar: string;
-  // Backend trả về category dạng object (theo PDF)
   category?: {
     categoryId: string;
     name: string;
     slug: string;
   };
-  // Cấu trúc giá lồng nhau
   sizes: {
     colors: {
       price: number;
@@ -47,6 +47,7 @@ export interface Product {
   category?: {
     id?: string;
     name: string;
+    slug: string;
   };
 }
 
@@ -59,29 +60,21 @@ export const getAllProducts = async (params?: {
   keyword?: string;
   page?: number;
   limit?: number;
-  // ĐÃ XÓA: sort?: string; (Vì Frontend tự xử lý sort)
 }): Promise<Product[]> => {
   try {
     const response = await api.get("/users/products", { params });
     const data = response.data?.data || [];
 
-    // Ánh xạ dữ liệu từ Backend -> UI
     return (data as BackendProductItem[]).map((item) => ({
       id: item.id,
       name: item.title,
-
-      // Logic lấy giá từ cấu trúc sâu
       priceVnd: item.sizes?.[0]?.colors?.[0]?.price || 0,
-
-      // Nếu API không trả rating, mặc định là 5
       rating: item.rating || 5.0,
-
       image: item.avatar,
-
-      // Map category để UI lọc/hiển thị
       category: {
-        id: item.category?.categoryId, // Map categoryId từ backend
+        id: item.category?.categoryId,
         name: item.category?.name || "",
+        slug: item.category?.slug || "",
       },
     }));
   } catch (error) {
@@ -93,7 +86,6 @@ export const getAllProducts = async (params?: {
 export const getAllCategories = async (): Promise<ParentCategory[]> => {
   try {
     const response = await api.get("/users/category/list");
-    // Trả về nguyên mảng data chứa cấu trúc cây
     return response.data?.data || [];
   } catch (error) {
     console.error("Get categories error:", error);

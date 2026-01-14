@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -9,17 +9,27 @@ import {
 } from "@mui/material";
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
-
-// Import Type từ Service (Nếu dùng fake thì đổi tên file thành fakeProductListServices)
 import type { ParentCategory } from "../../../services/productListServices";
 
 type CategoryItemProps = {
   category: ParentCategory;
-  onSelect: (categoryName: string) => void;
+  onSelect: (slug: string) => void;
+  selectedCategory: string;
 };
 
-const CategoryItem: React.FC<CategoryItemProps> = ({ category, onSelect }) => {
+const CategoryItem: React.FC<CategoryItemProps> = ({
+  category,
+  onSelect,
+  selectedCategory,
+}) => {
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const hasSelectedChild = category.category.some(
+      (child) => child.slug === selectedCategory
+    );
+    if (hasSelectedChild) setOpen(true);
+  }, [category, selectedCategory]);
 
   const handleClick = () => {
     setOpen(!open);
@@ -62,35 +72,33 @@ const CategoryItem: React.FC<CategoryItemProps> = ({ category, onSelect }) => {
       {/* 2. CẤP CON */}
       <Collapse in={open} timeout="auto" unmountOnExit>
         <List component="div" disablePadding>
-          {category.category.map((child) => (
-            <ListItemButton
-              key={child.id}
-              sx={{
-                pl: 4,
-                py: 0.5,
-                borderRadius: "8px",
-                "&:hover": {
-                  bgcolor: "rgba(0,0,0,0.04)",
-                  color: "#2C3E50",
-                },
-              }}
-              onClick={() => onSelect(child.name)}
-            >
-              <ListItemText
-                primary={child.name}
-                primaryTypographyProps={{
-                  fontSize: "0.95rem",
-                  color: "#555",
-                  fontWeight: 400,
-                  fontFamily: '"Lexend", sans-serif',
+          {category.category.map((child) => {
+            // So sánh theo SLUG
+            const isSelected = selectedCategory === child.slug;
+            return (
+              <ListItemButton
+                key={child.id}
+                onClick={() => onSelect(child.slug)} // Truyền slug
+                sx={{
+                  pl: 4,
+                  py: 0.5,
+                  borderRadius: "8px",
+                  bgcolor: isSelected ? "rgba(0,0,0,0.08)" : "transparent", // Highlight
+                  "&:hover": { bgcolor: "rgba(0,0,0,0.04)" },
                 }}
-              />
-            </ListItemButton>
-          ))}
+              >
+                <ListItemText
+                  primary={child.name}
+                  primaryTypographyProps={{
+                    fontWeight: isSelected ? 600 : 400,
+                  }}
+                />
+              </ListItemButton>
+            );
+          })}
         </List>
       </Collapse>
     </Box>
   );
 };
-
 export default CategoryItem;

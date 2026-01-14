@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Box, Grid } from "@mui/material";
+import { useParams, useNavigate } from "react-router-dom";
 
 import Header from "../../../components/Customer/Header";
 import Footer from "../../../components/Customer/Footer";
@@ -10,7 +11,6 @@ import CategorySidebar from "./components/CategorySidebar/CategorySidebar";
 import ProductGrid from "./components/ProductGrid/ProductGrid";
 import Pagination from "./components/Pagination/Pagination";
 
-// Import từ fake service (hoặc real service nếu đã sửa tương ứng)
 import {
   getAllProducts,
   getAllCategories,
@@ -21,20 +21,21 @@ import {
 const PAGE_SIZE = 6;
 
 const ProductList = () => {
+  // 1. Lấy slug từ URL
+  const { slug } = useParams();
+  const navigate = useNavigate();
+
+  // Biến này là SLUG lấy từ URL (VD: "giay-tay")
+  const currentSlug = slug || "";
+
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<ParentCategory[]>([]);
-
-  // State Bộ Lọc (Backend xử lý)
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [query, setQuery] = useState("");
-
-  // State Sắp Xếp (Frontend xử lý)
   const [sort, setSort] = useState<SortValue>("priceAsc");
-
   const [loading, setLoading] = useState<boolean>(true);
   const [page, setPage] = useState(1);
 
-  // 1. Lấy danh mục (1 lần đầu)
+  // 2. Lấy danh sách Categories (Chạy 1 lần đầu)
   useEffect(() => {
     const fetchCats = async () => {
       try {
@@ -47,13 +48,36 @@ const ProductList = () => {
     fetchCats();
   }, []);
 
-  // 2. GỌI API KHI THAY ĐỔI DANH MỤC HOẶC TỪ KHÓA (Backend Filter)
+  // [LOGIC MỚI QUAN TRỌNG]: Tìm "Name" dựa trên "Slug"
+  // Chúng ta duyệt qua mảng categories để tìm xem slug 'giay-tay' là của 'Giày Tây'
+  const categoryNameToSend = useMemo(() => {
+    if (!currentSlug) return ""; // Nếu không có slug -> Tất cả -> Gửi rỗng
+    if (categories.length === 0) return ""; // Chưa tải xong danh mục -> Tạm gửi rỗng
+
+    // Duyệt tìm trong cây danh mục
+    for (const parent of categories) {
+      // 1. Check cha (nếu cần)
+      if (parent.slug === currentSlug) return parent.name;
+
+      // 2. Check con
+      const child = parent.category.find((c) => c.slug === currentSlug);
+      if (child) return child.name; // Tìm thấy! Trả về "Giày Tây"
+    }
+
+    return currentSlug; // Fallback: Nếu không tìm thấy thì gửi luôn slug (hoặc xử lý lỗi)
+  }, [categories, currentSlug]);
+
+  // 3. Gọi API lấy sản phẩm
   useEffect(() => {
+    // Nếu có slug trên URL mà danh mục chưa tải xong thì khoan hãy gọi API Product
+    // Để tránh việc gọi API với tham số sai.
+    if (currentSlug && categories.length === 0) return;
+
     const fetchProducts = async () => {
       setLoading(true);
       try {
         const data = await getAllProducts({
-          category: selectedCategory,
+          category: categoryNameToSend, // [QUAN TRỌNG] Gửi NAME (Giày Tây), không gửi SLUG
           keyword: query,
         });
         setProducts(data);
@@ -70,28 +94,23 @@ const ProductList = () => {
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [selectedCategory, query]); // Chỉ chạy lại khi Category hoặc Query đổi
+  }, [categoryNameToSend, query, categories.length, currentSlug]);
+  // Dependency thay đổi: khi tìm được tên đúng thì mới gọi
 
-  // 3. XỬ LÝ SẮP XẾP TẠI FRONTEND (Dựa trên mảng products backend trả về)
+  // 4. Logic Sort & Pagination (Giữ nguyên)
   const sortedAndPaginatedProducts = useMemo(() => {
-    let arr = [...products]; // Copy mảng để không ảnh hưởng state gốc
-
-    // -- FRONTEND SORTING --
+    let arr = [...products];
     if (sort === "priceAsc") {
       arr.sort((a, b) => (a.priceVnd || 0) - (b.priceVnd || 0));
     } else if (sort === "priceDesc") {
       arr.sort((a, b) => (b.priceVnd || 0) - (a.priceVnd || 0));
     }
-
-    // -- FRONTEND PAGINATION (Cắt trang) --
-    // Nếu muốn phân trang thật ở backend thì đoạn này phải sửa khác
     const startIndex = (page - 1) * PAGE_SIZE;
     return arr.slice(startIndex, startIndex + PAGE_SIZE);
-  }, [products, sort, page]); // Chạy lại khi danh sách SP, kiểu sort, hoặc trang đổi
+  }, [products, sort, page]);
 
   const totalPages = Math.max(1, Math.ceil(products.length / PAGE_SIZE));
 
-  // Scroll lên đầu khi chuyển trang
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [page]);
@@ -107,7 +126,6 @@ const ProductList = () => {
       }}
     >
       <Header />
-
       <Box
         sx={{
           maxWidth: 1200,
@@ -121,15 +139,14 @@ const ProductList = () => {
         <SearchBar value={query} onChange={setQuery} />
 
         <Grid container spacing={3} alignItems="flex-start">
-          {/* LEFT */}
           <Grid size={{ xs: 12, md: 3 }}>
             <Box
-              onClick={() => setSelectedCategory("")}
+              onClick={() => navigate("/products")}
               sx={{
                 mb: 2,
                 fontWeight: 800,
                 fontSize: "1.4rem",
-                color: selectedCategory === "" ? "#212020" : "#2F4156",
+                color: "#2F4156",
                 fontFamily: '"Lexend", sans-serif',
                 cursor: "pointer",
                 "&:hover": { color: "#212020" },
@@ -140,15 +157,12 @@ const ProductList = () => {
 
             <CategorySidebar
               categories={categories}
-              selectedCategory={selectedCategory}
-              onSelect={(catName) => setSelectedCategory(catName)}
+              selectedCategory={currentSlug} // Sidebar vẫn cần SLUG để highlight đúng
             />
           </Grid>
 
-          {/* RIGHT */}
           <Grid size={{ xs: 12, md: 9 }}>
             <SortBar value={sort} onChange={setSort} />
-
             <ProductGrid
               products={sortedAndPaginatedProducts}
               loading={loading}
@@ -161,7 +175,6 @@ const ProductList = () => {
                 onChange={setPage}
               />
             )}
-
             {!loading && products.length === 0 && (
               <Box sx={{ textAlign: "center", mt: 4, color: "#666" }}>
                 Không tìm thấy sản phẩm nào.
