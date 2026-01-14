@@ -12,7 +12,7 @@ import type {
   AddToCartRequest,
   AddToCartResponse,
   WishlistResponse,
-} from "./productdetailsServices";
+} from "./productDetailsServices";
 
 // --- DỮ LIỆU REVIEW MẪU ---
 const mockReviews: ProductReview[] = [

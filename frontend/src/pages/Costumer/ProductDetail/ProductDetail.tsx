@@ -15,7 +15,7 @@ import {
   type ProductReview,
   type Promotion,
   getProductDetails,
-} from "../../../services/productdetailsServices";
+} from "../../../services/productDetailsServices";
 import { useToast } from "../../../context/useToast";
 
 // Fake imports

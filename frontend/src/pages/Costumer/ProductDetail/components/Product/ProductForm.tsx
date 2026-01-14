@@ -12,7 +12,7 @@ import ProductOptions, { type OptionValue } from "./ProductOptions";
 import {
   type BackendSizeVariant,
   type Promotion, // Import Promotion từ đây luôn
-} from "../../../../../services/productdetailsServices";
+} from "../../../../../services/productDetailsServices";
 
 export type ProductFormProps = {
   name: string;
