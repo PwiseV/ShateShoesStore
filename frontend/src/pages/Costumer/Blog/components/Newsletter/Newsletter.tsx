@@ -9,13 +9,13 @@ const Newsletter = () => {
       <Container maxWidth="md">
         <Typography
           variant="h4"
-          sx={{ fontWeight: 800, mb: 1, fontFamily: '"DM Sans", sans-serif' }}
+          sx={{ fontWeight: 800, mb: 1, fontFamily: '"Lexend", sans-serif' }}
         >
           Get Your Style Inspiration
         </Typography>
         <Typography
           variant="h4"
-          sx={{ fontWeight: 800, mb: 5, fontFamily: '"DM Sans", sans-serif' }}
+          sx={{ fontWeight: 800, mb: 5, fontFamily: '"Lexend", sans-serif' }}
         >
           Straight To Your Box
         </Typography>

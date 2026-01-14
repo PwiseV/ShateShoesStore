@@ -38,7 +38,7 @@ const TrendingSection = () => {
           fontWeight: 800,
           color: "#2C3E50",
           mb: 4,
-          fontFamily: '"DM Sans", sans-serif',
+          fontFamily: '"Lexend", sans-serif',
           textAlign: "left",
         }}
       >
