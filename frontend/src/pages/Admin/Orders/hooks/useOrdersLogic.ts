@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import type { OrderData } from "../types";
 // import { getAdminOrders } from "../../../../services/fakeAdminServices";
-import { getAdminOrders, updateAdminOrder } from "../../../../services/adminServices";
+import { 
+  getAdminOrders, 
+  getOrderDetail, // Thêm cái này
+  updateAdminOrder 
+} from "../../../../services/adminOrderServices";
 
 export default function useOrdersLogic() {
   const [orders, setOrders] = useState<OrderData[]>([]);
@@ -10,7 +14,7 @@ export default function useOrdersLogic() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredOrders, setFilteredOrders] = useState<OrderData[]>(orders);
   const [page, setPage] = useState(1);
-  const [loading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
   const [openDetailModal, setOpenDetailModal] = useState(false);
   const [editedOrder, setEditedOrder] = useState<OrderData | null>(null);
@@ -19,7 +23,7 @@ export default function useOrdersLogic() {
   // Filter states
   const [statusFilter, setStatusFilter] = useState("");
   const [paymentFilter, setPaymentFilter] = useState("");
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 50000000]);
   const [openFilterModal, setOpenFilterModal] = useState(false);
 
   const itemsPerPage = 9;
@@ -74,12 +78,22 @@ export default function useOrdersLogic() {
   //   setFilteredOrders(filtered);
   // }, [orders, searchTerm, statusFilter, paymentFilter, priceRange]);
 
-  const handleOpenDetail = (order: OrderData) => {
-    setSelectedOrder(order);
-    setEditedOrder({ ...order });
+  const handleOpenDetail = async (order: OrderData) => {
+  setLoading(true);
+  try {
+    // Gọi API lấy đầy đủ items và thông tin
+    const fullOrder = await getOrderDetail(order.id);
+    
+    setSelectedOrder(fullOrder);
+    setEditedOrder({ ...fullOrder });
     setOpenDetailModal(true);
     setIsEditing(false);
-  };
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleCloseDetail = () => {
     setOpenDetailModal(false);
@@ -118,10 +132,7 @@ export default function useOrdersLogic() {
   };
 
   // const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
-  const paginatedOrders = filteredOrders.slice(
-    (page - 1) * itemsPerPage,
-    page * itemsPerPage
-  );
+  const paginatedOrders = orders;
 
   const handlePageChange = (_event: unknown, value: number) => {
     setPage(value);

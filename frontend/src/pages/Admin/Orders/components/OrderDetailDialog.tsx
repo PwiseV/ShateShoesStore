@@ -6,7 +6,7 @@ import AddIcon from "@mui/icons-material/Add";
 import type { OrderData } from "../types";
 import { statusConfig } from "../constants";
 import { formatCurrency } from "../utils";
-import { useOrderDetailLogic, mockProducts } from "../hooks/useOrderDetailLogic";
+import { useOrderDetailLogic } from "../hooks/useOrderDetailLogic";
 
 interface Props {
   open: boolean;
@@ -20,7 +20,7 @@ interface Props {
 }
 
 const OrderDetailDialog: React.FC<Props> = ({ open, order, editedOrder, isEditing, onClose, onEditToggle, onSave, onFieldChange }) => {
-  const { selectedProductId, setSelectedProductId, newProductQty, setNewProductQty, handleAddProduct, handleUpdateQuantity, handleDeleteItem, calculateTotal } = useOrderDetailLogic({
+  const {  calculateTotal } = useOrderDetailLogic({
     editedOrder,
     onFieldChange,
   });
@@ -74,7 +74,9 @@ const OrderDetailDialog: React.FC<Props> = ({ open, order, editedOrder, isEditin
 
                 <Box>
                   <Typography sx={{ fontSize: "12px", color: "#999", mb: "4px" }}>Ngày đặt</Typography>
-                  <Typography sx={{ fontSize: "14px", color: "#333" }}>{order.createdAt}</Typography>
+                  <Typography sx={{ fontSize: "14px", color: "#333" }}>{order.createdAt 
+    ? new Date(order.createdAt).toLocaleDateString('vi-VN').replace(/\//g, '-') 
+    : "N/A"}</Typography>
                 </Box>
 
                 <Box>
@@ -152,57 +154,14 @@ const OrderDetailDialog: React.FC<Props> = ({ open, order, editedOrder, isEditin
                       <TableRow key={item.id} sx={{ "&:hover": { backgroundColor: "#f0f0f0" } }}>
                         <TableCell sx={{ fontSize: "12px", color: "#333" }}>{item.productName}</TableCell>
                         <TableCell sx={{ fontSize: "12px", color: "#333" }}>{item.sku}</TableCell>
-                        <TableCell align="center">
-                          {isEditing ? (
-                            <TextField
-                              type="number"
-                              size="small"
-                              value={item.quantity}
-                              onChange={(e) => handleUpdateQuantity(item.id, Math.max(1, Number(e.target.value)))}
-                              sx={{ width: "60px" }}
-                              inputProps={{ min: 1 }}
-                            />
-                          ) : (
-                            <Typography sx={{ fontSize: "12px", color: "#333" }}>{item.quantity}</Typography>
-                          )}
-                        </TableCell>
+                        <TableCell align="center">{item.quantity}</TableCell>
                         <TableCell align="right" sx={{ fontSize: "12px", color: "#333" }}>{formatCurrency(item.price)}</TableCell>
-                        <TableCell align="right" sx={{ fontSize: "12px", color: "#333", fontWeight: 500 }}>{formatCurrency(item.total)}</TableCell>
-                        <TableCell align="center" sx={{ fontSize: "12px", cursor: "pointer", color: "#999" }}>
-                          {isEditing && (
-                            <IconButton size="small" onClick={() => handleDeleteItem(item.id)} sx={{ p: 0, "&:hover": { color: "#e74c3c" } }}>
-                              <DeleteIcon sx={{ fontSize: "18px" }} />
-                            </IconButton>
-                          )}
-                        </TableCell>
+                        <TableCell align="right" sx={{ fontSize: "12px", color: "#333", fontWeight: 500 }}>{formatCurrency(item.total)}</TableCell>                        
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </TableContainer>
-
-              {isEditing && (
-                <Box sx={{ display: "flex", gap: 1, alignItems: "flex-end" }}>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography sx={{ fontSize: "12px", color: "#999", mb: "4px" }}>Chọn sản phẩm</Typography>
-                    <Select fullWidth size="small" value={selectedProductId} onChange={(e) => setSelectedProductId(e.target.value)}>
-                      <MenuItem value="">-- Chọn sản phẩm --</MenuItem>
-                      {mockProducts.map((p) => (
-                        <MenuItem key={p.id} value={p.id}>
-                          {p.name} - {formatCurrency(p.price)}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </Box>
-                  <Box sx={{ width: "80px" }}>
-                    <Typography sx={{ fontSize: "12px", color: "#999", mb: "4px" }}>Số lượng</Typography>
-                    <TextField fullWidth size="small" type="number" value={newProductQty} onChange={(e) => setNewProductQty(Math.max(1, Number(e.target.value)))} inputProps={{ min: 1 }} />
-                  </Box>
-                  <Button onClick={handleAddProduct} variant="contained" startIcon={<AddIcon />} sx={{ backgroundColor: "#5c6ac4", "&:hover": { backgroundColor: "#4a5aa8" }, textTransform: "none" }}>
-                    Thêm
-                  </Button>
-                </Box>
-              )}
             </Box>
           )}
         </Box>

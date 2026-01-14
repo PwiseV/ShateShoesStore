@@ -53,7 +53,9 @@ const OrdersTable: React.FC<Props> = ({ orders, loading, onRowClick, page, total
               <Typography sx={{ fontSize: 14, fontWeight: 600, whiteSpace: "normal", overflowWrap: "break-word" }}>{order.orderNumber}</Typography>
               <Typography sx={{ fontSize: 14, whiteSpace: "normal", overflowWrap: "break-word" }}>{order.name}</Typography>
               <Typography sx={{ fontSize: 14, whiteSpace: "normal", overflowWrap: "break-word" }}>{order.phone}</Typography>
-              <Typography sx={{ fontSize: 14, whiteSpace: "normal", overflowWrap: "break-word" }}>{order.createdAt}</Typography>
+              <Typography sx={{ fontSize: 14, whiteSpace: "normal", overflowWrap: "break-word" }}>{order.createdAt 
+    ? new Date(order.createdAt).toLocaleDateString('vi-VN').replace(/\//g, '-') 
+    : "N/A"}</Typography>
               <Typography sx={{ fontSize: 14, fontWeight: 600, textAlign: "right", whiteSpace: "normal", overflowWrap: "break-word" }}>{formatCurrency(order.total)}</Typography>
               <Typography sx={{ fontSize: 14, color: "#111", fontWeight: 500, whiteSpace: "normal", overflowWrap: "break-word" }}>{paymentStatusConfig[order.paymentMethod]?.label || order.paymentMethod}</Typography>
               <Typography sx={{ fontSize: 14, textAlign: "center", whiteSpace: "normal", overflowWrap: "break-word", fontWeight: 600, color: (() => {

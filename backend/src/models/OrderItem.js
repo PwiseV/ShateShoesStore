@@ -9,9 +9,9 @@ const orderItemSchema = new mongoose.Schema(
       index: true,
     },
 
-    colorId: {
+    variantId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "ProductColorVariant",
+      ref: "ProductVariant",
       required: true,
     },
 
@@ -31,7 +31,7 @@ const orderItemSchema = new mongoose.Schema(
   }
 );
 orderItemSchema.index(
-  { orderId: 1, colorId: 1 },
+  { orderId: 1, variantId: 1 },
   { unique: true }
 );
 
