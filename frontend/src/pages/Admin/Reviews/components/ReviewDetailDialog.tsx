@@ -55,7 +55,7 @@ const ReviewDetailDialog: React.FC<Props> = ({
               Mã đánh giá
             </Typography>
             <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
-              {review.reviewCode}
+              {review.review_id}
             </Typography>
           </Box>
 
@@ -65,7 +65,7 @@ const ReviewDetailDialog: React.FC<Props> = ({
               Tên sản phẩm
             </Typography>
             <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
-              {review.productName}
+              {review.product_name}
             </Typography>
           </Box>
 
@@ -75,7 +75,7 @@ const ReviewDetailDialog: React.FC<Props> = ({
               Tên khách hàng
             </Typography>
             <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
-              {review.customerName}
+              {review.username}
             </Typography>
           </Box>
 
@@ -84,7 +84,7 @@ const ReviewDetailDialog: React.FC<Props> = ({
             <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#999" }}>
               Số sao
             </Typography>
-            <Rating value={review.stars} readOnly />
+            <Rating value={review.rating} readOnly />
           </Box>
 
           {/* Review Content */}
@@ -93,7 +93,7 @@ const ReviewDetailDialog: React.FC<Props> = ({
               Nội dung đánh giá
             </Typography>
             <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
-              {review.reviewContent}
+              {review.content}
             </Typography>
           </Box>
 
@@ -128,7 +128,7 @@ const ReviewDetailDialog: React.FC<Props> = ({
               Ngày tạo
             </Typography>
             <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
-              {new Date(review.createdAt).toLocaleDateString("vi-VN")}
+              {review.created_at.toLocaleDateString("vi-VN")}
             </Typography>
           </Box>
         </Box>

@@ -21,7 +21,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   return (
     <Box sx={{ display: "flex", gap: 1.5, mb: 2, flexWrap: "wrap" }}>
       <TextField
-        placeholder="Tìm kiếm tên sản phẩm, tên khách hàng, mã đánh giá..."
+        placeholder="Tìm kiếm..."
         size="small"
         value={searchTerm}
         onChange={(e) => onSearchChange(e.target.value)}

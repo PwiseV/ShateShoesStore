@@ -5,18 +5,22 @@ import {
   getReviews,
   updateReviewStatus,
   deleteReview,
-} from "../../../../services/fakeAdminReviewServices"; // ← import fake service
+} from "../../../../services/fakeAdminReviewServices";
 
 export const useReviewsLogic = () => {
   const [reviews, setReviews] = useState<ReviewData[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Pagination & Filter States
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const itemsPerPage = 10;
+
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string[]>([]);
   const [filterStars, setFilterStars] = useState<number[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
 
-  useEffect(() => {
+  // Fetch Reviews
   const fetchReviews = async () => {
     setLoading(true);
     try {
@@ -26,38 +30,44 @@ export const useReviewsLogic = () => {
         search: searchTerm.trim() || undefined,
         status: filterStatus.length > 0 ? filterStatus : undefined,
         stars: filterStars.length > 0 ? filterStars : undefined,
-        // productId: selectedProductId || undefined, // sau này thêm
       };
 
       const response = await getReviews(params);
+
       setReviews(response.data);
+      setTotalPages(response.pagination.totalPages);
     } catch (error) {
       console.error("Error fetching reviews:", error);
+      setReviews([]);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
   };
 
-  fetchReviews();
-}, [currentPage, searchTerm, filterStatus, filterStars]);
+  // Re-fetch khi dependencies thay đổi
+  useEffect(() => {
+    fetchReviews();
+  }, [currentPage, searchTerm, filterStatus, filterStars]);
 
-  const totalPages = Math.ceil(reviews.length / itemsPerPage);
-
+  // Handle Filters
   const handleApplyFilters = (status: string[], stars: number[]) => {
     setFilterStatus(status);
     setFilterStars(stars);
     setCurrentPage(1);
   };
 
+  // Handle Delete
   const handleDeleteReview = async (id: string) => {
     try {
       await deleteReview(id);
-      setReviews((prev) => prev.filter((review) => review.id !== id));
+      await fetchReviews();
     } catch (error) {
       console.error("Error deleting review:", error);
     }
   };
 
+  // Handle Update Status
   const handleUpdateReviewStatus = async (
     id: string,
     status: "pending" | "approved" | "rejected"
@@ -74,13 +84,19 @@ export const useReviewsLogic = () => {
     }
   };
 
+  // Handle Page Change
+  const handlePageChange = (_event: unknown, value: number) => {
+    setCurrentPage(value);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return {
-    reviews, // chỉ trả về danh sách đã phân trang
+    reviews,
     loading,
     searchTerm,
     setSearchTerm,
     currentPage,
-    setCurrentPage,
+    handlePageChange,
     totalPages,
     handleApplyFilters,
     handleDeleteReview,

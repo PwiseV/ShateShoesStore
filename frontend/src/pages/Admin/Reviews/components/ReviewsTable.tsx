@@ -5,13 +5,11 @@ import {
   Typography,
   CircularProgress,
   Rating,
-  IconButton,
   Popover,
   MenuItem,
   ListItemIcon,
   ListItemText,
 } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import type { ReviewData } from "../types";
@@ -22,7 +20,6 @@ interface Props {
   reviews: ReviewData[];
   loading: boolean;
   onRowClick: (review: ReviewData) => void;
-  onDelete: (id: string) => void;
   onUpdateStatus: (id: string, status: "approved" | "rejected") => void;
 }
 
@@ -30,7 +27,6 @@ const ReviewsTable: React.FC<Props> = ({
   reviews,
   loading,
   onRowClick,
-  onDelete,
   onUpdateStatus,
 }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -56,12 +52,17 @@ const ReviewsTable: React.FC<Props> = ({
 
   return (
     <>
-      <Box sx={{ overflow: "auto" }}>
+      <Box sx={{
+        overflow: "auto",
+        minHeight: "600px",
+        display: "flex",
+        flexDirection: "column",
+      }}>
         {/* Header Row */}
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "80px 1fr 120px 80px 1fr 100px 50px",
+            gridTemplateColumns: "80px 1fr 150px 100px 1fr 100px",
             gap: 1,
             mb: 1,
             px: 1,
@@ -90,16 +91,20 @@ const ReviewsTable: React.FC<Props> = ({
           >
             Trạng thái
           </Typography>
-          <Typography
-            sx={{ fontSize: 15, fontWeight: 700, color: "#000", textAlign: "center" }}
-          >
-            Hành động
-          </Typography>
         </Box>
 
         {/* Loading / Data Rows */}
+        <Box sx={{ flex: 1, position: "relative" }}>  
         {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+          <Box
+            sx={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <CircularProgress />
           </Box>
         ) : reviews.length > 0 ? (
@@ -109,7 +114,7 @@ const ReviewsTable: React.FC<Props> = ({
               onClick={() => onRowClick(review)}
               sx={{
                 display: "grid",
-                gridTemplateColumns: "80px 1fr 120px 80px 1fr 100px 50px",
+                gridTemplateColumns: "80px 1fr 150px 100px 1fr 100px",
                 gap: 1,
                 alignItems: "center",
                 p: 2,
@@ -135,7 +140,7 @@ const ReviewsTable: React.FC<Props> = ({
                   overflowWrap: "break-word",
                 }}
               >
-                {review.reviewCode}
+                {review.review_id}
               </Typography>
 
               <Typography
@@ -146,7 +151,7 @@ const ReviewsTable: React.FC<Props> = ({
                   overflowWrap: "break-word",
                 }}
               >
-                {review.productName}
+                {review.product_name}
               </Typography>
 
               <Typography
@@ -157,11 +162,11 @@ const ReviewsTable: React.FC<Props> = ({
                   overflowWrap: "break-word",
                 }}
               >
-                {review.customerName}
+                {review.username}
               </Typography>
 
               <Box sx={{ display: "flex", justifyContent: "center" }}>
-                <Rating value={review.stars} readOnly size="small" />
+                <Rating value={review.rating} readOnly size="small" />
               </Box>
 
               <Typography
@@ -172,10 +177,9 @@ const ReviewsTable: React.FC<Props> = ({
                   overflowWrap: "break-word",
                 }}
               >
-                {truncateText(review.reviewContent, 40)}
+                {truncateText(review.content, 30)}
               </Typography>
 
-              {/* Cột Trạng thái - click để mở menu */}
               <Box
                 sx={{
                   display: "flex",
@@ -225,23 +229,6 @@ const ReviewsTable: React.FC<Props> = ({
                   {statusConfig[review.status]?.label || review.status}
                 </Typography>
               </Box>
-
-              {/* Cột Hành động - nút xóa */}
-              <Box
-                sx={{ display: "flex", justifyContent: "center" }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <IconButton
-                  size="small"
-                  onClick={() => onDelete(review.id)}
-                  sx={{
-                    color: "#F44336",
-                    "&:hover": { backgroundColor: "rgba(244, 67, 54, 0.1)" },
-                  }}
-                >
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
-              </Box>
             </Paper>
           ))
         ) : (
@@ -249,6 +236,7 @@ const ReviewsTable: React.FC<Props> = ({
             <Typography color="textSecondary">Không tìm thấy đánh giá</Typography>
           </Box>
         )}
+        </Box>
       </Box>
 
       {/* Popover menu chọn trạng thái */}

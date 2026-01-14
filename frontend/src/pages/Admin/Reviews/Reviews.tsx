@@ -19,7 +19,7 @@ const Reviews = () => {
     searchTerm,
     setSearchTerm,
     currentPage,
-    setCurrentPage,
+    handlePageChange,
     totalPages,
     handleApplyFilters,
     handleDeleteReview,
@@ -62,7 +62,7 @@ const Reviews = () => {
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
             currentPage={currentPage}
-            onPageChange={setCurrentPage}
+            onPageChange={handlePageChange}
             totalPages={totalPages}
             onApplyFilters={handleApplyFilters}
             onDelete={handleDeleteReview}
