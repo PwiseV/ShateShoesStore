@@ -14,6 +14,7 @@ import Login from "./pages/Signin/SigninForm.tsx";
 import Signup from "./pages/Signup/SignupForm";
 import Users from "./pages/Admin/Users/Users.tsx";
 import Products from "./pages/Admin/Products/Products.tsx";
+import BlogPost from "./pages/Costumer/BlogPost/BlogPost.tsx";
 
 export default function AppRoutes() {
   return (
@@ -23,6 +24,7 @@ export default function AppRoutes() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Signup />} />
           <Route path="/homepage" element={<HomePage />} />
+          <Route path="/blogpost/:id" element={<BlogPost />} />
 
           <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/admin/dashboard" element={<Dashboard />} />
