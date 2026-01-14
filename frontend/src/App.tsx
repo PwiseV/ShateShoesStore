@@ -29,18 +29,12 @@ export default function AppRoutes() {
           <Route path="/homepage" element={<HomePage />} />
           <Route path="/admin/products" element={<Products />} />
           <Route path="/admin/promotions" element={<Promotions />} />
-
-          {/* Homepage nên để Public để khách vãng lai xem được hàng */}
-          <Route path="/homepage" element={<HomePage />} />
-          {/* Để test đường dẫn, cuối cùng xong xuôi thì sẽ add vào mỗi protectedroute của customer (khai báo gọi 1 lần thì render toast mới được)*/}
           <Route path="/products/:productid" element={<ProductDetail />} />
-
           <Route path="/admin/dashboard" element={<Dashboard />} />
           <Route path="/admin/users" element={<Users />} />
-
-          {/* --- ADMIN ROUTES ---
           <Route path="/products" element={<ProductList />} />
           <Route path="/products/:slug" element={<ProductList />} />
+
           <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/admin/dashboard" element={<Dashboard />} />
             <Route path="/admin/users" element={<Users />} />
@@ -51,8 +45,10 @@ export default function AppRoutes() {
           <Route element={<ProtectedRoute role="customer" />}>
             <Route path="/homepage" element={<HomePage />} />
             <Route path="/products" element={<ProductList />} />
+            <Route path="/products/:productid" element={<ProductDetail />} />
+            <Route path="/products/:slug" element={<ProductList />} />
           </Route>
-          {/* --- CUSTOMER ROUTES --- */}
+
           <Route element={<ProtectedRoute role="customer" />}></Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />
