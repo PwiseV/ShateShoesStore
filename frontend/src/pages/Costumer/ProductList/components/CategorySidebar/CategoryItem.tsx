@@ -56,7 +56,7 @@ const CategoryItem: React.FC<CategoryItemProps> = ({
             fontSize: "1rem",
             fontWeight: 600,
             fontFamily: '"Lexend", sans-serif',
-            color: "#2F4156",
+            color: "#2C3E50",
           }}
         >
           {category.name}
@@ -83,6 +83,7 @@ const CategoryItem: React.FC<CategoryItemProps> = ({
                   pl: 4,
                   py: 0.5,
                   borderRadius: "8px",
+                  color: "#2C3E50",
                   bgcolor: isSelected ? "rgba(0,0,0,0.08)" : "transparent", // Highlight
                   "&:hover": { bgcolor: "rgba(0,0,0,0.04)" },
                 }}

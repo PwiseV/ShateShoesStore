@@ -41,12 +41,13 @@ const CategorySidebar = ({ categories, selectedCategory }: Props) => {
           },
         }}
       >
-        <GridViewIcon sx={{ fontSize: 20 }} />
+        {/* <GridViewIcon sx={{ fontSize: 20 }} /> */}
         <Typography
           sx={{
             fontSize: "1rem",
-            fontWeight: 700,
+            fontWeight: 600,
             fontFamily: '"Lexend", sans-serif',
+            color: "#2C3E50",
           }}
         >
           Tất cả sản phẩm
