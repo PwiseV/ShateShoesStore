@@ -1,28 +1,47 @@
-// Định nghĩa kiểu Post (khớp với service cũ của bạn)
+// src/types.ts
+
+// --- ENTITY TYPES ---
+
 export interface Post {
-  id: string;
+  id: string; // Dùng virtual ID
   title: string;
-  category: string;
-  thumbnail?: string;
+  slug: string;
+  thumbnail: string;
   content: string;
   author: string;
+  category: string;
   status: "active" | "hidden";
-  createdAt: string; // dạng "YYYY-MM-DD"
+  createdAt: string;
+  updatedAt: string;
 }
 
-// Định nghĩa dữ liệu Form
+// --- QUERY TYPES ---
+
+export interface PostQueryParams {
+  page: number;
+  pageSize: number;
+  keyword?: string;
+  category?: string;
+  status?: string;
+}
+
+// --- RESPONSE TYPES ---
+
+export interface PostResponse {
+  data: Post[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+// --- FORM TYPES ---
+
 export interface PostFormData {
   title: string;
+  slug: string;
   category: string;
   thumbnail: string;
   content: string;
   author: string;
   status: "active" | "hidden";
-}
-
-// Định nghĩa Params lọc
-export interface PostFilterParams {
-  keyword: string;
-  category: string;
-  month: string;
 }

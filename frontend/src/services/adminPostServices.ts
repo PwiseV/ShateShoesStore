@@ -1,57 +1,27 @@
-// services/adminPostServices.ts
+// src/services/adminPostServices.ts
 import api from "./axios";
+import type {
+  Post,
+  PostQueryParams,
+  PostResponse,
+} from "../pages/Admin/Post/types";
 
-// ===== 1. TYPE DEFINITIONS =====
-
-export interface Post {
-  id: string;
-  title: string;
-  slug: string; // <-- Thêm trường Slug
-  category: string;
-  thumbnail?: string;
-  content: string;
-  author: string;
-  status: "active" | "hidden";
-  createdAt: string;
-}
-
-export interface PostQueryParams {
-  page: number;
-  pageSize: number;
-  keyword?: string;
-  category?: string;
-  month?: string;
-  status?: "active" | "hidden";
-}
-
-export interface PostResponse {
-  data: Post[];
-  total: number;
-  page: number;
-  pageSize: number;
-}
-
-// ===== 2. UTILITY: HÀM TẠO SLUG TIẾNG VIỆT =====
-
-/**
- * Hàm chuyển đổi tiêu đề thành slug
- * VD: "10 cách phối đồ mùa đông" -> "10-cach-phoi-do-mua-dong"
- */
+// ===== HELPER: Generate Slug =====
 export const generateSlug = (text: string): string => {
   return text
-    .toString() // Chuyển thành chuỗi
-    .toLowerCase() // Chuyển về chữ thường
-    .normalize("NFD") // Chuẩn hóa chuỗi Unicode (tách dấu ra khỏi chữ cái)
-    .replace(/[\u0300-\u036f]/g, "") // Xóa các dấu thanh (huyền, sắc, hỏi...)
-    .replace(/[đĐ]/g, "d") // Xử lý chữ đ/Đ riêng biệt
-    .replace(/\s+/g, "-") // Thay khoảng trắng bằng dấu gạch ngang
-    .replace(/[^\w\-]+/g, "") // Xóa hết các ký tự đặc biệt (chỉ giữ lại chữ, số, gạch ngang)
-    .replace(/\-\-+/g, "-") // Xóa các dấu gạch ngang liên tiếp (vừa- -vừa -> vừa-vừa)
-    .replace(/^-+/, "") // Xóa gạch ngang ở đầu chuỗi
-    .replace(/-+$/, ""); // Xóa gạch ngang ở cuối chuỗi
+    .toString()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[đĐ]/g, "d")
+    .replace(/\s+/g, "-")
+    .replace(/[^\w\-]+/g, "")
+    .replace(/\-\-+/g, "-")
+    .replace(/^-+/, "")
+    .replace(/-+$/, "");
 };
 
-// ===== 3. POST ENDPOINTS =====
+// ===== POST ENDPOINTS =====
 
 export const getPosts = async (
   params: PostQueryParams
@@ -65,28 +35,79 @@ export const getPosts = async (
   }
 };
 
-export const createPost = async (payload: any, file: File): Promise<Post> => {
-  const formData = new FormData();
-  // Pack dữ liệu chữ
-  Object.keys(payload).forEach(key => formData.append(key, payload[key]));
-  // Pack dữ liệu ảnh
-  formData.append("thumbnail", file); 
+export const createPost = async (
+  payload: any,
+  file: File
+): Promise<{ message: string; data: Post }> => {
+  try {
+    const formData = new FormData();
 
-  const response = await api.post("/admin/posts", formData, {
-    headers: { "Content-Type": "multipart/form-data" }
-  });
-  return response.data;
+    // 1. Pack dữ liệu text
+    Object.keys(payload).forEach((key) => {
+      if (
+        key !== "thumbnail" &&
+        payload[key] !== undefined &&
+        payload[key] !== null
+      ) {
+        formData.append(key, payload[key]);
+      }
+    });
+
+    // 2. Tự động tạo slug nếu thiếu
+    if (!payload.slug && payload.title) {
+      formData.append("slug", generateSlug(payload.title));
+    }
+
+    // 3. Pack file ảnh (Bắt buộc)
+    formData.append("thumbnail", file);
+
+    // --- SỬA LỖI Ở ĐÂY: XÓA header Content-Type thủ công ---
+    const response = await api.post("/admin/posts", formData);
+
+    return response.data;
+  } catch (error) {
+    console.error("createPost error:", error);
+    throw error;
+  }
 };
 
-export const updatePost = async (id: string, payload: any, file?: File | null): Promise<Post> => {
-  const formData = new FormData();
-  Object.keys(payload).forEach(key => formData.append(key, payload[key]));
-  if (file) formData.append("thumbnail", file);
+export const updatePost = async (
+  id: string,
+  payload: any,
+  file?: File | null
+): Promise<{ message: string; data: Post }> => {
+  try {
+    const formData = new FormData();
 
-  const response = await api.patch(`/admin/posts/${id}`, formData, {
-    headers: { "Content-Type": "multipart/form-data" }
-  });
-  return response.data;
+    // 1. Pack dữ liệu text
+    Object.keys(payload).forEach((key) => {
+      if (
+        key !== "thumbnail" &&
+        payload[key] !== undefined &&
+        payload[key] !== null
+      ) {
+        formData.append(key, payload[key]);
+      }
+    });
+
+    // 2. Cập nhật slug nếu tiêu đề thay đổi (tùy chọn)
+    if (payload.title && !payload.slug) {
+      formData.append("slug", generateSlug(payload.title));
+    }
+
+    // 3. Pack file ảnh nếu có thay đổi
+    if (file) {
+      formData.append("thumbnail", file);
+    }
+
+    // --- SỬA LỖI Ở ĐÂY: XÓA header Content-Type thủ công ---
+    const response = await api.patch(`/admin/posts/${id}`, formData);
+
+    return response.data;
+  } catch (error) {
+    console.error("updatePost error:", error);
+    throw error;
+  }
 };
 
 export const deletePost = async (id: string): Promise<{ message: string }> => {
@@ -102,9 +123,15 @@ export const deletePost = async (id: string): Promise<{ message: string }> => {
 export const updatePostStatus = async (
   id: string,
   status: "active" | "hidden"
-): Promise<Post> => {
+): Promise<{ message: string }> => {
   try {
-    return await updatePost(id, { status });
+    const formData = new FormData();
+    formData.append("status", status);
+
+    // --- SỬA LỖI Ở ĐÂY: XÓA header Content-Type thủ công ---
+    const response = await api.patch(`/admin/posts/${id}`, formData);
+
+    return response.data;
   } catch (error) {
     console.error("updatePostStatus error:", error);
     throw error;
@@ -117,5 +144,5 @@ export default {
   updatePost,
   deletePost,
   updatePostStatus,
-  generateSlug, // Export hàm này để dùng ở Frontend nếu cần (ví dụ: hiển thị preview link)
+  generateSlug,
 };
