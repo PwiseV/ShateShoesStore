@@ -1,4 +1,5 @@
 import User from "../models/User.js";
+import { uploadImageToCloudinary } from "./cloudinary.service.js";
 
 export const getUsers = async ({
   page,
@@ -71,5 +72,55 @@ export const getUser = async (id) => {
     avatar: user.avatar.url || null,
     orderCount: 5,
     totalSpent: 300000000,
+  };
+};
+
+export const updateUser = async (
+  id,
+  { email, displayName, phone, role, status },
+  fileBuffer
+) => {
+  if (!id) throw new Error("USER_ID_REQUIRED");
+
+  const updateData = {
+    email,
+    displayName,
+    phone,
+    role,
+    status,
+  };
+
+  if (fileBuffer) {
+    const imageResult = await uploadImageToCloudinary(
+      fileBuffer.buffer,
+      "users"
+    );
+    
+    updateData.avatar = {
+      url: imageResult.url,
+      publicId: imageResult.publicId,
+    };
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(
+    id,
+    { $set: updateData },
+    { new: true, runValidators: true }
+  )
+    .select("-password -hashedPassword")
+    .lean();
+
+  if (!updatedUser) throw new Error("USER_NOT_FOUND");
+
+  return {
+    userId: updatedUser._id,
+    username: updatedUser.username,
+    email: updatedUser.email,
+    displayName: updatedUser.displayName,
+    phone: updatedUser.phone,
+    role: updatedUser.role,
+    status: updatedUser.status,
+    avatar: updatedUser.avatar?.url || null,
+    updatedAt: updatedUser.updatedAt,
   };
 };

@@ -35,7 +35,6 @@ export const getUsers = async (req, res) => {
 export const getUser = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log("id: ", id);
     const users = await userService.getUser({
       id,
     });
@@ -46,10 +45,43 @@ export const getUser = async (req, res) => {
       data: users,
     });
   } catch (error) {
-     if (error.message === "USER_ID_REQUIRED") {
+    if (error.message === "USER_ID_REQUIRED") {
       return res.status(400).json({ message: "Missing requires fields" });
-    };
-     if (error.message === "USER_NOT_FOUND") {
+    }
+    if (error.message === "USER_NOT_FOUND") {
+      return res.status(404).json({ message: "User not found" });
+    }
+    console.error("Get users controller error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { email, displayName, phone, role, status } = req.body;
+    const users = await userService.updateUser(
+      id,
+      {
+        email,
+        displayName,
+        phone,
+        role,
+        status,
+      },
+      req.file
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Update users success",
+      data: users,
+    });
+  } catch (error) {
+    if (error.message === "USER_ID_REQUIRED") {
+      return res.status(400).json({ message: "Missing requires fields" });
+    }
+    if (error.message === "USER_NOT_FOUND") {
       return res.status(404).json({ message: "User not found" });
     }
     console.error("Get users controller error:", error);
