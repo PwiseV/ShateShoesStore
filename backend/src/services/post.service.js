@@ -44,8 +44,13 @@ export const getPostById = async (id) => {
 
 // create new post
 export const createPost = async (payload, fileBuffer) => {
-  const { title, slug } = payload;
-  const finalSlug = slug || slugify(title, { lower: true, strict: true, locale: 'vi' });
+  let { title, slug } = payload;
+  if (Array.isArray(slug)) {
+    slug = slug.find(s => s && typeof s === 'string' && s.trim() !== "") || "";
+  }
+  const finalSlug = (slug && slug.trim() !== "") 
+    ? slug.toLowerCase().trim() 
+    : slugify(title || "post", { lower: true, strict: true, locale: 'vi' });
 
   // check slug uniqueness
   const exist = await Post.findOne({ slug: finalSlug });
