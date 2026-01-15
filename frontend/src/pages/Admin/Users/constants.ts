@@ -1,8 +1,3 @@
-export const USER_ROLES = {
-  ADMIN: "Admin",
-  CUSTOMER: "Khách hàng",
-};
-
 export const USER_STATUS = {
   ACTIVE: "active",
   BLOCKED: "blocked",

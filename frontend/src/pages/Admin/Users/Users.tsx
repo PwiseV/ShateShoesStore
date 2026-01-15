@@ -7,14 +7,14 @@ import SideBar from "../../../components/Admin/SideBar";
 import UserFilterBar from "./components/UserFilterBar";
 import UserTable from "./components/UserTable";
 import UserDetailModal from "./components/UserDetailModal";
-import UserFiltersModal from "./components/UserFiltersModal"; // Modal Lọc Mới
+import UserFiltersModal from "./components/UserFiltersModal";
 
 import { useUserData } from "./hooks/useUserData";
-import type { User } from "./type";
+import type { User } from "./types"; // Chú ý đường dẫn types
 
 const Users: React.FC = () => {
   const {
-    users, // Danh sách user (đã được lọc tự động bởi hook)
+    users,
     loading,
     currentPage,
     totalPages,
@@ -22,11 +22,10 @@ const Users: React.FC = () => {
     setKeyword,
     filters,
     applyFilters,
-    clearFilters, // Các hàm xử lý lọc
+    clearFilters,
     setCurrentPage,
-    // handleDeleteUser,
-    handleUpdateUser, // <-- QUAN TRỌNG: Hàm để lưu chỉnh sửa
-    // refreshData,
+    handleUpdateUser, // Hàm update gọi API
+    fetchUsers, // Hàm fetch data
   } = useUserData();
 
   // State Modal
@@ -42,6 +41,7 @@ const Users: React.FC = () => {
 
   const handleSearch = () => {
     setCurrentPage(1);
+    fetchUsers(1); // Gọi tìm kiếm ngay
   };
 
   // Mở Modal xem chi tiết
@@ -51,14 +51,16 @@ const Users: React.FC = () => {
     setOpenDetail(true);
   };
 
-  // Hàm xử lý khi bấm LƯU ở Modal Chi Tiết
-  const handleSaveUser = (updatedUser: User) => {
-    console.log("Đang lưu user:", updatedUser);
-    handleUpdateUser(updatedUser); // Cập nhật vào list chính
-    setOpenDetail(false); // Đóng modal
+  // --- LOGIC SAVE ĐƯỢC CẬP NHẬT ---
+  const handleSaveUser = async (userId: string, updatedData: Partial<User>) => {
+    console.log("Saving user:", userId, updatedData);
+
+    // Gọi hàm update trong hook (đã bao gồm gọi API và show toast)
+    await handleUpdateUser(userId, updatedData);
+
+    setOpenDetail(false); // Đóng modal sau khi lưu thành công
   };
 
-  // Check xem có đang filter không để hiện chấm đỏ
   const isFiltered =
     filters.role !== "All" ||
     filters.status !== "All" ||
@@ -127,12 +129,7 @@ const Users: React.FC = () => {
             isFiltered={isFiltered}
           />
 
-          <UserTable
-            loading={loading}
-            users={users}
-            onEdit={handleViewUser} // Nút mắt/sửa
-            // onDelete={handleDeleteUser} // Nếu bạn muốn dùng lại xóa thì uncomment
-          />
+          <UserTable loading={loading} users={users} onEdit={handleViewUser} />
 
           <Box
             sx={{ display: "flex", justifyContent: "center", mt: 3, gap: 1 }}
@@ -154,7 +151,6 @@ const Users: React.FC = () => {
       </div>
       <Footer />
 
-      {/* --- MODAL LỌC (Style giống ProductFilter) --- */}
       <UserFiltersModal
         open={openFilter}
         onClose={() => setOpenFilter(false)}
@@ -163,13 +159,12 @@ const Users: React.FC = () => {
         onClear={clearFilters}
       />
 
-      {/* --- MODAL CHI TIẾT (Xem & Sửa) --- */}
       <UserDetailModal
         open={openDetail}
         user={selectedUser}
         initialMode={detailMode}
         onClose={() => setOpenDetail(false)}
-        onSave={handleSaveUser} // Kết nối hàm lưu
+        onSave={handleSaveUser} // Truyền đúng hàm xử lý save mới
       />
     </div>
   );

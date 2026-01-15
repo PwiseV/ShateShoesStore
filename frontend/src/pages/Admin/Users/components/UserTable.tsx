@@ -12,10 +12,11 @@ import {
   Box,
   CircularProgress,
   Tooltip,
+  Chip,
 } from "@mui/material";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
-import type { User } from "../type";
-// import { STATUS_LABELS } from "../constants"; // Giả sử bạn có file này, nếu ko thì dùng cứng
+import StarIcon from "@mui/icons-material/Star"; // Icon for default address
+import type { User } from "../types";
 import { getStatusColor } from "../utils";
 
 interface Props {
@@ -27,31 +28,38 @@ interface Props {
 const UserTable: React.FC<Props> = ({ loading, users, onEdit }) => {
   if (loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", p: 6 }}>
         <CircularProgress />
       </Box>
     );
   }
 
-  // Logic hiển thị địa chỉ: Show cái đầu tiên + số lượng còn lại
+  // --- LOGIC ADDRESS ---
   const renderAddressCell = (user: User) => {
-    if (!user.addresses || user.addresses.length === 0) return "Chưa cập nhật";
+    if (!user.addresses || user.addresses.length === 0)
+      return (
+        <Typography
+          sx={{ fontSize: "13px", color: "#999", fontStyle: "italic" }}
+        >
+          Chưa cập nhật
+        </Typography>
+      );
 
-    // Địa chỉ chính để hiển thị
-    const firstAddr = user.addresses[0];
-    const displayText = `${firstAddr.street}, ${firstAddr.city}`;
+    const defaultAddr = user.addresses.find((a) => a.isDefault);
+    const displayAddr = defaultAddr || user.addresses[0];
 
-    // Nếu có nhiều hơn 1 địa chỉ
+    const addrString =
+      displayAddr.Address ||
+      `${displayAddr.street}, ${displayAddr.ward}, ${displayAddr.district}, ${displayAddr.city}`;
+
     const extraCount = user.addresses.length - 1;
-    const finalDisplay =
-      extraCount > 0 ? `${displayText} (+${extraCount})` : displayText;
 
-    // Nội dung tooltip: Liệt kê tất cả địa chỉ
     const tooltipContent = (
       <div style={{ whiteSpace: "pre-line", fontSize: "12px" }}>
         {user.addresses.map((addr, idx) => (
-          <div key={idx} style={{ marginBottom: "4px" }}>
-            - {addr.street}, {addr.ward}, {addr.district}, {addr.city}
+          <div key={addr.addressId || idx} style={{ marginBottom: "4px" }}>
+            {addr.isDefault && "★ "}
+            {addr.Address || `${addr.street}, ${addr.city}`}
           </div>
         ))}
       </div>
@@ -59,51 +67,115 @@ const UserTable: React.FC<Props> = ({ loading, users, onEdit }) => {
 
     return (
       <Tooltip title={tooltipContent} arrow placement="top">
-        <span>{finalDisplay}</span>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+          {displayAddr.isDefault && (
+            <StarIcon sx={{ fontSize: 14, color: "#f1c40f", flexShrink: 0 }} />
+          )}
+          <Typography
+            sx={{
+              fontSize: "13px",
+              color: "#555",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              display: "block",
+            }}
+          >
+            {addrString}
+          </Typography>
+          {extraCount > 0 && (
+            <Typography
+              sx={{
+                fontSize: "11px",
+                fontWeight: 700,
+                color: "#6A5ACD",
+                flexShrink: 0,
+              }}
+            >
+              (+{extraCount})
+            </Typography>
+          )}
+        </Box>
       </Tooltip>
     );
   };
 
-  // Styles giữ nguyên như cũ
+  // --- STYLES CHUNG ---
   const fontStyle = { fontFamily: "'Lexend', sans-serif", fontSize: "13px" };
+
+  // Style cho Header: Chữ đậm, màu xám nhẹ, viết hoa
   const headerStyle = {
     ...fontStyle,
-    fontWeight: 600,
-    color: "#666",
+    fontWeight: 700,
+    color: "#637381",
     fontSize: "12px",
     textTransform: "uppercase" as const,
+    backgroundColor: "#F4F6F8", // Màu nền header nhẹ nhàng hơn
+    borderBottom: "1px solid #E0E0E0",
+  };
+
+  // Style cho Cell Body: Có border dưới mờ
+  const cellStyle = {
+    ...fontStyle,
+    borderBottom: "1px dashed #EDF2F7", // Border nét đứt hiện đại
+    padding: "12px 16px", // Padding rộng rãi hơn
   };
 
   return (
     <TableContainer
       component={Paper}
       sx={{
-        borderRadius: "12px",
-        boxShadow: "none",
+        borderRadius: "16px",
+        boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.05)", // Shadow nhẹ
+        border: "none",
         overflowX: "auto",
-        border: "1px solid #eee",
       }}
     >
-      <Table sx={{ minWidth: 800 }} aria-label="user table" size="small">
-        <TableHead sx={{ backgroundColor: "#F8F9FA", height: "40px" }}>
+      <Table sx={{ minWidth: 900 }} size="medium">
+        {" "}
+        {/* Dùng medium để thoáng hơn, hoặc small nếu muốn gọn */}
+        <TableHead>
           <TableRow>
-            {/* Cột 1: Đổi ID -> Username */}
-            <TableCell sx={{ ...headerStyle, width: "100px" }}>
+            <TableCell sx={{ ...headerStyle, minWidth: "120px" }}>
               Username
             </TableCell>
 
-            <TableCell sx={{ ...headerStyle, width: "100px" }}>
+            {/* Tên cần rộng để hiển thị đầy đủ */}
+            <TableCell sx={{ ...headerStyle, minWidth: "180px" }}>
               Họ Tên
             </TableCell>
-            <TableCell sx={headerStyle}>Email</TableCell>
-            <TableCell sx={headerStyle}>SĐT</TableCell>
-            <TableCell sx={headerStyle}>Địa chỉ</TableCell>
-            <TableCell sx={headerStyle}>Chức vụ</TableCell>
-            <TableCell sx={{ ...headerStyle, width: "50px" }}>
+
+            {/* Email và Địa chỉ có thể dài nên cần maxWidth */}
+            <TableCell
+              sx={{ ...headerStyle, minWidth: "180px", maxWidth: "220px" }}
+            >
+              Email
+            </TableCell>
+
+            <TableCell sx={{ ...headerStyle, minWidth: "110px" }}>
+              SĐT
+            </TableCell>
+
+            <TableCell
+              sx={{ ...headerStyle, minWidth: "200px", maxWidth: "300px" }}
+            >
+              Địa chỉ (Mặc định)
+            </TableCell>
+
+            <TableCell
+              sx={{ ...headerStyle, minWidth: "130px", textAlign: "center" }}
+            >
+              Vai trò
+            </TableCell>
+
+            <TableCell
+              sx={{ ...headerStyle, minWidth: "130px", textAlign: "center" }}
+            >
               Trạng thái
             </TableCell>
+
             <TableCell
-              sx={{ ...headerStyle, textAlign: "center", width: "80px" }}
+              sx={{ ...headerStyle, minWidth: "80px", textAlign: "center" }}
             >
               Tùy chỉnh
             </TableCell>
@@ -112,91 +184,117 @@ const UserTable: React.FC<Props> = ({ loading, users, onEdit }) => {
         <TableBody>
           {users.map((user) => (
             <TableRow
-              key={user.userId}
+              key={user.username}
               hover
               sx={{
-                "&:last-child td, &:last-child th": { border: 0 },
-                height: "48px",
+                "&:hover": { backgroundColor: "#F9FAFB !important" },
+                transition: "background-color 0.2s",
               }}
             >
-              {/* Hiển thị Username*/}
+              {/* Username */}
               <TableCell
-                sx={{ ...fontStyle, fontWeight: 600, color: "#2C3E50" }}
+                sx={{ ...cellStyle, fontWeight: 600, color: "#2C3E50" }}
               >
                 {user.username}
               </TableCell>
 
-              <TableCell>
-                <Typography
-                  variant="body2"
-                  fontWeight={600}
-                  sx={{ color: "#2C3E50", ...fontStyle }}
-                >
-                  {user.displayName}
-                </Typography>
+              {/* Họ tên */}
+              <TableCell sx={{ ...cellStyle, fontWeight: 600 }}>
+                {user.displayName}
               </TableCell>
 
-              <TableCell
-                sx={{
-                  maxWidth: "120px",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  color: "#555",
-                  ...fontStyle,
-                }}
-              >
+              {/* Email - Tự động truncate bằng CSS */}
+              <TableCell sx={{ ...cellStyle, maxWidth: "220px" }}>
                 <Tooltip title={user.email} arrow placement="top">
-                  <span>{user.email}</span>
+                  <Typography
+                    sx={{
+                      ...fontStyle,
+                      color: "#555",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {user.email}
+                  </Typography>
                 </Tooltip>
               </TableCell>
 
-              <TableCell sx={{ color: "#555", ...fontStyle }}>
+              {/* SĐT */}
+              <TableCell sx={{ ...cellStyle, color: "#555" }}>
                 {user.phone}
               </TableCell>
 
-              {/* Render Địa chỉ với logic mới */}
+              {/* Địa chỉ */}
               <TableCell
-                sx={{
-                  maxWidth: "150px",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  color: "#555",
-                  ...fontStyle,
-                  cursor: "help", // Icon chuột dấu hỏi nhỏ để gợi ý có tooltip
-                }}
+                sx={{ ...cellStyle, maxWidth: "300px", cursor: "help" }}
               >
                 {renderAddressCell(user)}
               </TableCell>
 
-              <TableCell sx={fontStyle}>
-                {user.role === "Admin" ? "Quản trị viên" : "Khách hàng"}
-              </TableCell>
-
-              <TableCell>
-                <Typography
+              {/* Vai trò - Center */}
+              <TableCell sx={{ ...cellStyle, textAlign: "center" }}>
+                <Chip
+                  label={user.role === "admin" ? "Quản trị viên" : "Khách hàng"}
+                  size="small"
+                  color={user.role === "admin" ? "primary" : "default"}
+                  variant={user.role === "admin" ? "filled" : "outlined"} // Admin đậm, User nhạt
                   sx={{
                     ...fontStyle,
-                    color: getStatusColor(user.status),
-                    fontWeight: 500,
-                    fontSize: "12px",
+                    fontWeight: 600,
+                    fontSize: "11px",
+                    height: "24px",
+                    bgcolor: user.role === "admin" ? "#567C8D" : "transparent", // Màu custom cho admin
+                    color: user.role === "admin" ? "#fff" : "inherit",
+                    borderColor: "#ccc",
                   }}
-                >
-                  {user.status === "active" ? "Khả dụng" : "Bị chặn"}
-                </Typography>
+                />
               </TableCell>
 
-              <TableCell align="center">
-                <Box sx={{ display: "flex", justifyContent: "center" }}>
-                  <IconButton
-                    onClick={() => onEdit(user)}
-                    size="small"
-                    sx={{ color: "#7f8c8d", padding: "4px" }}
+              {/* Trạng thái - Center */}
+              <TableCell sx={{ ...cellStyle, textAlign: "center" }}>
+                <Box
+                  sx={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    px: 1.5,
+                    py: 0.5,
+                    borderRadius: "20px",
+                    backgroundColor:
+                      user.status === "active"
+                        ? "rgba(46, 204, 113, 0.1)"
+                        : "rgba(231, 76, 60, 0.1)",
+                    color: getStatusColor(user.status),
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "11px",
+                      fontFamily: "'Lexend', sans-serif",
+                    }}
                   >
-                    <VisibilityOutlinedIcon sx={{ fontSize: "18px" }} />
-                  </IconButton>
+                    {user.status === "active" ? "Khả dụng" : "Bị chặn"}
+                  </Typography>
                 </Box>
+              </TableCell>
+
+              {/* Tùy chỉnh */}
+              <TableCell sx={{ ...cellStyle, textAlign: "center" }}>
+                <IconButton
+                  onClick={() => onEdit(user)}
+                  size="small"
+                  sx={{
+                    color: "#637381",
+                    "&:hover": {
+                      color: "#567C8D",
+                      backgroundColor: "rgba(86, 124, 141, 0.1)",
+                    },
+                  }}
+                >
+                  <VisibilityOutlinedIcon fontSize="small" />
+                </IconButton>
               </TableCell>
             </TableRow>
           ))}

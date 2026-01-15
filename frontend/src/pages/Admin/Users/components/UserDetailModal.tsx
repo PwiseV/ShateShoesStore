@@ -17,13 +17,13 @@ import {
   IconButton,
   Select,
   MenuItem,
+  Chip,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import EditIcon from "@mui/icons-material/Edit";
-import type { User, OrderHistoryItem } from "../type";
-// import Grid from "@mui/material/Grid";
+import StarIcon from "@mui/icons-material/Star";
+import type { User, OrderHistoryItem } from "../types";
 
-// Mock Data
+// Mock Data Lịch sử mua hàng
 const MOCK_HISTORY: OrderHistoryItem[] = [
   {
     orderId: "ORD001",
@@ -50,7 +50,7 @@ interface Props {
   onClose: () => void;
   user: User | null;
   initialMode?: "view" | "edit";
-  onSave: (updatedUser: User) => void;
+  onSave: (userId: string, updatedData: Partial<User>) => void;
 }
 
 const UserDetailModal: React.FC<Props> = ({
@@ -72,29 +72,18 @@ const UserDetailModal: React.FC<Props> = ({
 
   if (!user || !formData) return null;
 
-  // --- LOGIC ROLE ---
-  // Kiểm tra role để ẩn/hiện layout
-  const isAdmin = formData.role === "Admin";
+  // --- LOGIC UI ---
+  const isRoleAdmin = formData.role === "admin";
+  const shouldHideHistory = isRoleAdmin && !isEditing;
 
   const handleChange = (field: keyof User, value: any) => {
     setFormData((prev) => (prev ? { ...prev, [field]: value } : null));
   };
 
-  // Cập nhật địa chỉ theo index (Update trường street)
-  const handleAddressChange = (index: number, newVal: string) => {
-    setFormData((prev) => {
-      if (!prev) return null;
-      const newAddresses = [...prev.addresses];
-      if (newAddresses[index]) {
-        newAddresses[index] = { ...newAddresses[index], street: newVal };
-      }
-      return { ...prev, addresses: newAddresses };
-    });
-  };
-
   const handleSave = () => {
     if (formData) {
-      onSave(formData);
+      // --- FIX QUAN TRỌNG: Dùng userId thay vì username ---
+      onSave(formData.userId, formData);
       setIsEditing(false);
     }
   };
@@ -104,60 +93,43 @@ const UserDetailModal: React.FC<Props> = ({
   const getStatusColor = (status: string) =>
     status === "active" ? "#2ecc71" : "#e74c3c";
 
-  // Helper render
+  // Helper render Input
   const renderField = (
     label: string,
     value: string | number,
     fieldKey?: keyof User,
-    isAddress = false
-  ) => {
-    return (
-      <Box sx={{ mb: 2, display: "flex", alignItems: "center" }}>
-        <Typography sx={{ width: "140px", fontWeight: 700, color: "#2C3E50" }}>
-          {label}
+    disabled = false
+  ) => (
+    <Box sx={{ mb: 2, display: "flex", alignItems: "center" }}>
+      <Typography sx={{ width: "140px", fontWeight: 700, color: "#2C3E50" }}>
+        {label}
+      </Typography>
+      {isEditing && fieldKey && !disabled ? (
+        <TextField
+          fullWidth
+          size="small"
+          variant="outlined"
+          value={value}
+          onChange={(e) => handleChange(fieldKey, e.target.value)}
+          sx={{
+            bgcolor: "#EFEFEF",
+            borderRadius: 1,
+            "& fieldset": { border: "none" },
+          }}
+        />
+      ) : (
+        <Typography sx={{ color: "#555", flex: 1, fontWeight: 500 }}>
+          {value}
         </Typography>
-        {isEditing && fieldKey ? (
-          isAddress ? (
-            <TextField
-              fullWidth
-              size="small"
-              variant="outlined"
-              value={value}
-              onChange={(e) => handleChange(fieldKey, e.target.value)}
-              sx={{
-                bgcolor: "#EFEFEF",
-                borderRadius: 1,
-                "& fieldset": { border: "none" },
-              }}
-            />
-          ) : (
-            <TextField
-              fullWidth
-              size="small"
-              variant="outlined"
-              value={value}
-              onChange={(e) => handleChange(fieldKey, e.target.value)}
-              sx={{
-                bgcolor: "#EFEFEF",
-                borderRadius: 1,
-                "& fieldset": { border: "none" },
-              }}
-            />
-          )
-        ) : (
-          <Typography sx={{ color: "#555", flex: 1, fontWeight: 500 }}>
-            {value}
-          </Typography>
-        )}
-      </Box>
-    );
-  };
+      )}
+    </Box>
+  );
 
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth={isAdmin ? "sm" : "md"}
+      maxWidth={shouldHideHistory ? "sm" : "md"}
       fullWidth
       PaperProps={{
         sx: { borderRadius: "24px", p: 2, fontFamily: "'Lexend', sans-serif" },
@@ -184,8 +156,8 @@ const UserDetailModal: React.FC<Props> = ({
         </Box>
 
         <Grid container spacing={4}>
-          {/* Cột Trái: Thông tin User */}
-          <Grid size={12} md={isAdmin ? 12 : 6}>
+          {/* CỘT TRÁI: THÔNG TIN */}
+          <Grid size={12} md={shouldHideHistory ? 12 : 6}>
             <Box
               sx={{
                 p: 3,
@@ -194,97 +166,85 @@ const UserDetailModal: React.FC<Props> = ({
                 height: "100%",
               }}
             >
-              {/* MỚI: Hiển thị Username */}
+              {/* Username (Read-only) */}
               <Box sx={{ mb: 2, display: "flex", alignItems: "center" }}>
                 <Typography
                   sx={{ width: "140px", fontWeight: 700, color: "#2C3E50" }}
                 >
                   Username
                 </Typography>
-                <Typography sx={{ color: "#2C3E50", flex: 1, fontWeight: 700 }}>
+                <Typography sx={{ color: "#2C3E50", fontWeight: 700 }}>
                   {formData.username}
                 </Typography>
               </Box>
+
               {renderField("Họ tên", formData.displayName, "displayName")}
               {renderField("Email", formData.email, "email")}
               {renderField("Số điện thoại", formData.phone, "phone")}
               {renderField(
                 "Ngày đăng ký",
-                formData.created_at
-                  ? new Date(formData.created_at).toLocaleDateString()
+                formData.createdAt
+                  ? new Date(formData.createdAt).toLocaleDateString()
                   : "N/A"
               )}
 
-              {renderField(
-                "Địa chỉ",
-                formData.addresses.length > 0
-                  ? `${formData.addresses[0].street}, ${formData.addresses[0].city}`
-                  : "Chưa cập nhật",
-                "addresses",
-                true
-              )}
-
-              {/* --- LOGIC ĐỊA CHỈ NHIỀU DÒNG (UPDATE) --- */}
-              <Box sx={{ mb: 2, display: "flex", alignItems: "flex-start" }}>
-                <Box sx={{ flex: 1 }}>
+              {/* DANH SÁCH ĐỊA CHỈ (READ-ONLY) */}
+              <Box sx={{ mb: 2, mt: 2 }}>
+                <Typography sx={{ fontWeight: 700, color: "#2C3E50", mb: 1 }}>
+                  Danh sách địa chỉ
+                </Typography>
+                <Box sx={{ maxHeight: 200, overflowY: "auto", pr: 1 }}>
                   {formData.addresses && formData.addresses.length > 0 ? (
-                    formData.addresses.map((addr, index) => (
-                      <Box key={index} sx={{ mb: 1.5 }}>
-                        {isEditing ? (
-                          <Box>
-                            <TextField
-                              fullWidth
-                              size="small"
-                              variant="outlined"
-                              value={addr.street}
-                              onChange={(e) =>
-                                handleAddressChange(index, e.target.value)
-                              }
-                              sx={{
-                                bgcolor: "#EFEFEF",
-                                borderRadius: 1,
-                                "& fieldset": { border: "none" },
-                              }}
-                              placeholder={`Địa chỉ ${index + 1}`}
-                            />
-                            {/* Hiển thị Quận/TP bên dưới để user biết đang sửa cái nào */}
-                            <Typography
-                              sx={{
-                                fontSize: "11px",
-                                color: "#888",
-                                mt: 0.5,
-                                ml: 1,
-                              }}
-                            >
-                              {addr.ward}, {addr.district}, {addr.city}
-                            </Typography>
-                          </Box>
-                        ) : (
-                          // Chế độ Xem: Hiển thị list
-                          <Box sx={{ borderBottom: "1px dashed #eee", pb: 1 }}>
-                            <Typography sx={{ color: "#555", fontWeight: 500 }}>
-                              {index + 1}. {addr.street}
-                            </Typography>
-                            <Typography
-                              sx={{ color: "#777", fontSize: "12px" }}
-                            >
-                              {addr.ward}, {addr.district}, {addr.city}
-                            </Typography>
-                          </Box>
+                    formData.addresses.map((addr, idx) => (
+                      <Box
+                        key={addr.addressId || idx}
+                        sx={{
+                          mb: 1.5,
+                          p: 1.5,
+                          border: "1px dashed #ccc",
+                          borderRadius: "8px",
+                          bgcolor: "#fff",
+                          position: "relative",
+                        }}
+                      >
+                        {addr.isDefault && (
+                          <Chip
+                            label="Mặc định"
+                            size="small"
+                            color="warning"
+                            sx={{
+                              position: "absolute",
+                              right: 8,
+                              top: 8,
+                              height: 20,
+                              fontSize: 10,
+                            }}
+                            icon={<StarIcon style={{ width: 12 }} />}
+                          />
                         )}
+                        <Typography
+                          sx={{
+                            fontSize: "13px",
+                            fontWeight: 600,
+                            color: "#333",
+                          }}
+                        >
+                          {addr.street}
+                        </Typography>
+                        <Typography sx={{ fontSize: "12px", color: "#666" }}>
+                          {addr.ward}, {addr.district}, {addr.city}
+                        </Typography>
                       </Box>
                     ))
                   ) : (
-                    <Typography
-                      sx={{ color: "#999", fontStyle: "italic", mt: 1 }}
-                    >
+                    <Typography sx={{ color: "#999", fontStyle: "italic" }}>
                       Chưa cập nhật địa chỉ
                     </Typography>
                   )}
                 </Box>
               </Box>
 
-              {/* --- PHẦN VAI TRÒ (ĐÃ SỬA LỖI HIỂN THỊ) --- */}
+              {/* ROLE SELECT (SỬA ROLE) */}
               <Box sx={{ mb: 2, display: "flex", alignItems: "center" }}>
                 <Typography
                   sx={{ width: "140px", fontWeight: 700, color: "#2C3E50" }}
@@ -293,29 +253,32 @@ const UserDetailModal: React.FC<Props> = ({
                 </Typography>
                 {isEditing ? (
                   <Select
-                    // UPDATE: Ép kiểu giá trị để khớp với MenuItem
-                    // Nếu role là 'Admin' thì hiển thị admin, còn lại (null, undefined, user...) đều hiển thị customer
-                    value={formData.role === "Admin" ? "Admin" : "Customer"}
+                    value={formData.role} // Giá trị 'admin' hoặc 'customer'
                     onChange={(e) => handleChange("role", e.target.value)}
                     size="small"
                     sx={{
                       bgcolor: "#EFEFEF",
                       borderRadius: 1,
-                      "& fieldset": { border: "none" },
                       minWidth: 150,
+                      "& fieldset": { border: "none" },
                     }}
                   >
-                    <MenuItem value="Customer">Khách hàng</MenuItem>
-                    <MenuItem value="Admin">Quản trị viên</MenuItem>
+                    <MenuItem value="customer">Khách hàng</MenuItem>
+                    <MenuItem value="admin">Quản trị viên</MenuItem>
                   </Select>
                 ) : (
-                  <Typography sx={{ fontWeight: 600, color: "#333" }}>
-                    {formData.role === "Admin" ? "Quản trị viên" : "Khách hàng"}
-                  </Typography>
+                  <Chip
+                    label={
+                      formData.role === "admin" ? "Quản trị viên" : "Khách hàng"
+                    }
+                    color="primary"
+                    variant="outlined"
+                    size="small"
+                  />
                 )}
               </Box>
 
-              {/* Phần Tình trạng */}
+              {/* STATUS SELECT */}
               <Box sx={{ mb: 2, display: "flex", alignItems: "center" }}>
                 <Typography
                   sx={{ width: "140px", fontWeight: 700, color: "#2C3E50" }}
@@ -330,8 +293,8 @@ const UserDetailModal: React.FC<Props> = ({
                     sx={{
                       bgcolor: "#EFEFEF",
                       borderRadius: 1,
-                      "& fieldset": { border: "none" },
                       minWidth: 150,
+                      "& fieldset": { border: "none" },
                     }}
                   >
                     <MenuItem value="active">Khả dụng</MenuItem>
@@ -349,21 +312,27 @@ const UserDetailModal: React.FC<Props> = ({
                 )}
               </Box>
 
-              {/* Chỉ hiện thống kê đơn hàng nếu KHÔNG phải Admin */}
-              {!isAdmin && (
-                <>
-                  {renderField("Số đơn hàng", formData.orderCount || 3)}
+              {!shouldHideHistory && (
+                <Box sx={{ mt: 2, pt: 2, borderTop: "1px solid #eee" }}>
+                  {renderField(
+                    "Số đơn hàng",
+                    formData.orderCount || 0,
+                    undefined,
+                    true
+                  )}
                   {renderField(
                     "Tổng tiền",
-                    (formData.totalSpent || 1500000).toLocaleString() + " đ"
+                    (formData.totalSpent || 0).toLocaleString() + " đ",
+                    undefined,
+                    true
                   )}
-                </>
+                </Box>
               )}
             </Box>
           </Grid>
 
-          {/* Cột Phải: Lịch sử mua hàng (Chỉ hiện nếu KHÔNG phải Admin) */}
-          {!isAdmin && (
+          {/* CỘT PHẢI: LỊCH SỬ (Ẩn nếu là Admin View Mode) */}
+          {!shouldHideHistory && (
             <Grid size={12} md={6}>
               <Typography
                 variant="h6"
@@ -415,7 +384,7 @@ const UserDetailModal: React.FC<Props> = ({
           )}
         </Grid>
 
-        {/* Footer Buttons */}
+        {/* Footer */}
         <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 4 }}>
           {isEditing ? (
             <>
