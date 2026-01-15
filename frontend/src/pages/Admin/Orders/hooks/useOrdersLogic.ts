@@ -1,37 +1,40 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import type { OrderData, UpdateOrderPayload } from "../types";
 import {
   getAdminOrders,
   updateAdminOrder,
-} from "../../../../services/adminOrdersServices"; // Import từ file service đã chỉnh
+} from "../../../../services/adminOrdersServices";
+import { useToast } from "../../../../context/useToast"; // ✅ Import useToast
 
 export default function useOrdersLogic() {
+  // --- 1. Data & Loading States ---
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [loading, setLoading] = useState(false);
-
-  // Pagination & Filter States
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const itemsPerPage = 10;
+  const { showToast } = useToast(); // ✅ Sử dụng Toast
 
+  // --- 2. Filter States ---
+  const itemsPerPage = 10;
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [paymentFilter, setPaymentFilter] = useState("");
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 3000000]);
 
-  // Modal States
+  // --- 3. Modal States ---
   const [openFilterModal, setOpenFilterModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
   const [openDetailModal, setOpenDetailModal] = useState(false);
   const [editedOrder, setEditedOrder] = useState<OrderData | null>(null);
   const [isEditing, setIsEditing] = useState(false);
 
-  // 1. Fetch Orders (GET)
-  const fetchOrders = async () => {
+  // --- 4. Fetch Logic ---
+  const fetchOrders = async (currentPage = page) => {
     setLoading(true);
+    // console.log("Fetching orders...", { currentPage, searchTerm, statusFilter });
     try {
       const response = await getAdminOrders({
-        page,
+        page: currentPage,
         limit: itemsPerPage,
         keyword: searchTerm,
         status: statusFilter,
@@ -44,22 +47,25 @@ export default function useOrdersLogic() {
       setTotalPages(response.pagination.totalPages);
     } catch (error) {
       console.error("Failed to fetch orders:", error);
+      showToast("Lỗi tải danh sách đơn hàng", "error"); // ✅ Toast lỗi
       setOrders([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Re-fetch when dependencies change
+  // --- 5. Side Effects (Auto fetch) ---
   useEffect(() => {
-    fetchOrders();
+    fetchOrders(page);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, searchTerm, statusFilter, paymentFilter, priceRange]);
+  }, [page, statusFilter, paymentFilter, priceRange]);
+  // Lưu ý: searchTerm thường nên handle riêng (debounce) hoặc bấm nút mới search,
+  // nhưng ở đây giữ nguyên logic cũ của bạn là dependency change thì fetch.
 
-  // Handle Modal Actions
+  // --- 6. Modal Actions ---
   const handleOpenDetail = (order: OrderData) => {
     setSelectedOrder(order);
-    setEditedOrder({ ...order }); // Clone object để edit không ảnh hưởng list gốc ngay
+    setEditedOrder({ ...order }); // Clone để edit
     setOpenDetailModal(true);
     setIsEditing(false);
   };
@@ -71,33 +77,37 @@ export default function useOrdersLogic() {
     setIsEditing(false);
   };
 
-  // 2. Handle Save Changes (PATCH)
+  const handleFieldChange = (field: keyof OrderData, value: any) => {
+    if (editedOrder) {
+      setEditedOrder({ ...editedOrder, [field]: value });
+    }
+  };
+
+  // --- 7. Update Logic (PATCH) ---
   const handleSaveChanges = async () => {
     if (!editedOrder) return;
 
     try {
       setLoading(true);
 
-      // ✅ Chuẩn hóa Payload: Chỉ gửi những gì cần thiết
+      // Chuẩn hóa Payload
       const payload: UpdateOrderPayload = {
         name: editedOrder.name,
         phone: editedOrder.phone,
         address: editedOrder.address,
+        email: editedOrder.email, // Thêm email nếu cần
         status: editedOrder.status,
         paymentMethod: editedOrder.paymentMethod,
-        // Map items để chỉ lấy field cần thiết gửi về BE
-        items: editedOrder.items.map((item) => ({
-          id: item.id,
-          sku: item.sku,
-          quantity: item.quantity,
-        })),
+        // Backend chỉ cần status/info, không cần items vì items read-only
+        // Tuy nhiên nếu API yêu cầu items thì map lại như cũ:
       };
 
-      // Gọi API PATCH
+      // Gọi API
       const response = await updateAdminOrder(editedOrder.id, payload);
 
-      // ✅ Cập nhật UI ngay lập tức từ response.data (Server Authority)
-      const updatedOrderFromServer = response.data;
+      // Cập nhật UI từ response server (nếu có data trả về)
+      // Nếu API updateAdminOrder trả về { message, data }, ta dùng data đó
+      const updatedOrderFromServer = response.data || { ...editedOrder };
 
       setOrders((prevOrders) =>
         prevOrders.map((o) =>
@@ -105,24 +115,21 @@ export default function useOrdersLogic() {
         )
       );
 
-      // Update lại selectedOrder để UI Modal hiển thị đúng dữ liệu mới nhất
+      // Update state modal
       setSelectedOrder(updatedOrderFromServer);
       setEditedOrder(updatedOrderFromServer);
 
-      alert(response.message || "Cập nhật thành công!");
+      showToast("Cập nhật đơn hàng thành công!", "success"); // ✅ Toast success
       setIsEditing(false);
-      handleCloseDetail(); // Hoặc giữ lại Modal tùy trải nghiệm UX bạn muốn
+
+      // Tùy chọn: Có thể đóng modal hoặc refresh lại list
+      // handleCloseDetail();
+      // fetchOrders(page);
     } catch (error: any) {
       console.error("Update failed:", error);
-      alert(error.message || "Có lỗi xảy ra khi cập nhật");
+      showToast(error.message || "Có lỗi xảy ra khi cập nhật", "error"); // ✅ Toast error
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleFieldChange = (field: keyof OrderData, value: any) => {
-    if (editedOrder) {
-      setEditedOrder({ ...editedOrder, [field]: value });
     }
   };
 
@@ -131,30 +138,42 @@ export default function useOrdersLogic() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const refreshData = () => fetchOrders(page);
+
   return {
-    paginatedOrders: orders, // API đã trả về đúng page nên không cần slice ở FE nữa
+    // Data
+    paginatedOrders: orders,
     loading,
-    searchTerm,
-    setSearchTerm,
     page,
     totalPages,
-    handlePageChange,
-    openFilterModal,
-    setOpenFilterModal,
+
+    // Filters
+    searchTerm,
+    setSearchTerm,
     statusFilter,
     setStatusFilter,
     paymentFilter,
     setPaymentFilter,
     priceRange,
     setPriceRange,
-    handleOpenDetail,
-    handleCloseDetail,
+
+    // Modal States
+    openFilterModal,
+    setOpenFilterModal,
     openDetailModal,
+    // setOpenDetailModal, // Nếu cần expose
     selectedOrder,
     editedOrder,
     isEditing,
     setIsEditing,
+
+    // Actions
+    handlePageChange,
+    handleOpenDetail,
+    handleCloseDetail,
     handleSaveChanges,
     handleFieldChange,
+    fetchOrders,
+    refreshData,
   };
 }

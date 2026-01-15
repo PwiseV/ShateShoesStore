@@ -21,15 +21,9 @@ import {
   Grid,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import DeleteIcon from "@mui/icons-material/Delete";
-import AddIcon from "@mui/icons-material/Add";
 import type { OrderData } from "../types";
 import { statusConfig, paymentStatusConfig } from "../constants";
-import { formatCurrency } from "../utils";
-import {
-  useOrderDetailLogic,
-  mockProducts,
-} from "../hooks/useOrderDetailLogic";
+import { formatCurrency, formatDateTime } from "../utils"; // Đảm bảo import formatDateTime
 
 interface Props {
   open: boolean;
@@ -52,24 +46,40 @@ const OrderDetailDialog: React.FC<Props> = ({
   onSave,
   onFieldChange,
 }) => {
-  const {
-    selectedProductId,
-    setSelectedProductId,
-    newProductQty,
-    setNewProductQty,
-    handleAddProduct,
-    handleUpdateQuantity,
-    handleDeleteItem,
-    calculateTotal,
-  } = useOrderDetailLogic({
-    editedOrder,
-    onFieldChange,
-  });
-
   if (!order) return null;
 
-  // Dữ liệu hiển thị: Nếu đang edit thì dùng editedOrder, không thì dùng order gốc
+  const canEdit = ["waittingApproval", "processing"].includes(order.status);
   const displayOrder = isEditing && editedOrder ? editedOrder : order;
+  const getAvailableStatuses = (currentStatus: string) => {
+    // Định nghĩa thứ tự quy trình chuẩn
+    const flow = ["waittingApproval", "processing", "shipped", "delivered"];
+    const currentIndex = flow.indexOf(currentStatus);
+
+    // Lọc ra các status hợp lệ từ config
+    return Object.entries(statusConfig).filter(([key]) => {
+      // 1. Luôn hiển thị status hiện tại của đơn hàng (để Select hiển thị đúng giá trị)
+      if (key === currentStatus) return true;
+
+      // 2. Nếu đơn hàng hiện tại là Cancelled hoặc Delivered -> Không cho chọn gì khác (Logic này đã chặn ở nút Edit, nhưng check thêm cho chắc)
+      if (currentStatus === "cancelled" || currentStatus === "delivered")
+        return false;
+
+      // 3. Logic cho "Cancelled" (Đã hủy)
+      // Cho phép hủy ở mọi bước TRỪ KHI đã giao hàng
+      if (key === "cancelled") {
+        return currentStatus !== "delivered";
+      }
+
+      // 4. Logic dòng chảy xuôi (Forward only)
+      const targetIndex = flow.indexOf(key);
+
+      // Nếu status đích không nằm trong flow (lỗi config?) -> bỏ qua
+      if (targetIndex === -1) return false;
+
+      // Chỉ cho phép đi tới (index lớn hơn index hiện tại)
+      return targetIndex > currentIndex;
+    });
+  };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
@@ -93,7 +103,7 @@ const OrderDetailDialog: React.FC<Props> = ({
 
       <DialogContent sx={{ p: 3 }}>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-          {/* --- Customer Info Section --- */}
+          {/* --- PHẦN 1: THÔNG TIN KHÁCH HÀNG (Có thể sửa) --- */}
           <Box>
             <Typography
               variant="subtitle1"
@@ -155,7 +165,7 @@ const OrderDetailDialog: React.FC<Props> = ({
 
           <Divider />
 
-          {/* --- Order Info Section --- */}
+          {/* --- PHẦN 2: THÔNG TIN ĐƠN HÀNG --- */}
           <Box>
             <Typography
               variant="subtitle1"
@@ -164,8 +174,39 @@ const OrderDetailDialog: React.FC<Props> = ({
             >
               Thông tin đơn hàng
             </Typography>
+
+            {/* A. Các trường READ-ONLY (Luôn chỉ xem) */}
+            <Grid container spacing={2} sx={{ mb: 2 }}>
+              <Grid size={4}>
+                <Typography variant="caption" color="textSecondary">
+                  Mã đơn hàng
+                </Typography>
+                <Typography fontWeight={700}>
+                  {displayOrder.orderNumber}
+                </Typography>
+              </Grid>
+              <Grid size={4}>
+                <Typography variant="caption" color="textSecondary">
+                  Ngày đặt hàng
+                </Typography>
+                <Typography fontWeight={600}>
+                  {formatDateTime(displayOrder.createdAt)}
+                </Typography>
+              </Grid>
+              <Grid size={4}>
+                <Typography variant="caption" color="textSecondary">
+                  Tổng tiền đơn hàng
+                </Typography>
+                <Typography fontWeight={700} color="#d32f2f">
+                  {formatCurrency(displayOrder.total)}
+                </Typography>
+              </Grid>
+            </Grid>
+
+            {/* B. Các trường CÓ THỂ SỬA (Status, Payment) */}
             <Grid container spacing={2}>
-              <Grid size={6}>
+              {/* Trạng thái */}
+              <Grid size={4}>
                 <Typography variant="caption" color="textSecondary">
                   Trạng thái
                 </Typography>
@@ -175,8 +216,10 @@ const OrderDetailDialog: React.FC<Props> = ({
                     size="small"
                     value={displayOrder.status}
                     onChange={(e) => onFieldChange("status", e.target.value)}
+                    sx={{ borderRadius: "8px" }}
                   >
-                    {Object.entries(statusConfig).map(([key, config]) => (
+                    {/* Render danh sách status đã được lọc theo logic Flow */}
+                    {getAvailableStatuses(order.status).map(([key, config]) => (
                       <MenuItem key={key} value={key}>
                         {config.label}
                       </MenuItem>
@@ -189,6 +232,8 @@ const OrderDetailDialog: React.FC<Props> = ({
                       color:
                         statusConfig[displayOrder.status]?.color === "success"
                           ? "green"
+                          : statusConfig[displayOrder.status]?.color === "error"
+                          ? "red"
                           : "#f57c00",
                     }}
                   >
@@ -198,8 +243,8 @@ const OrderDetailDialog: React.FC<Props> = ({
                 )}
               </Grid>
 
-              {/* --- UPDATE: PAYMENT METHOD SELECT --- */}
-              <Grid size={6}>
+              {/* Phương thức thanh toán */}
+              <Grid size={4}>
                 <Typography variant="caption" color="textSecondary">
                   Phương thức thanh toán
                 </Typography>
@@ -212,7 +257,6 @@ const OrderDetailDialog: React.FC<Props> = ({
                       onFieldChange("paymentMethod", e.target.value)
                     }
                   >
-                    {/* Render từ paymentStatusConfig để chỉ lấy COD và Banking */}
                     {Object.entries(paymentStatusConfig).map(
                       ([key, config]) => (
                         <MenuItem key={key} value={key}>
@@ -223,7 +267,6 @@ const OrderDetailDialog: React.FC<Props> = ({
                   </Select>
                 ) : (
                   <Typography fontWeight={500}>
-                    {/* Hiển thị label đẹp hơn từ config */}
                     {paymentStatusConfig[displayOrder.paymentMethod]?.label ||
                       displayOrder.paymentMethod}
                   </Typography>
@@ -234,7 +277,7 @@ const OrderDetailDialog: React.FC<Props> = ({
 
           <Divider />
 
-          {/* --- Product List Section --- */}
+          {/* --- PHẦN 3: DANH SÁCH SẢN PHẨM (READ-ONLY) --- */}
           <Box>
             <Typography
               variant="subtitle1"
@@ -253,9 +296,6 @@ const OrderDetailDialog: React.FC<Props> = ({
                     <TableCell align="center">SL</TableCell>
                     <TableCell align="right">Đơn giá</TableCell>
                     <TableCell align="right">Thành tiền</TableCell>
-                    {isEditing && (
-                      <TableCell align="center">Hành động</TableCell>
-                    )}
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -269,49 +309,18 @@ const OrderDetailDialog: React.FC<Props> = ({
                           {item.sku}
                         </Typography>
                       </TableCell>
-                      <TableCell align="center">
-                        {isEditing ? (
-                          <TextField
-                            type="number"
-                            size="small"
-                            value={item.quantity}
-                            onChange={(e) =>
-                              handleUpdateQuantity(
-                                item.id,
-                                Number(e.target.value)
-                              )
-                            }
-                            inputProps={{
-                              min: 1,
-                              style: { textAlign: "center", width: "40px" },
-                            }}
-                          />
-                        ) : (
-                          item.quantity
-                        )}
-                      </TableCell>
+                      <TableCell align="center">{item.quantity}</TableCell>
                       <TableCell align="right">
                         {formatCurrency(item.price)}
                       </TableCell>
                       <TableCell align="right" fontWeight={600}>
                         {formatCurrency(item.total)}
                       </TableCell>
-                      {isEditing && (
-                        <TableCell align="center">
-                          <IconButton
-                            size="small"
-                            color="error"
-                            onClick={() => handleDeleteItem(item.id)}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </TableCell>
-                      )}
                     </TableRow>
                   ))}
                   {(!displayOrder.items || displayOrder.items.length === 0) && (
                     <TableRow>
-                      <TableCell colSpan={isEditing ? 5 : 4} align="center">
+                      <TableCell colSpan={4} align="center">
                         <Typography color="textSecondary" sx={{ py: 2 }}>
                           Chưa có sản phẩm nào
                         </Typography>
@@ -322,75 +331,12 @@ const OrderDetailDialog: React.FC<Props> = ({
               </Table>
             </TableContainer>
 
-            {/* Total Section */}
+            {/* Total Section Footer */}
             <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
               <Typography variant="h6" fontWeight={700} color="#d32f2f">
-                Tổng cộng:{" "}
-                {formatCurrency(
-                  isEditing ? calculateTotal() : displayOrder.total
-                )}
+                Tổng cộng: {formatCurrency(displayOrder.total)}
               </Typography>
             </Box>
-
-            {/* Add Product Form (Only Editing) */}
-            {isEditing && (
-              <Box
-                sx={{
-                  mt: 2,
-                  p: 2,
-                  backgroundColor: "#f0f4f8",
-                  borderRadius: 2,
-                }}
-              >
-                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                  Thêm sản phẩm
-                </Typography>
-                <Box sx={{ display: "flex", gap: 1 }}>
-                  <Select
-                    fullWidth
-                    size="small"
-                    displayEmpty
-                    value={selectedProductId}
-                    onChange={(e) => setSelectedProductId(e.target.value)}
-                    sx={{ backgroundColor: "#fff", flex: 2 }}
-                  >
-                    <MenuItem value="" disabled>
-                      -- Chọn sản phẩm --
-                    </MenuItem>
-                    {mockProducts.map((p) => (
-                      <MenuItem key={p.id} value={p.id}>
-                        {p.name} - {formatCurrency(p.price)}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  <Box sx={{ width: "80px" }}>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      type="number"
-                      value={newProductQty}
-                      onChange={(e) =>
-                        setNewProductQty(Math.max(1, Number(e.target.value)))
-                      }
-                      inputProps={{ min: 1 }}
-                      sx={{ backgroundColor: "#fff" }}
-                    />
-                  </Box>
-                  <Button
-                    onClick={handleAddProduct}
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    sx={{
-                      backgroundColor: "#5c6ac4",
-                      "&:hover": { backgroundColor: "#4a5aa8" },
-                      textTransform: "none",
-                    }}
-                  >
-                    Thêm
-                  </Button>
-                </Box>
-              </Box>
-            )}
           </Box>
         </Box>
       </DialogContent>
@@ -398,35 +344,22 @@ const OrderDetailDialog: React.FC<Props> = ({
       <DialogActions
         sx={{ p: "16px", gap: "12px", borderTop: "1px solid #eee" }}
       >
-        {!isEditing ? (
-          <>
-            <Button
-              onClick={onClose}
-              variant="outlined"
-              sx={{ textTransform: "none", color: "#666", borderColor: "#ddd" }}
-            >
-              Đóng
-            </Button>
-            <Button
-              onClick={() => onEditToggle(true)}
-              variant="contained"
-              sx={{
-                textTransform: "none",
-                backgroundColor: "#5c6ac4",
-                "&:hover": { backgroundColor: "#4a5aa8" },
-              }}
-            >
-              Chỉnh sửa
-            </Button>
-          </>
-        ) : (
+        <Button
+          onClick={onClose}
+          variant="outlined"
+          sx={{ textTransform: "none", color: "#666", borderColor: "#ddd" }}
+        >
+          Đóng
+        </Button>
+
+        {isEditing ? (
           <>
             <Button
               onClick={() => onEditToggle(false)}
               variant="outlined"
               sx={{ textTransform: "none", color: "#666", borderColor: "#ddd" }}
             >
-              Hủy
+              Hủy bỏ
             </Button>
             <Button
               onClick={onSave}
@@ -440,6 +373,20 @@ const OrderDetailDialog: React.FC<Props> = ({
               Lưu thay đổi
             </Button>
           </>
+        ) : (
+          canEdit && (
+            <Button
+              onClick={() => onEditToggle(true)}
+              variant="contained"
+              sx={{
+                textTransform: "none",
+                backgroundColor: "#5c6ac4",
+                "&:hover": { backgroundColor: "#4a5aa8" },
+              }}
+            >
+              Chỉnh sửa
+            </Button>
+          )
         )}
       </DialogActions>
     </Dialog>

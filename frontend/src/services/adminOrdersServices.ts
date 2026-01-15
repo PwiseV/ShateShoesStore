@@ -1,66 +1,77 @@
-import type {
-  OrderApiResponse,
-  OrderData,
-  GetOrdersParams,
-  UpdateOrderPayload,
-} from "../pages/Admin/Orders/types"; // Đường dẫn tuỳ chỉnh
+// import api from "./axios";
+// import type {
+//   OrderApiResponse,
+//   OrderData,
+//   OrderQueryParams, // Hoặc GetOrdersParams tuỳ vào tên bạn đặt trong file types
+//   UpdateOrderPayload,
+// } from "../pages/Admin/Orders/types";
 
-// const API_BASE_URL = "https://your-api.com/api";
-// Thay đổi URL này cho đúng server thật của bạn
-
-// Giả sử dùng Mock cho demo này, nếu dùng thật thì bỏ comment fetch bên dưới
 import {
   getAdminOrdersMock,
   updateAdminOrderMock,
 } from "./fakeAdminOrdersServices";
 
-// --- REAL SERVICE IMPLEMENTATION (Dùng cái này khi kết nối Backend thật) ---
-
-/*
-const request = async <T>(url: string, options?: RequestInit): Promise<T> => {
-  const response = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json", // ✅ QUAN TRỌNG: Bắt buộc để Backend nhận dạng JSON
-      // "Authorization": `Bearer ${token}` 
-    },
-    ...options,
-  });
-
-  if (!response.ok) {
-    const errorBody = await response.json().catch(() => ({}));
-    throw new Error(errorBody.message || `Lỗi ${response.status}`);
-  }
-
-  return response.json();
-};
-
-export const getAdminOrders = async (params: GetOrdersParams): Promise<OrderApiResponse> => {
-  const query = new URLSearchParams();
-  if (params.page) query.append("page", params.page.toString());
-  if (params.limit) query.append("limit", params.limit.toString());
-  if (params.keyword) query.append("keyword", params.keyword);
-  if (params.status) query.append("status", params.status);
-  if (params.paymentMethod) query.append("paymentMethod", params.paymentMethod);
-  if (params.minPrice) query.append("minPrice", params.minPrice.toString());
-  if (params.maxPrice) query.append("maxPrice", params.maxPrice.toString());
-
-  return request<OrderApiResponse>(`${API_BASE_URL}/admin/orders?${query.toString()}`);
-};
-
-export const updateAdminOrder = async (
-  id: string,
-  payload: UpdateOrderPayload
-): Promise<{ message: string; data: OrderData }> => {
-  return request<{ message: string; data: OrderData }>(
-    `${API_BASE_URL}/admin/orders/${id}`,
-    {
-      method: "PATCH",
-      body: JSON.stringify(payload), // ✅ Body phải là JSON string
-    }
-  );
-};
-*/
-
-// --- MOCK EXPORT (Dùng cái này để chạy test UI ngay) ---
+// XUẤT RA DƯỚI TÊN CHÍNH (Để hook sử dụng)
 export const getAdminOrders = getAdminOrdersMock;
 export const updateAdminOrder = updateAdminOrderMock;
+
+// ===== ORDER ENDPOINTS =====
+
+/**
+ * GET /admin/orders
+ * Lấy danh sách đơn hàng có phân trang và lọc
+ */
+// export const getAdminOrders = async (
+//   params: OrderQueryParams
+// ): Promise<OrderApiResponse> => {
+//   try {
+//     const response = await api.get("/admin/orders", { params });
+//     return response.data;
+//   } catch (error) {
+//     console.error("getAdminOrders error:", error);
+//     throw error;
+//   }
+// };
+
+// /**
+//  * GET /admin/orders/:id
+//  * Lấy chi tiết một đơn hàng cụ thể
+//  */
+// export const getAdminOrderDetail = async (id: string): Promise<OrderData> => {
+//   try {
+//     const response = await api.get(`/admin/orders/${id}`);
+//     // Lưu ý: Nếu backend trả về { data: OrderData }, hãy sửa thành response.data.data
+//     // Dựa trên pattern axios của bạn thì thường là response.data
+//     return response.data;
+//   } catch (error) {
+//     console.error("getAdminOrderDetail error:", error);
+//     throw error;
+//   }
+// };
+
+// /**
+//  * PATCH /admin/orders/:id
+//  * Cập nhật thông tin đơn hàng (Info, Status)
+//  * Lưu ý:
+//  * - Backend sẽ chặn sửa items nếu status đã là delivered/cancelled.
+//  * - Frontend gửi payload JSON. Nếu backend bắt buộc FormData, cần convert ở đây.
+//  */
+// export const updateAdminOrder = async (
+//   id: string,
+//   payload: UpdateOrderPayload
+// ): Promise<{ message: string; data?: OrderData }> => {
+//   try {
+//     const response = await api.patch(`/admin/orders/${id}`, payload);
+//     return response.data;
+//   } catch (error) {
+//     console.error("updateAdminOrder error:", error);
+//     throw error;
+//   }
+// };
+
+// // Export mặc định object chứa các hàm (tuỳ chọn theo style của bạn)
+// export default {
+//   getAdminOrders,
+//   getAdminOrderDetail,
+//   updateAdminOrder,
+// };

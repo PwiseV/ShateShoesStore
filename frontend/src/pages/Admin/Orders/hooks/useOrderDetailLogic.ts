@@ -1,7 +1,6 @@
-import { useState } from "react";
-import type { OrderData, OrderItem } from "../types";
+import type { OrderData } from "../types";
 
-// Mock available products
+// Mock available products - Có thể giữ lại nếu sau này cần dùng, hoặc xóa nếu không cần
 export const mockProducts = [
   { id: "p1", name: "Nike Jordan 1 Low", sku: "SH01", price: 1000000 },
   { id: "p2", name: "Converse", sku: "SH21", price: 400000 },
@@ -15,63 +14,13 @@ interface UseOrderDetailLogicProps {
   onFieldChange: (field: keyof OrderData, value: any) => void;
 }
 
-export function useOrderDetailLogic({
-  editedOrder,
-  onFieldChange,
-}: UseOrderDetailLogicProps) {
-  const [selectedProductId, setSelectedProductId] = useState<string>("");
-  const [newProductQty, setNewProductQty] = useState<number>(1);
-
-  const handleAddProduct = () => {
-    if (!editedOrder || !selectedProductId || newProductQty < 1) return;
-    const product = mockProducts.find((p) => p.id === selectedProductId);
-    if (!product) return;
-
-    const newItem: OrderItem = {
-      id: `i${Date.now()}`,
-      productName: product.name,
-      sku: product.sku,
-      quantity: newProductQty,
-      price: product.price,
-      total: product.price * newProductQty,
-    };
-
-    const updatedItems = [...(editedOrder.items || []), newItem];
-    onFieldChange("items", updatedItems);
-    setSelectedProductId("");
-    setNewProductQty(1);
-  };
-
-  const handleUpdateQuantity = (itemId: string, newQty: number) => {
-    if (!editedOrder) return;
-    const updatedItems =
-      editedOrder.items?.map((item) =>
-        item.id === itemId
-          ? { ...item, quantity: newQty, total: item.price * newQty }
-          : item
-      ) || [];
-    onFieldChange("items", updatedItems);
-  };
-
-  const handleDeleteItem = (itemId: string) => {
-    if (!editedOrder) return;
-    const updatedItems =
-      editedOrder.items?.filter((item) => item.id !== itemId) || [];
-    onFieldChange("items", updatedItems);
-  };
-
+export function useOrderDetailLogic({ editedOrder }: UseOrderDetailLogicProps) {
+  // Logic tính tổng tiền (Dù không sửa sản phẩm, nhưng giữ hàm này để logic thống nhất)
   const calculateTotal = () => {
     return editedOrder?.items?.reduce((sum, item) => sum + item.total, 0) || 0;
   };
 
   return {
-    selectedProductId,
-    setSelectedProductId,
-    newProductQty,
-    setNewProductQty,
-    handleAddProduct,
-    handleUpdateQuantity,
-    handleDeleteItem,
     calculateTotal,
   };
 }
