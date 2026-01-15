@@ -60,26 +60,6 @@ export const getUsers = async (
   }
 };
 
-// 2. Lấy chi tiết User (bao gồm lịch sử mua hàng & địa chỉ)
-// GET /admin/users/:userId
-export const getUserDetail = async (
-  userId: number | string
-): Promise<UserDetailResponse> => {
-  try {
-    const response = await api.get(`/admin/users/${userId}`);
-    return response.data;
-  } catch (error: any) {
-    console.error("Get user detail error:", error);
-    // Xử lý riêng lỗi 404 nếu cần
-    if (error.response?.status === 404) {
-      throw "Không tìm thấy người dùng (User not found)";
-    }
-    throw (
-      error.response?.data?.message ||
-      "Lỗi khi lấy thông tin chi tiết người dùng"
-    );
-  }
-};
 
 // 3. Cập nhật thông tin User (Full update)
 // PUT /admin/users/:userId
@@ -88,31 +68,12 @@ export const updateUser = async (
   updateData: UpdateUserBody
 ): Promise<any> => {
   try {
-    const response = await api.put(`/admin/users/${userId}`, updateData);
+    const response = await api.patch(`/admin/users/${userId}`, updateData);
     return response.data;
   } catch (error: any) {
     console.error("Update user error:", error);
     throw (
       error.response?.data?.message || "Lỗi khi cập nhật thông tin người dùng"
-    );
-  }
-};
-
-// 4. Cập nhật trạng thái User (Active/Blocked)
-// PATCH /admin/users/:userId/status
-export const updateUserStatus = async (
-  userId: number | string,
-  status: "active" | "blocked"
-): Promise<any> => {
-  try {
-    const response = await api.patch(`/admin/users/${userId}/status`, {
-      status,
-    });
-    return response.data;
-  } catch (error: any) {
-    console.error("Update user status error:", error);
-    throw (
-      error.response?.data?.message || "Lỗi khi cập nhật trạng thái người dùng"
     );
   }
 };
