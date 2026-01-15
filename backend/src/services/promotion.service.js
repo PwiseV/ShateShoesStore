@@ -22,7 +22,8 @@ export const createPromotion = async ({
   if (start >= end) throw new Error("INVALID_DATE_RANGE");
   let active = "inactive";
 
-  if (start < now) throw new Error("STARTED_DATE_INVALID");
+  if (start < now) throw new Error("STARTED_DATE_INVALID")
+  else (active = "upcoming");
 
   return await Promotion.create({
     code,

@@ -90,7 +90,7 @@ const Promotions: React.FC = () => {
       }
 
       setOpenModal(false);
-      // fetchPromotions();
+      fetchPromotions();
     } catch (error: any) {
       const errorMessage =
         typeof error === "string" ? error : error.message || "Có lỗi xảy ra";
@@ -103,7 +103,7 @@ const Promotions: React.FC = () => {
       try {
         const response = await promotionService.deletePromotion(id);
         showToast(response.message || "Xóa thành công!", "success");
-        // fetchPromotions();
+        fetchPromotions();
       } catch (error: any) {
         const errorMessage =
           typeof error === "string" ? error : error.message || "Không thể xóa";
