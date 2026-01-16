@@ -18,25 +18,3 @@ export const formatDate = (dateString: string): string => {
   const year = date.getFullYear();
   return `${day}-${month}-${year}`;
 };
-
-// Logic lấy danh sách tháng cho bộ lọc (Giữ nguyên logic cũ của bạn)
-export const getAvailableMonths = (posts: Post[]): string[] => {
-  const uniqueMonths = new Set<string>();
-  const now = new Date();
-  const currentMonthStr = `${now.getFullYear()}-${String(
-    now.getMonth() + 1
-  ).padStart(2, "0")}`;
-  uniqueMonths.add(currentMonthStr);
-
-  posts.forEach((post) => {
-    if (post.createdAt) {
-      const date = new Date(post.createdAt);
-      const monthStr = `${date.getFullYear()}-${String(
-        date.getMonth() + 1
-      ).padStart(2, "0")}`;
-      uniqueMonths.add(monthStr);
-    }
-  });
-
-  return Array.from(uniqueMonths).sort().reverse();
-};

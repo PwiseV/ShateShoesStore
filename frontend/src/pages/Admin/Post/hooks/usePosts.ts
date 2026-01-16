@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import {
   getPosts,
   deletePost,
@@ -8,7 +8,6 @@ import {
 } from "../../../../services/adminPostServices";
 import type { Post, PostFormData } from "../types";
 import { useToast } from "../../../../context/useToast";
-import { getAvailableMonths } from "../utils";
 
 export const usePosts = () => {
   // --- DATA STATE ---
@@ -21,7 +20,6 @@ export const usePosts = () => {
   // --- FILTER STATE ---
   const [keyword, setKeyword] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
-  const [filterMonth, setFilterMonth] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
 
   const pageSize = 10;
@@ -30,13 +28,21 @@ export const usePosts = () => {
   const fetchPosts = async (page = currentPage) => {
     setLoading(true);
     try {
-      const res = await getPosts({
+      // Chuẩn bị params
+      const params = {
         page,
         pageSize,
         keyword,
-        category: filterCategory === "All" ? undefined : filterCategory,
-        status: filterStatus === "All" ? undefined : filterStatus,
-      });
+        // Logic lọc: Nếu là "All" hoặc rỗng thì gửi undefined -> BE bỏ qua
+        category:
+          filterCategory === "All" || !filterCategory
+            ? undefined
+            : filterCategory,
+        status:
+          filterStatus === "All" || !filterStatus ? undefined : filterStatus,
+      };
+
+      const res = await getPosts(params);
 
       setPosts(res.data);
       setTotalPages(Math.ceil(res.total / pageSize));
@@ -46,6 +52,43 @@ export const usePosts = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // --- FILTER HANDLER ---
+  const handleFilter = () => {
+    setCurrentPage(1);
+    fetchPosts(1);
+  };
+
+  // --- RESET HANDLER ---
+  const handleResetFilter = () => {
+    // 1. Reset State UI
+    setKeyword("");
+    setFilterCategory("All");
+    setFilterStatus("All");
+    setCurrentPage(1);
+
+    // 2. Gọi API reset ngay lập tức
+    setLoading(true);
+    getPosts({
+      page: 1,
+      pageSize,
+      keyword: "",
+      category: undefined,
+      status: undefined,
+    })
+      .then((res) => {
+        setPosts(res.data);
+        setTotalPages(Math.ceil(res.total / pageSize));
+        showToast("Đã đặt lại bộ lọc", "success");
+      })
+      .catch((err) => {
+        console.error(err);
+        showToast("Lỗi khi đặt lại bộ lọc", "error");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   // --- DELETE ---
@@ -64,6 +107,16 @@ export const usePosts = () => {
   };
 
   const refreshData = () => fetchPosts(currentPage);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setCurrentPage(1);
+      fetchPosts(1);
+    }, 500);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [keyword]);
 
   // --- AUTO FETCH ---
   useEffect(() => {
@@ -90,9 +143,6 @@ export const usePosts = () => {
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-
-  // Derived State
-  const availableMonths = useMemo(() => getAvailableMonths(posts), [posts]);
 
   // Handlers Modal
   const handleOpenAdd = () => {
@@ -169,7 +219,7 @@ export const usePosts = () => {
     } catch (error: any) {
       console.error("Submit error:", error);
 
-      // Lấy message từ backend (có thể là object hoặc string)
+      // Lấy message từ backend
       const serverMessage = error?.response?.data?.message || "";
       const serverErrorString = JSON.stringify(error?.response?.data || "");
 
@@ -193,24 +243,6 @@ export const usePosts = () => {
     }
   };
 
-  // Reset Filters UI
-  const handleResetFilter = () => {
-    setKeyword("");
-    setFilterCategory("All");
-    setFilterMonth("All");
-    setCurrentPage(1);
-    getPosts({ page: 1, pageSize }).then((res) => {
-      setPosts(res.data);
-      setTotalPages(Math.ceil(res.total / pageSize));
-    });
-    showToast("Đã đặt lại bộ lọc", "success");
-  };
-
-  const handleFilter = () => {
-    setCurrentPage(1);
-    fetchPosts(1);
-  };
-
   return {
     posts,
     loading,
@@ -221,9 +253,6 @@ export const usePosts = () => {
     setKeyword,
     filterCategory,
     setFilterCategory,
-    filterMonth,
-    setFilterMonth,
-    availableMonths,
     handleDelete,
     refreshData,
     fetchPosts,

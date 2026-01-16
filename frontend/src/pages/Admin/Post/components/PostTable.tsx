@@ -11,6 +11,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import type { Post } from "../types";
 import { TABLE_GRID, PAGE_SIZE } from "../constants";
+import { formatDate } from "../utils";
 
 interface PostTableProps {
   loading: boolean;
@@ -108,7 +109,7 @@ const PostTable: React.FC<PostTableProps> = ({
                   {post.title}
                 </Typography>
                 <Typography fontSize="0.7rem" color="#999" fontStyle="italic">
-                  {post.createdAt}
+                  {formatDate(post.createdAt)}
                 </Typography>
               </Box>
 
@@ -138,7 +139,6 @@ const PostTable: React.FC<PostTableProps> = ({
                 {post.content}
               </Typography>
 
-              {/* ĐÃ FIX MÀU TÊN TÁC GIẢ TẠI ĐÂY */}
               <Typography fontSize="0.85rem" fontWeight={500} color="#2C3E50">
                 {post.author}
               </Typography>

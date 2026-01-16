@@ -24,9 +24,6 @@ const Posts: React.FC = () => {
     setKeyword,
     filterCategory,
     setFilterCategory,
-    filterMonth,
-    setFilterMonth,
-    availableMonths,
     openModal,
     setOpenModal,
     isEditMode,
@@ -111,11 +108,8 @@ const Posts: React.FC = () => {
           <PostFilter
             keyword={keyword}
             setKeyword={setKeyword}
-            filterMonth={filterMonth}
-            setFilterMonth={setFilterMonth}
             filterCategory={filterCategory}
             setFilterCategory={setFilterCategory}
-            availableMonths={availableMonths}
             onFilter={handleFilter}
             onReset={handleResetFilter}
           />
