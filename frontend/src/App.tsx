@@ -9,13 +9,14 @@ import "./App.css";
 
 import ProtectedRoute from "./routes/protectedRoutes.tsx";
 import Dashboard from "./pages/Admin/Dashboard/Dashboard.tsx";
-import HomePage from "./pages/Costumer/Homepage/Homepage.tsx";
+import HomePage from "./pages/Customer/Homepage/Homepage.tsx";
 import Login from "./pages/Signin/SigninForm.tsx";
 import Signup from "./pages/Signup/SignupForm";
 import Users from "./pages/Admin/Users/Users.tsx";
 import Products from "./pages/Admin/Products/Products.tsx";
 import Promotions from "./pages/Admin/Promotions/Promotions.tsx";
-import ProductList from "./pages/Costumer/ProductList/ProductList.tsx";
+import ProductList from "./pages/Customer/ProductList/ProductList.tsx";
+import CartPage from "./pages/Customer/Cart/CartPage.tsx";
 
 export default function AppRoutes() {
   return (
@@ -25,6 +26,7 @@ export default function AppRoutes() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Signup />} />
           <Route path="/homepage" element={<HomePage />} />
+          <Route path="/cart" element={<CartPage />} />
           <Route path="/admin/products" element={<Products />} />
           <Route path="/admin/promotions" element={<Promotions />} />
           <Route path="/admin/dashboard" element={<Dashboard />} />
