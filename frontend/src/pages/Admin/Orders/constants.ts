@@ -1,3 +1,5 @@
+import type { Pending } from "@mui/icons-material";
+
 export const statusConfig: Record<
   string,
   {
@@ -5,7 +7,7 @@ export const statusConfig: Record<
     color: "error" | "warning" | "success" | "info" | "done" | "default";
   }
 > = {
-  waittingApproval: { label: "Chờ duyệt", color: "warning" },
+  pending: { label: "Chờ duyệt", color: "warning" },
   processing: { label: "Đang xử lý", color: "info" },
   shipped: { label: "Đã gửi hàng", color: "done" },
   delivered: { label: "Đã giao", color: "success" },

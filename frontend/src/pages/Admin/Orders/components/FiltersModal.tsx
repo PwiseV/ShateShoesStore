@@ -48,7 +48,7 @@ const FiltersModal: React.FC<Props> = ({
   const [tempStatus, setTempStatus] = useState<string>(statusFilter || "");
   const [tempPayment, setTempPayment] = useState<string>(paymentFilter || "");
   const [tempPrice, setTempPrice] = useState<[number, number]>(
-    priceRange || [0, 3000000]
+    priceRange || [0, 50000000]
   );
 
   // Sync state when modal opens
@@ -81,9 +81,11 @@ const FiltersModal: React.FC<Props> = ({
           p: 2,
         }}
       >
-        <Typography variant="h6" fontWeight={700}>
-          Bộ lọc
-        </Typography>
+        <DialogTitle>
+          <Typography component="span" fontWeight={700}>
+              Bộ lọc đơn hàng
+          </Typography>
+        </DialogTitle>
         <CloseIcon onClick={onClose} sx={{ cursor: "pointer" }} />
       </DialogTitle>
 
@@ -209,7 +211,7 @@ const FiltersModal: React.FC<Props> = ({
                   setTempPrice(newValue as [number, number])
                 }
                 min={0}
-                max={5000000} // Tăng max lên xíu cho thoải mái
+                max={50000000} // Tăng max lên xíu cho thoải mái
                 step={100000}
                 valueLabelDisplay="auto"
                 sx={{
@@ -227,7 +229,7 @@ const FiltersModal: React.FC<Props> = ({
           onClick={() => {
             setTempStatus("");
             setTempPayment("");
-            setTempPrice([0, 3000000]);
+            setTempPrice([0, 5000000]);
             onClear();
           }}
           variant="outlined"

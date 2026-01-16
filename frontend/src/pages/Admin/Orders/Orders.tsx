@@ -22,6 +22,7 @@ import OrderDetailDialog from "./components/OrderDetailDialog";
 
 // Hooks
 import useOrdersLogic from "./hooks/useOrdersLogic";
+import { useOrderDetailLogic } from "./hooks/useOrderDetailLogic";
 
 const Orders: React.FC = () => {
   useEffect(() => {
@@ -29,6 +30,10 @@ const Orders: React.FC = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  /**
+   * ===== 1. LOGIC LIST (BẢNG ĐƠN HÀNG) =====
+   */
+  
   const {
     paginatedOrders,
     loading,
@@ -48,20 +53,38 @@ const Orders: React.FC = () => {
     handleOpenDetail,
     handleCloseDetail,
     openDetailModal,
-    selectedOrder,
+    selectedOrderId,
     editedOrder,
     isEditing,
     setIsEditing,
     handleSaveChanges,
     handleFieldChange,
+    setEditedOrder,
   } = useOrdersLogic();
+
+  /**
+   * ===== 2. LOGIC DETAIL (GET /orders/:id) =====
+   */
+
+  const {
+    order: selectedOrder,
+    loading: detailLoading,
+    isLocked,
+  } = useOrderDetailLogic(selectedOrderId || undefined);
+
+  useEffect(() => {
+    if (selectedOrder) {
+      setEditedOrder(selectedOrder);
+      setIsEditing(false);
+    }
+  }, [selectedOrder, setEditedOrder, setIsEditing]);
 
   const handleClearFilters = () => {
     setStatusFilter("");
     setPaymentFilter("");
-    setPriceRange([0, 3000000]);
+    setPriceRange([0, 50000000]);
   };
-
+  
   return (
     <div
       style={{

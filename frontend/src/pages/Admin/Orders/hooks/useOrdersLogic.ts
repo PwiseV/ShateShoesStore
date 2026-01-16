@@ -19,11 +19,11 @@ export default function useOrdersLogic() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [paymentFilter, setPaymentFilter] = useState("");
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 3000000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 5000000]);
 
   // --- 3. Modal States ---
   const [openFilterModal, setOpenFilterModal] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [openDetailModal, setOpenDetailModal] = useState(false);
   const [editedOrder, setEditedOrder] = useState<OrderData | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -39,8 +39,8 @@ export default function useOrdersLogic() {
         keyword: searchTerm,
         status: statusFilter,
         paymentMethod: paymentFilter,
-        minPrice: priceRange[0],
-        maxPrice: priceRange[1],
+        minTotal: priceRange[0],
+        maxTotal: priceRange[1],
       });
 
       setOrders(response.data);
@@ -64,15 +64,13 @@ export default function useOrdersLogic() {
 
   // --- 6. Modal Actions ---
   const handleOpenDetail = (order: OrderData) => {
-    setSelectedOrder(order);
-    setEditedOrder({ ...order }); // Clone để edit
+    setSelectedOrderId(order.id);
     setOpenDetailModal(true);
-    setIsEditing(false);
   };
 
   const handleCloseDetail = () => {
     setOpenDetailModal(false);
-    setSelectedOrder(null);
+    setSelectedOrderId(null);
     setEditedOrder(null);
     setIsEditing(false);
   };
@@ -116,7 +114,7 @@ export default function useOrdersLogic() {
       );
 
       // Update state modal
-      setSelectedOrder(updatedOrderFromServer);
+      setSelectedOrderId(updatedOrderFromServer.id);
       setEditedOrder(updatedOrderFromServer);
 
       showToast("Cập nhật đơn hàng thành công!", "success"); // ✅ Toast success
@@ -162,8 +160,9 @@ export default function useOrdersLogic() {
     setOpenFilterModal,
     openDetailModal,
     // setOpenDetailModal, // Nếu cần expose
-    selectedOrder,
+    selectedOrderId,
     editedOrder,
+    setEditedOrder,
     isEditing,
     setIsEditing,
 

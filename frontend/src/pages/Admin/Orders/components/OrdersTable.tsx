@@ -115,7 +115,7 @@ const OrdersTable: React.FC<Props> = ({ orders, loading, onRowClick }) => {
         ) : orders.length > 0 ? (
           orders.map((order) => (
             <Paper
-              key={order.id}
+              key={order.id || order.orderNumber}
               onClick={() => onRowClick(order)}
               sx={{
                 display: "grid",

@@ -19,6 +19,7 @@ import {
   TableBody,
   IconButton,
   Grid,
+  CircularProgress,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import type { OrderData } from "../types";
@@ -46,13 +47,33 @@ const OrderDetailDialog: React.FC<Props> = ({
   onSave,
   onFieldChange,
 }) => {
-  if (!order) return null;
+  if (!order) {
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>Chi tiết đơn hàng</DialogTitle>
+      <DialogContent
+        sx={{
+          py: 6,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 2,
+        }}
+      >
+        <CircularProgress />
+        <Typography color="textSecondary">
+          Đang tải chi tiết đơn hàng...
+        </Typography>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
-  const canEdit = ["waittingApproval", "processing"].includes(order.status);
+  const canEdit = ["pending", "processing"].includes(order.status);
   const displayOrder = isEditing && editedOrder ? editedOrder : order;
   const getAvailableStatuses = (currentStatus: string) => {
     // Định nghĩa thứ tự quy trình chuẩn
-    const flow = ["waittingApproval", "processing", "shipped", "delivered"];
+    const flow = ["pending", "processing", "shipped", "delivered"];
     const currentIndex = flow.indexOf(currentStatus);
 
     // Lọc ra các status hợp lệ từ config
@@ -299,35 +320,50 @@ const OrderDetailDialog: React.FC<Props> = ({
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {displayOrder.items?.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>
-                        <Typography variant="body2" fontWeight={600}>
-                          {item.productName}
-                        </Typography>
-                        <Typography variant="caption" color="textSecondary">
-                          {item.sku}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="center">{item.quantity}</TableCell>
-                      <TableCell align="right">
-                        {formatCurrency(item.price)}
-                      </TableCell>
-                      <TableCell align="right" fontWeight={600}>
-                        {formatCurrency(item.total)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {(!displayOrder.items || displayOrder.items.length === 0) && (
-                    <TableRow>
-                      <TableCell colSpan={4} align="center">
-                        <Typography color="textSecondary" sx={{ py: 2 }}>
-                          Chưa có sản phẩm nào
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
+  {displayOrder.items?.map((item, idx) => {
+    const price = item.price ?? 0;
+    const quantity = item.quantity ?? 0;
+    const total = price * quantity;
+
+    return (
+      <TableRow key={item.id || idx}>
+        <TableCell>
+          <Typography variant="body2" fontWeight={600}>
+            {item.product?.title}
+          </Typography>
+          {item.sku && (
+            <Typography variant="caption" color="textSecondary">
+              {item.sku}
+            </Typography>
+          )}
+        </TableCell>
+
+        <TableCell align="center">{quantity}</TableCell>
+
+        <TableCell align="right">
+          {formatCurrency(price)}
+        </TableCell>
+
+        <TableCell align="right">
+          <Typography fontWeight={600}>
+            {formatCurrency(total)}
+          </Typography>
+        </TableCell>
+      </TableRow>
+    );
+  })}
+
+  {(!displayOrder.items || displayOrder.items.length === 0) && (
+    <TableRow>
+      <TableCell colSpan={4} align="center">
+        <Typography color="textSecondary" sx={{ py: 2 }}>
+          Chưa có sản phẩm nào
+        </Typography>
+      </TableCell>
+    </TableRow>
+  )}
+</TableBody>
+
               </Table>
             </TableContainer>
 

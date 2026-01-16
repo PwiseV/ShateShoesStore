@@ -3,120 +3,153 @@ import OrderItem from "../models/OrderItem.js";
 import ProductVariant from "../models/ProductVariant.js";
 import mongoose from "mongoose";
 
-// 1. Lấy danh sách kèm phân trang & lọc
-export const getAllOrders = async (query) => {
-  const { page = 1, pageSize = 10, keyword, status, paymentMethod, minPrice, maxPrice } = query;
-  let filter = {};
+/**
+ * Thứ tự hợp lệ của status (chỉ được tiến)
+ */
+const STATUS_FLOW = [
+  "pending",
+  "paid",
+  "processing",
+  "shipped",
+  "delivered",
+];
 
-  if (keyword) {
-    filter.$or = [
-      { orderNumber: { $regex: keyword, $options: "i" } },
-      { name: { $regex: keyword, $options: "i" } }
-    ];
+/**
+ * Validate status transition
+ */
+const canMoveStatus = (current, next) => {
+  if (next === "cancelled") {
+    return ["pending", "processing"].includes(current);
   }
-
-  if (status && status !== "Tất cả") filter.status = status;
-  if (paymentMethod && paymentMethod !== "Tất cả") filter.paymentMethod = paymentMethod;
-
-  if (minPrice !== undefined || maxPrice !== undefined) {
-    filter.total = {};
-    if (minPrice) filter.total.$gte = Number(minPrice);
-    if (maxPrice) filter.total.$lte = Number(maxPrice);
-  }
-
-  const total = await Order.countDocuments(filter);
-  const data = await Order.find(filter)
-    .populate("userId", "email")
-    .sort({ createdAt: -1 })
-    .skip((Number(page) - 1) * Number(pageSize))
-    .limit(Number(pageSize));
-
-  // Map lại cho khớp Interface OrderData của FE
-  const mappedData = data.map(order => ({
-    ...order.toJSON(),
-    id: order._id,
-    email: order.userId?.email || "N/A"
-  }));
-
-  return { data: mappedData, total, page: Number(page), pageSize: Number(pageSize) };
+  return STATUS_FLOW.indexOf(next) > STATUS_FLOW.indexOf(current);
 };
 
-// 2. Lấy chi tiết sâu (Để hiện danh sách sản phẩm ở Hình 2, 4)
-export const getOrderDetail = async (id) => {
-  const order = await Order.findById(id).populate("userId", "email displayName");
-  if (!order) throw new Error("ORDER_NOT_FOUND");
+/**
+ * Get admin orders with filter and pagination
+ */
+export const getAllOrders = async (query) => {
+  const {
+    page = 1,
+    limit = 10,
+    status,
+    paymentMethod,
+    minTotal,
+    maxTotal,
+  } = query;
 
-  const orderItems = await OrderItem.find({ orderId: id }).populate({
+  const filter = {};
+
+  if (status) filter.status = status;
+  if (paymentMethod) filter.paymentMethod = paymentMethod;
+
+  if (minTotal || maxTotal) {
+    filter.total = {};
+    if (minTotal) filter.total.$gte = Number(minTotal);
+    if (maxTotal) filter.total.$lte = Number(maxTotal);
+  }
+
+  const totalItems = await Order.countDocuments(filter);
+
+  const orders = await Order.find(filter)
+    .sort({ createdAt: -1 })
+    .skip((page - 1) * limit)
+    .limit(Number(limit))
+    .select("orderNumber name total paymentMethod status createdAt");
+
+  return {
+    data: orders,
+    pagination: {
+      page: Number(page),
+      limit: Number(limit),
+      totalItems,
+      totalPages: Math.ceil(totalItems / limit),
+    },
+  };
+};
+
+/**
+ * GET /admin/orders/:id
+ * Chi tiết đơn hàng
+ */
+
+export const getOrderDetail = async (id) => {
+  const order = await Order.findById(id);
+  if (!order) throw new Error("Không tìm thấy đơn hàng");
+
+  const items = await OrderItem.find({ orderId: id }).populate({
     path: "variantId",
-    populate: { path: "productId", select: "title" }
+    populate: {
+      path: "productId",
+      select: "title avatar",
+    },
   });
 
   return {
     ...order.toJSON(),
-    id: order._id,
-    email: order.userId?.email || "N/A",
-    displayName: order.userId?.displayName || "N/A",
-    // Map lại để FE chỉ việc in ra, không cần tính toán gì thêm
-    items: orderItems.map(item => ({
-      id: item._id,
-      productName: `${item.variantId?.productId?.title || "Sản phẩm"}`,
-      variantInfo: `${item.variantId?.color || ""} - Size: ${item.variantId?.size || ""}`,
-      sku: item.variantId?.sku || "N/A",
-      quantity: item.quantity || 0,
-      price: item.price || 0,
-      total: (item.quantity || 0) * (item.price || 0) // Tính sẵn ở BE
-    }))
+    items: items.map((item) => ({
+      _id: item._id,
+      quantity: item.quantity,
+      price: item.price,
+      subtotal: item.price * item.quantity,
+      variant: {
+        _id: item.variantId?._id,
+        size: item.variantId?.size,
+        color: item.variantId?.color,
+      },
+      product: {
+        _id: item.variantId?.productId?._id,
+        title: item.variantId?.productId?.title,
+        image: item.variantId?.productId?.avatar?.url,
+      },
+    })),
   };
 };
 
-// 3. Cập nhật Đơn hàng (Xử lý cả thông tin khách và Sản phẩm - Hình 3, 6)
+/**
+ * PATCH /admin/orders/:id
+ * Cập nhật đơn hàng (status / info)
+ */
 export const updateOrderAdmin = async (id, payload) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const { name, phone, address, status, items, note } = payload;
-    const order = await Order.findById(id);
-    if (!order) throw new Error("ORDER_NOT_FOUND");
+    const order = await Order.findById(id).session(session);
+    if (!order) throw new Error("Không tìm thấy đơn hàng");
 
-    // A. Cập nhật thông tin cơ bản
-    order.name = name || order.name;
-    order.phone = phone || order.phone;
-    order.address = address || order.address;
-    order.note = note || order.note;
-
-    if (status && status !== order.status) {
-      order.status = status;
-      if (status === "shipped") order.shippedAt = Date.now();
-      if (status === "delivered") order.deliveredAt = Date.now();
+    if (order.status === "cancelled") {
+      throw new Error("Đơn hàng đã hủy, không thể chỉnh sửa");
     }
 
-    // B. Nếu có sửa danh sách sản phẩm (Xóa/Sửa số lượng - Hình 6)
-    if (items) {
-      // 1. Hoàn lại kho cho các item cũ trước khi xóa
-      const oldItems = await OrderItem.find({ orderId: id });
-      for (const oldItem of oldItems) {
-        await ProductVariant.findByIdAndUpdate(oldItem.variantId, { $inc: { stock: oldItem.quantity } }, { session });
-      }
-      await OrderItem.deleteMany({ orderId: id }).session(session);
+    const { status, name, phone, address, paymentMethod } = payload;
 
-      // 2. Thêm item mới & Trừ kho & Tính lại tổng tiền
-      let newTotal = 0;
-      for (const item of items) {
-        const variant = await ProductVariant.findById(item.variantId || item.sku); // Tuỳ FE gửi gì
-        if (!variant) throw new Error("VARIANT_NOT_FOUND");
-        
-        await OrderItem.create([{
-          orderId: id,
-          variantId: variant._id,
-          quantity: item.quantity,
-          price: item.price || variant.price
-        }], { session });
+    // Update basic info
+    if (name) order.name = name;
+    if (phone) order.phone = phone;
+    if (address) order.address = address;
+    if (paymentMethod) order.paymentMethod = paymentMethod;
 
-        newTotal += (item.price || variant.price) * item.quantity;
-        await ProductVariant.findByIdAndUpdate(variant._id, { $inc: { stock: -item.quantity } }, { session });
+    // Update status
+    if (status && status !== order.status) {
+      if (!canMoveStatus(order.status, status)) {
+        throw new Error("Không thể cập nhật trạng thái không hợp lệ");
       }
-      order.total = newTotal;
+
+      // Huỷ đơn → rollback stock
+      if (status === "cancelled") {
+        const items = await OrderItem.find({ orderId: id }).session(session);
+        for (const item of items) {
+          await ProductVariant.findByIdAndUpdate(
+            item.variantId,
+            { $inc: { stock: item.quantity } },
+            { session }
+          );
+        }
+      }
+
+      order.status = status;
+      if (status === "shipped") order.shippedAt = new Date();
+      if (status === "delivered") order.deliveredAt = new Date();
     }
 
     await order.save({ session });
@@ -130,19 +163,7 @@ export const updateOrderAdmin = async (id, payload) => {
   }
 };
 
-// 4. Xóa đơn hàng
-export const deleteOrder = async (id) => {
-  const orderItems = await OrderItem.find({ orderId: id });
-  // Hoàn kho
-  for (const item of orderItems) {
-    await ProductVariant.findByIdAndUpdate(item.variantId, { $inc: { stock: item.quantity } });
-  }
-  await OrderItem.deleteMany({ orderId: id });
-  return await Order.findByIdAndDelete(id);
-};
 
-
-// Tạm thêm để bơm data: 
 export const createOrder = async (payload) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -150,54 +171,64 @@ export const createOrder = async (payload) => {
   try {
     const { userId, name, phone, address, paymentMethod, items, note } = payload;
 
-    // 1. Tạo mã đơn hàng duy nhất
-    const orderNumber = `ORD-${Date.now()}`;
+    if (!items || items.length === 0) {
+      throw new Error("Đơn hàng phải có ít nhất 1 sản phẩm");
+    }
 
-    // 2. Tính toán tổng tiền và kiểm tra kho từ ProductVariant
     let total = 0;
     const orderItemsData = [];
 
+    // 1️ Kiểm tra variant + trừ kho + tính tiền
     for (const item of items) {
-      const variant = await ProductVariant.findById(item.variantId);
-      if (!variant) throw new Error(`Không tìm thấy sản phẩm với ID: ${item.variantId}`);
-      if (variant.stock < item.quantity) throw new Error(`Sản phẩm ${variant.sku} không đủ tồn kho`);
+      const variant = await ProductVariant.findById(item.variantId).session(session);
+      if (!variant) throw new Error("Không tìm thấy product variant");
 
-      const itemTotal = variant.price * item.quantity;
-      total += itemTotal;
+      if (variant.stock < item.quantity) {
+        throw new Error(`Không đủ tồn kho cho SKU ${variant.sku}`);
+      }
+
+      const price = variant.price;
+      total += price * item.quantity;
 
       orderItemsData.push({
         variantId: variant._id,
         quantity: item.quantity,
-        price: variant.price, // Lưu giá tại thời điểm mua
+        price,
       });
 
-      // 3. Trừ kho sản phẩm
+      // Trừ kho
       variant.stock -= item.quantity;
       await variant.save({ session });
     }
 
-    // 4. Tạo bản ghi Order
-    const [newOrder] = await Order.create([{
-      orderNumber,
-      userId,
-      name,
-      phone,
-      address,
-      paymentMethod: paymentMethod || "COD",
-      total,
-      note,
-      status: "pending" // Trạng thái mặc định khi tạo
-    }], { session });
+    // 2️ Tạo Order
+    const [order] = await Order.create(
+      [
+        {
+          orderNumber: `ORD-${Date.now()}`,
+          userId,
+          name,
+          phone,
+          address,
+          paymentMethod: paymentMethod || "COD",
+          total,
+          note,
+          status: "pending",
+        },
+      ],
+      { session }
+    );
 
-    // 5. Tạo các bản ghi OrderItem
-    const finalOrderItems = orderItemsData.map(item => ({
+    // 3️ Tạo OrderItems
+    const finalItems = orderItemsData.map((item) => ({
       ...item,
-      orderId: newOrder._id
+      orderId: order._id,
     }));
-    await OrderItem.insertMany(finalOrderItems, { session });
+
+    await OrderItem.insertMany(finalItems, { session });
 
     await session.commitTransaction();
-    return newOrder;
+    return order;
   } catch (error) {
     await session.abortTransaction();
     throw error;

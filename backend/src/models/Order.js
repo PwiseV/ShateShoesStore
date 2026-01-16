@@ -75,7 +75,7 @@ const orderSchema = new mongoose.Schema(
     },
 
     paymentMethod: {
-      enum: ["COD", "Banking", "Credit card", "Paypal"], // enable more methods later
+      enum: ["COD", "Banking"], // enable more methods later
       type: String,
       default: "COD",
       required: true,       // update later in user-order flow      

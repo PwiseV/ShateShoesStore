@@ -2,29 +2,41 @@
 
 export interface OrderItem {
   id: string;
-  productName: string;
-  sku: string;
-  quantity: number; // Chỉ xem, không sửa
+
+  quantity: number;
   price: number;
-  total: number;
+  subtotal?: number;
+
+  sku?: string;
+  productName?: string;
+
+  product?: {
+    _id?: string;
+    title?: string;
+    image?: string;
+  };
+
+  variant?: {
+    size?: string;
+    color?: string;
+  };
 }
 
 export interface OrderData {
   id: string;
-  orderNumber: string; // Mã đơn hàng (VD: ORD001)
-  name: string; // Tên khách hàng
-  email?: string; // Email khách hàng
-  phone: string; // Số điện thoại
-  address: string; // Địa chỉ giao hàng
-  createdAt: string; // Ngày tạo (ISO String: "2023-06-12T10:30:00.000Z")
-  total: number; // Tổng tiền
-  paymentMethod: "COD" | "Banking"; // "COD" | "Banking" ... (để string cho linh hoạt hoặc enum nếu fix cứng)
-  status:
-    | "waittingApproval" // Lưu ý: Backend bạn ghi là "waittingApproval" (2 chữ t)
-    | "processing"
-    | "shipped"
-    | "delivered"
-    | "cancelled";
+  orderNumber: string;
+
+  name: string;
+  phone: string;
+  address: string;
+  email?: string;
+
+  status: string;
+  paymentMethod: string;
+
+  total: number;
+  createdAt: string;
+
   items: OrderItem[];
 }
 
@@ -53,8 +65,8 @@ export interface OrderQueryParams {
   keyword?: string; // Tìm theo tên, sđt, mã đơn
   status?: string;
   paymentMethod?: string;
-  minPrice?: number;
-  maxPrice?: number;
+  minTotal?: number;
+  maxTotal?: number;
 }
 
 // 2. Payload cho PATCH (Cập nhật đơn hàng)
