@@ -4,7 +4,7 @@ import type {
   GetUsersParams,
   GetUsersResponse,
   UpdateUserBody,
-} from "../pages/Admin/Users/types"; // Đảm bảo đường dẫn import đúng tới file types.ts mới
+} from "../pages/Admin/Users/types";
 
 // ===== USER ENDPOINTS =====
 
@@ -18,18 +18,6 @@ export const getUsers = async (
     return response.data;
   } catch (error) {
     console.error("getUsers error:", error);
-    throw error;
-  }
-};
-
-// 2. Lấy chi tiết User
-// GET /admin/users/:userId
-export const getUserDetail = async (userId: string): Promise<User> => {
-  try {
-    const response = await api.get(`/admin/users/${userId}`);
-    return response.data;
-  } catch (error) {
-    console.error("getUserDetail error:", error);
     throw error;
   }
 };
@@ -49,27 +37,8 @@ export const updateUser = async (
   }
 };
 
-// 4. Cập nhật trạng thái User (Active/Blocked)
-// PATCH /admin/users/:userId/status (Nếu BE tách riêng API này)
-export const updateUserStatus = async (
-  userId: string,
-  status: "active" | "blocked"
-): Promise<{ message: string }> => {
-  try {
-    const response = await api.patch(`/admin/users/${userId}/status`, {
-      status,
-    });
-    return response.data;
-  } catch (error) {
-    console.error("updateUserStatus error:", error);
-    throw error;
-  }
-};
-
 // Export lẻ từng hàm và export default object
 export default {
   getUsers,
-  getUserDetail,
   updateUser,
-  updateUserStatus,
 };
