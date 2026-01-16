@@ -1,53 +1,65 @@
 import mongoose from "mongoose";
 
-const userSChema = new  mongoose.Schema ({
+const userSChema = new mongoose.Schema(
+  {
     username: {
-        type: String,
-        required: true,
-        trim: true,
-        lowercase: true,
-        unique: false 
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+      unique: false,
     },
     hashedPassword: {
-        type: String,
-        required: false,    // Cho phép tài khoản Google không có password
-        default: "",      
+      type: String,
+      required: false, 
+      default: "",
     },
     email: {
-        type: String,
-        required: true,
-        unique: true,
-        lowercase: true,
-        trim: true
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
     },
     displayName: {
-        type: String,
-        required: true,
-        trim: true,
+      type: String,
+      required: true,
+      trim: true,
     },
     role: {
-        type: String,
-        enum: ["customer", "admin"],
-        default: "customer"
+      type: String,
+      enum: ["customer", "admin"],
+      default: "customer",
     },
-    avatarUrl: {
+    avatar: {
+      url: {
+        required: true,
         type: String,
+      },
+      publicId: {
+        type: String,
+        required: true,
+      },
     },
-    avatarId: {
+    status: {
+        enum: ["active", "blocked"],
         type: String,
+        default: "active",
     },
     phone: {
-        type: String,
-        sparse: true,
+      type: String,
+      sparse: true,
     },
     authType: {
-        type: String,
-        enum: ["local", "google"],
-        default: "local"
-    }
-}, {
+      type: String,
+      enum: ["local", "google"],
+      default: "local",
+    },
+  },
+  {
     timestamps: true,
-});
+  }
+);
 
 const User = mongoose.model("User", userSChema);
 
