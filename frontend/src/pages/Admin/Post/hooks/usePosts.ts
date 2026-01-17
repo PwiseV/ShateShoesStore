@@ -183,17 +183,25 @@ export const usePosts = () => {
       setFormData((prev) => ({ ...prev, thumbnail: file.name }));
     }
   };
+    const STATUS_LABEL: Record<string, string> = {
+          active: "Hiển thị",
+          hidden: "Ẩn",
+        };
 
-  const handleToggleStatus = async (post: Post) => {
-    const newStatus = post.status === "active" ? "hidden" : "active";
-    try {
-      await updatePostStatus(post.id, newStatus);
-      showToast(`Đã chuyển trạng thái sang ${newStatus}`, "success");
-      refreshData();
-    } catch (error) {
-      showToast("Lỗi cập nhật trạng thái", "error");
-    }
-  };
+
+    const handleToggleStatus = async (post: Post) => {
+  const newStatus = post.status === "active" ? "hidden" : "active";
+  try {
+    await updatePostStatus(post.id, newStatus);
+    showToast(
+      `Đã chuyển trạng thái sang ${STATUS_LABEL[newStatus]}`,
+      "success"
+    );
+    refreshData();
+  } catch (error) {
+    showToast("Lỗi cập nhật trạng thái", "error");
+  }
+};
 
   // --- SUBMIT HANDLE (UPDATED FOR E11000 ERROR) ---
   const handleSubmitModal = async () => {
