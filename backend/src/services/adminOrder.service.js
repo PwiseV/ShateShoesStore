@@ -54,7 +54,7 @@ export const getAllOrders = async (query) => {
     .sort({ createdAt: -1 })
     .skip((page - 1) * limit)
     .limit(Number(limit))
-    .select("orderNumber name total paymentMethod status createdAt");
+    .select("orderNumber name phone total paymentMethod status createdAt");
 
   return {
     data: orders,

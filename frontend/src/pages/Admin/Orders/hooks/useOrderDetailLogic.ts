@@ -3,32 +3,41 @@ import type { OrderData } from "../types";
 import { getAdminOrderDetail } from "../../../../services/adminOrdersServices";
 import { useToast } from "../../../../context/useToast";
 
-export function useOrderDetailLogic(orderId?: string | null) {
+export function useOrderDetailLogic(orderId: string | null) {
   const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
-    if (!orderId) return;
+    if (!orderId) {
+      setOrder(null);
+      return;
+    }
 
     setLoading(true);
+
     getAdminOrderDetail(orderId)
-      .then((data) => {
-        setOrder(data);
+      .then((data: any) => {
+        // 🔥 MAP _id -> id
+        setOrder({
+          ...data,
+          id: data._id,
+          items: data.items?.map((i: any) => ({
+            ...i,
+            id: i._id,
+          })),
+        });
       })
       .catch(() => {
         showToast("Không tải được chi tiết đơn hàng", "error");
       })
       .finally(() => setLoading(false));
-  }, [orderId]);
-
-  const isLocked =
-    order?.status === "cancelled" || order?.status === "delivered";
+  }, [orderId, showToast]);
 
   return {
     order,
-    setOrder,
     loading,
-    isLocked,
+    isLocked:
+      order?.status === "cancelled" || order?.status === "delivered",
   };
 }

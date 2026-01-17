@@ -115,7 +115,7 @@ const OrdersTable: React.FC<Props> = ({ orders, loading, onRowClick }) => {
         ) : orders.length > 0 ? (
           orders.map((order) => (
             <Paper
-              key={order.id || order.orderNumber}
+              key={order.id}
               onClick={() => onRowClick(order)}
               sx={{
                 display: "grid",
@@ -143,7 +143,7 @@ const OrdersTable: React.FC<Props> = ({ orders, loading, onRowClick }) => {
                   overflowWrap: "break-word",
                 }}
               >
-                #{order.orderNumber}
+                {order.orderNumber}
               </Typography>
               <Typography
                 sx={{

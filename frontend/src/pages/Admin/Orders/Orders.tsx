@@ -15,14 +15,13 @@ import Header from "../../../components/Admin/Header";
 import Footer from "../../../components/Admin/Footer";
 import SideBar from "../../../components/Admin/SideBar";
 
-// Modular Components
+// Components
 import OrdersTable from "./components/OrdersTable";
 import FiltersModal from "./components/FiltersModal";
 import OrderDetailDialog from "./components/OrderDetailDialog";
 
 // Hooks
 import useOrdersLogic from "./hooks/useOrdersLogic";
-import { useOrderDetailLogic } from "./hooks/useOrderDetailLogic";
 
 const Orders: React.FC = () => {
   useEffect(() => {
@@ -30,72 +29,53 @@ const Orders: React.FC = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  /**
-   * ===== 1. LOGIC LIST (BẢNG ĐƠN HÀNG) =====
-   */
-  
   const {
+    // data
     paginatedOrders,
     loading,
-    searchTerm,
-    setSearchTerm,
     page,
     totalPages,
-    handlePageChange,
-    openFilterModal,
-    setOpenFilterModal,
+
+    // search & filter
+    searchTerm,
+    setSearchTerm,
     statusFilter,
     setStatusFilter,
     paymentFilter,
     setPaymentFilter,
     priceRange,
     setPriceRange,
-    handleOpenDetail,
-    handleCloseDetail,
+
+    // modal
+    openFilterModal,
+    setOpenFilterModal,
     openDetailModal,
     selectedOrderId,
-    editedOrder,
-    isEditing,
-    setIsEditing,
-    handleSaveChanges,
-    handleFieldChange,
-    setEditedOrder,
+
+    // actions
+    handleOpenDetail,
+    handleCloseDetail,
+    handlePageChange,
+    fetchOrders,
   } = useOrdersLogic();
 
-  /**
-   * ===== 2. LOGIC DETAIL (GET /orders/:id) =====
-   */
-
-  const {
-    order: selectedOrder,
-    loading: detailLoading,
-    isLocked,
-  } = useOrderDetailLogic(selectedOrderId || undefined);
-
-  useEffect(() => {
-    if (selectedOrder) {
-      setEditedOrder(selectedOrder);
-      setIsEditing(false);
-    }
-  }, [selectedOrder, setEditedOrder, setIsEditing]);
-
   const handleClearFilters = () => {
-    setStatusFilter("");
-    setPaymentFilter("");
+    setStatusFilter(undefined);
+    setPaymentFilter(undefined);
     setPriceRange([0, 50000000]);
   };
-  
+
   return (
     <div
       style={{
         background: "#F5EFEB",
-        borderRadius: "40px",
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
       }}
     >
       <Header />
+
       <div
         style={{
           maxWidth: "1200px",
@@ -118,7 +98,7 @@ const Orders: React.FC = () => {
             boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
           }}
         >
-          {/* Header Section */}
+          {/* Header */}
           <Box
             sx={{
               display: "flex",
@@ -127,29 +107,25 @@ const Orders: React.FC = () => {
               mb: 2,
             }}
           >
-            <Typography variant="h5" sx={{ fontWeight: 700, color: "#2C3E50" }}>
+            <Typography variant="h5" fontWeight={700} color="#2C3E50">
               Quản lý đơn hàng
             </Typography>
-            {/* Bạn có thể thêm nút Export hoặc Thêm mới ở đây nếu cần */}
           </Box>
 
-          {/* Filter Bar Section (Mô phỏng ProductFilterBar) */}
-          <Box sx={{ display: "flex", gap: 2, mb: 3, alignItems: "center" }}>
+          {/* Search & Filter */}
+          <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
             <TextField
-              variant="outlined"
-              placeholder="Tìm kiếm đơn hàng, khách hàng, SĐT..."
+              fullWidth
               size="small"
+              placeholder="Tìm kiếm đơn hàng, khách hàng, SĐT..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               sx={{
-                flex: 1,
                 backgroundColor: "#FFF",
                 borderRadius: "8px",
                 "& .MuiOutlinedInput-root": {
                   borderRadius: "8px",
                   "& fieldset": { borderColor: "transparent" },
-                  "&:hover fieldset": { borderColor: "transparent" },
-                  "&.Mui-focused fieldset": { borderColor: "transparent" },
                 },
               }}
               InputProps={{
@@ -160,37 +136,34 @@ const Orders: React.FC = () => {
                 ),
               }}
             />
+
             <Button
               variant="contained"
-              onClick={() => setOpenFilterModal(true)}
               startIcon={<TuneIcon />}
+              onClick={() => setOpenFilterModal(true)}
               sx={{
                 backgroundColor: "#FFF",
                 color: "#2C3E50",
                 textTransform: "none",
                 boxShadow: "none",
                 borderRadius: "8px",
-                height: "40px",
-                fontWeight: 600,
                 px: 3,
-                "&:hover": { backgroundColor: "#F5F5F5", boxShadow: "none" },
+                "&:hover": { backgroundColor: "#F5F5F5" },
               }}
             >
               Lọc
             </Button>
           </Box>
 
-          {/* Table Section */}
+          {/* Table */}
           <OrdersTable
             orders={paginatedOrders}
             loading={loading}
             onRowClick={handleOpenDetail}
           />
 
-          {/* Pagination Section */}
-          <Box
-            sx={{ display: "flex", justifyContent: "center", mt: 3, gap: 1 }}
-          >
+          {/* Pagination */}
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
             <Pagination
               count={totalPages}
               page={page}
@@ -201,9 +174,10 @@ const Orders: React.FC = () => {
           </Box>
         </Box>
       </div>
+
       <Footer />
 
-      {/* --- MODALS --- */}
+      {/* Filters Modal */}
       <FiltersModal
         open={openFilterModal}
         onClose={() => setOpenFilterModal(false)}
@@ -216,15 +190,12 @@ const Orders: React.FC = () => {
         onClear={handleClearFilters}
       />
 
+      {/* Detail Modal */}
       <OrderDetailDialog
         open={openDetailModal}
-        order={selectedOrder}
-        editedOrder={editedOrder}
-        isEditing={isEditing}
+        orderId={selectedOrderId}
         onClose={handleCloseDetail}
-        onEditToggle={setIsEditing}
-        onSave={handleSaveChanges}
-        onFieldChange={handleFieldChange}
+        onUpdated={fetchOrders}
       />
     </div>
   );

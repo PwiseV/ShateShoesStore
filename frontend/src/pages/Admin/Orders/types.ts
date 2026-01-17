@@ -1,4 +1,15 @@
-// --- Entities (Thực thể dữ liệu) ---
+// ================== ENUM / UNION TYPES ==================
+
+export type OrderStatus =
+  | "pending"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "cancelled";
+
+export type PaymentMethod = "COD" | "Banking";
+
+// ================== ENTITIES ==================
 
 export interface OrderItem {
   id: string;
@@ -8,7 +19,6 @@ export interface OrderItem {
   subtotal?: number;
 
   sku?: string;
-  productName?: string;
 
   product?: {
     _id?: string;
@@ -31,8 +41,8 @@ export interface OrderData {
   address: string;
   email?: string;
 
-  status: string;
-  paymentMethod: string;
+  status: OrderStatus;
+  paymentMethod: PaymentMethod;
 
   total: number;
   createdAt: string;
@@ -40,42 +50,41 @@ export interface OrderData {
   items: OrderItem[];
 }
 
-// --- Pagination (Phân trang) ---
+// ================== PAGINATION ==================
 
 export interface PaginationMeta {
-  total: number; // Tổng số bản ghi
-  page: number; // Trang hiện tại
-  limit: number; // Số lượng item/trang
-  totalPages: number; // Tổng số trang
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
-// --- API Responses (Dữ liệu trả về từ Server) ---
+// ================== API RESPONSES ==================
 
 export interface OrderApiResponse {
   data: OrderData[];
   pagination: PaginationMeta;
 }
 
-// --- Request DTOs (Dữ liệu gửi lên Server) ---
+// ================== QUERY PARAMS ==================
 
-// 1. Params cho GET (Lọc & Phân trang)
 export interface OrderQueryParams {
   page?: number;
   limit?: number;
-  keyword?: string; // Tìm theo tên, sđt, mã đơn
-  status?: string;
-  paymentMethod?: string;
+  keyword?: string;
+  status?: OrderStatus;
+  paymentMethod?: PaymentMethod;
   minTotal?: number;
   maxTotal?: number;
 }
 
-// 2. Payload cho PATCH (Cập nhật đơn hàng)
-// Dùng Partial để các trường là tùy chọn, nhưng thường khi edit ta gửi object đầy đủ các field cho phép sửa
+// ================== UPDATE PAYLOAD ==================
+
 export interface UpdateOrderPayload {
   name?: string;
   phone?: string;
   address?: string;
   email?: string;
-  status?: string;
-  paymentMethod?: string;
+  status?: OrderStatus;
+  paymentMethod?: PaymentMethod;
 }
