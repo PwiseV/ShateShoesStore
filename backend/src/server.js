@@ -15,8 +15,8 @@ import addressRoute from "./routes/address.route.js"
 // import cartRoute from "./routes/cart.route.js"
 // import orderRoute from "./routes/order.route.js"
 import postRoute from "./routes/post.route.js"
-import cartRoute from "./routes/cart.route.js"
-import orderRoute from "./routes/order.route.js"
+//import cartRoute from "./routes/cart.route.js"
+//import orderRoute from "./routes/order.route.js"
 
 
 import { protectedRoute } from "./middlewares/authMiddleware.js";
