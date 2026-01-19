@@ -1,12 +1,17 @@
 import React from "react";
 import { Box, Typography, Button, Grid, Avatar, Divider } from "@mui/material";
 
-// Dữ liệu giả lập giống trong hình
+// 1. CẬP NHẬT DỮ LIỆU GIẢ LẬP
 const USER_DATA = {
   name: "Bành Thị Tủn",
   email: "mattroibecon@gmail.com",
   gender: "Female",
-  address: "123 Khu phố Đáng Iu, TP. Mặt trời",
+  // Sửa address thành mảng string
+  address: [
+    "123 Khu phố Đáng Iu, TP. Mặt trời",
+    "456 Đường Hạnh Phúc, Quận Vui Vẻ",
+    "789 Ngõ Bình Yên, Phường An Nhiên",
+  ],
   phone: "0273654723",
   country: "Viet Nam",
   avatar:
@@ -17,9 +22,7 @@ const USER_DATA = {
 const ProfileInfo = () => {
   return (
     <Box sx={{ width: "100%", pl: { md: 4 } }}>
-      {" "}
-      {/* pl để tạo khoảng cách với sidebar */}
-      {/* 1. HEADER SECTION */}
+      {/* 1. HEADER SECTION (Giữ nguyên) */}
       <Box sx={{ mb: 3 }}>
         <Typography
           variant="h4"
@@ -44,10 +47,11 @@ const ProfileInfo = () => {
           Quản lý thông tin hồ sơ để bảo mật tài khoản
         </Typography>
       </Box>
+
       {/* 2. PROFILE CARD */}
       <Box
         sx={{
-          bgcolor: "#D0E1E9", // Màu nền xanh xám nhạt giống hình
+          bgcolor: "#D0E1E9",
           borderRadius: "20px",
           p: { xs: 3, md: 4 },
           boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
@@ -60,7 +64,7 @@ const ProfileInfo = () => {
               sx={{
                 display: "flex",
                 flexDirection: "column",
-                gap: 1,
+                gap: 2, // Tăng khoảng cách giữa các dòng một chút cho thoáng
                 textAlign: "left",
                 fontFamily: '"Lexend", sans-serif',
               }}
@@ -68,13 +72,16 @@ const ProfileInfo = () => {
               <InfoRow label="Name" value={USER_DATA.name} />
               <InfoRow label="Email" value={USER_DATA.email} />
               <InfoRow label="Gender" value={USER_DATA.gender} />
+
+              {/* Truyền mảng địa chỉ vào đây */}
               <InfoRow label="Address" value={USER_DATA.address} />
+
               <InfoRow label="Phone number" value={USER_DATA.phone} />
               <InfoRow label="Country" value={USER_DATA.country} />
             </Box>
           </Grid>
 
-          {/* ĐƯỜNG KẺ DỌC (Chỉ hiện trên desktop) */}
+          {/* ... (Phần Divider và Cột Phải giữ nguyên không đổi) ... */}
           <Grid
             item
             xs={false}
@@ -90,7 +97,6 @@ const ProfileInfo = () => {
             />
           </Grid>
 
-          {/* CỘT PHẢI: AVATAR & ACTIONS */}
           <Grid item xs={12} md={4} lg={3}>
             <Box
               sx={{
@@ -102,7 +108,6 @@ const ProfileInfo = () => {
                 height: "100%",
               }}
             >
-              {/* Avatar */}
               <Avatar
                 src={USER_DATA.avatar}
                 sx={{
@@ -164,9 +169,18 @@ const ProfileInfo = () => {
   );
 };
 
-// Component con hiển thị từng dòng thông tin
-const InfoRow = ({ label, value }: { label: string; value: string }) => (
-  <Box sx={{ display: "flex", alignItems: "baseline" }}>
+// 2. CẬP NHẬT COMPONENT CON InfoRow
+// Value có thể là string hoặc mảng string
+const InfoRow = ({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | string[];
+}) => (
+  <Box sx={{ display: "flex", alignItems: "flex-start" }}>
+    {" "}
+    {/* Đổi thành flex-start để căn lề trên cùng */}
     <Typography
       sx={{
         width: { xs: "110px", sm: "140px" },
@@ -175,20 +189,44 @@ const InfoRow = ({ label, value }: { label: string; value: string }) => (
         fontSize: "1rem",
         fontFamily: '"Lexend", sans-serif',
         flexShrink: 0,
+        mt: 0.5, // Căn chỉnh label xuống một chút cho đều với dòng text đầu tiên
       }}
     >
       {label}:
     </Typography>
-    <Typography
-      sx={{
-        color: "#567C8D",
-        fontWeight: 500,
-        fontSize: "1rem",
-        fontFamily: '"Lexend", sans-serif',
-      }}
-    >
-      {value}
-    </Typography>
+    <Box sx={{ flex: 1 }}>
+      {Array.isArray(value) ? (
+        // Nếu là mảng (Nhiều địa chỉ)
+        value.map((line, index) => (
+          <Typography
+            key={index}
+            sx={{
+              color: "#567C8D",
+              fontWeight: 500,
+              fontSize: "1rem",
+              fontFamily: '"Lexend", sans-serif',
+              mb: 0.5, // Khoảng cách giữa các dòng địa chỉ
+              display: "block",
+            }}
+          >
+            {line}
+          </Typography>
+        ))
+      ) : (
+        // Nếu là chuỗi đơn (Các trường khác)
+        <Typography
+          sx={{
+            color: "#567C8D",
+            fontWeight: 500,
+            fontSize: "1rem",
+            fontFamily: '"Lexend", sans-serif',
+            mt: 0.5,
+          }}
+        >
+          {value}
+        </Typography>
+      )}
+    </Box>
   </Box>
 );
 
