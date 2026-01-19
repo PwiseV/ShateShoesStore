@@ -7,6 +7,7 @@ import Typography from "@mui/material/Typography";
 import ProductGallery, { type GalleryImage } from "./ProductGallery";
 import ProductInfo, { type ProductRating } from "./ProductInfo";
 import ProductOptions, { type OptionValue } from "./ProductOptions";
+import { type BreadcrumbItem } from "./ProductInfo";
 
 // --- 1. SỬA IMPORT: Lấy tất cả Type từ service chính ---
 import {
@@ -18,7 +19,7 @@ export type ProductFormProps = {
   name: string;
   defaultPrice: number;
   images: GalleryImage[];
-  breadcrumbs?: string[];
+  breadcrumbs?: BreadcrumbItem[];
   badges?: string[];
   rating: { value: number; count: number };
   description?: string[];
@@ -55,14 +56,45 @@ const ProductForm: React.FC<ProductFormProps> = ({
   onToggleLike,
 }) => {
   const [size, setSize] = useState<string>(sizes.length > 0 ? sizes[0].id : "");
-  const [color, setColor] = useState<string>(
-    colors.length > 0 ? colors[0].id : ""
-  );
+
+  const availableColorsForSize = useMemo(() => {
+    const sizeData = variantsData.find((s) => String(s.size) === String(size));
+    if (!sizeData) return [];
+    return sizeData.colors.map((c) => {
+      const originalColorInfo = colors.find(
+        (col) => col.id.toLowerCase() === c.color.toLowerCase()
+      );
+      return {
+        id: c.color,
+        label: c.color,
+        disabled: c.stock <= 0,
+        swatch: originalColorInfo?.swatch || "#ccc",
+      };
+    });
+  }, [size, variantsData, colors]);
+
+  const [color, setColor] = useState<string>("");
+
+  React.useEffect(() => {
+    if (availableColorsForSize.length > 0) {
+      const isCurrentColorValid = availableColorsForSize.some(
+        (c) => c.id === color && !c.disabled
+      );
+      if (!isCurrentColorValid) {
+        const firstAvailableColor = availableColorsForSize.find(
+          (c) => !c.disabled
+        );
+        setColor(firstAvailableColor ? firstAvailableColor.id : "");
+      } else {
+        setColor("");
+      }
+    }
+  }, [availableColorsForSize]);
+
   const [quantity, setQuantity] = useState(1);
 
   // --- 2. CẬP NHẬT LOGIC TÌM VARIANT (An toàn hơn) ---
   const currentVariant = useMemo(() => {
-    // Ép kiểu String cho size để so sánh ("36" === "36")
     const selectedSizeObj = variantsData.find(
       (s) => String(s.size) === String(size)
     );
@@ -74,6 +106,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
     );
     return selectedColorObj || null;
   }, [size, color, variantsData]);
+
+  const activeImageIndex = useMemo(() => {
+    if (!currentVariant || !currentVariant.avatar) return -1;
+    const foundIndex = images.findIndex(
+      (img) => img.src === currentVariant.avatar
+    );
+    return foundIndex;
+  }, [currentVariant, images]);
 
   // Logic hiển thị giá & stock
   // Nếu không tìm thấy variant (vd chưa chọn màu), fallback về giá mặc định
@@ -88,7 +128,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
     <Stack spacing={4}>
       <Stack direction={{ xs: "column", md: "row" }} spacing={5}>
         <Box sx={{ flex: 1.2 }}>
-          <ProductGallery images={images} />
+          <ProductGallery images={images} selectedIndex={activeImageIndex} />
         </Box>
 
         <Stack spacing={3} sx={{ flex: 1 }}>
@@ -98,14 +138,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
             badges={badges}
             rating={rating}
             description={description}
-            // TRUYỀN XUỐNG PRODUCT INFO
             isLiked={isLiked}
             onToggleLike={onToggleLike}
           />
 
           <ProductOptions
             sizes={sizes}
-            colors={colors}
+            colors={availableColorsForSize}
             selectedSize={size}
             selectedColor={color}
             quantity={quantity}
@@ -123,7 +162,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 fontSize: "2.5rem",
                 mt: 1,
                 textAlign: "left",
-                fontFamily: '"DM Sans", sans-serif',
+                fontFamily: '"Lexend", sans-serif',
               }}
             >
               {formattedPrice}
@@ -188,7 +227,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 fontSize: "1rem",
                 textTransform: "none",
                 py: 1.5,
-                fontFamily: '"DM Sans", sans-serif',
+                fontFamily: '"lexend", sans-serif',
                 "&:hover": {
                   bgcolor: "#F5F7FA",
                   borderColor: "#546E7A",
@@ -215,7 +254,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 textTransform: "none",
                 py: 1.5,
                 boxShadow: "none",
-                fontFamily: '"DM Sans", sans-serif',
+                fontFamily: '"lexend", sans-serif',
                 "&:hover": { bgcolor: "#455A64", boxShadow: "none" },
                 "&.Mui-disabled": { bgcolor: "#eee", color: "#999" },
               }}

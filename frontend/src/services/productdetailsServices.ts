@@ -32,15 +32,15 @@ export type BackendSizeVariant = {
 
 // Đây là cấu trúc chính xác của Product từ Backend trả về
 export type Product = {
-  id: string; // ObjectId MongoDB
-  productId: string; // Mã SP (SH104)
+  id: string;
+  productId: string;
   title: string;
-  description: string; // Chuỗi văn bản dài
-  avatar: string; // Link ảnh chính
+  description: string;
+  avatar: string;
   category: BackendCategory;
   stock: number;
   sizes: BackendSizeVariant[];
-  // Rating backend chưa trả về trong JSON mẫu, để optional
+  tags: string[];
   rating?: {
     value: number;
     count: number;
@@ -98,8 +98,8 @@ export const getProductDetails = async (
 ): Promise<Product> => {
   try {
     const response = await api.get(`/users/products/${id}`, { signal });
-    // LƯU Ý: JSON của bạn bọc trong property "data", nên phải lấy response.data.data
-    return response.data.data;
+    const data = response.data.data;
+    return { ...data, tags: data.tag || [] };
   } catch (error) {
     console.error("Get product details error:", error);
     throw error;

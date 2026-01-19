@@ -57,7 +57,7 @@ const ProductOptions: React.FC<ProductOptionsProps> = ({
     <Stack
       className={className}
       spacing={3}
-      sx={{ fontFamily: '"DM Sans", sans-serif' }}
+      sx={{ fontFamily: '"Lexend", sans-serif' }}
     >
       {/* 1. SIZE THAM KHẢO (Giữ nguyên) */}
       <Box>
@@ -231,7 +231,7 @@ const ProductOptions: React.FC<ProductOptionsProps> = ({
                 fontWeight: 700,
                 fontSize: "15px", // Khớp font size cũ
                 padding: 0,
-                fontFamily: '"DM Sans", sans-serif',
+                fontFamily: '"Lexend", sans-serif',
               },
             }}
             sx={{

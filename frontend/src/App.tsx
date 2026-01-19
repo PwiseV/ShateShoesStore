@@ -29,7 +29,10 @@ export default function AppRoutes() {
           <Route path="/homepage" element={<HomePage />} />
           <Route path="/admin/products" element={<Products />} />
           <Route path="/admin/promotions" element={<Promotions />} />
-          <Route path="/products/details/:productid" element={<ProductDetail />} />
+          <Route
+            path="/products/details/:productid"
+            element={<ProductDetail />}
+          />
           <Route path="/admin/dashboard" element={<Dashboard />} />
           <Route path="/admin/users" element={<Users />} />
           <Route path="/products" element={<ProductList />} />
@@ -45,7 +48,10 @@ export default function AppRoutes() {
           <Route element={<ProtectedRoute role="customer" />}>
             <Route path="/homepage" element={<HomePage />} />
             <Route path="/products" element={<ProductList />} />
-            <Route path="/products/details/:productid/" element={<ProductDetail />} />
+            <Route
+              path="/products/details/:productid/"
+              element={<ProductDetail />}
+            />
             <Route path="/products/:slug" element={<ProductList />} />
           </Route>
 

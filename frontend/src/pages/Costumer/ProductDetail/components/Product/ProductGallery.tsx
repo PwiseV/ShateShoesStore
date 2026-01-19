@@ -13,6 +13,7 @@ export type ProductGalleryProps = {
   initialIndex?: number;
   className?: string;
   onChange?: (index: number) => void;
+  selectedIndex?: number;
 };
 
 const ProductGallery: React.FC<ProductGalleryProps> = ({
@@ -20,10 +21,16 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
   initialIndex = 0,
   className,
   onChange,
+  selectedIndex,
 }) => {
-  // Đảm bảo index hợp lệ
   const safeIndex = Math.min(initialIndex, Math.max(0, images.length - 1));
   const [index, setIndex] = useState(safeIndex);
+
+  React.useEffect(() => {
+    if (typeof selectedIndex === "number" && selectedIndex >= 0) {
+      setIndex(selectedIndex);
+    }
+  }, [selectedIndex]);
 
   const handleSelect = (i: number) => {
     setIndex(i);

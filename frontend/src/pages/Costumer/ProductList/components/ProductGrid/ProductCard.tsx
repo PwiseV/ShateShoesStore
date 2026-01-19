@@ -1,6 +1,5 @@
 import { Box, Paper, Typography } from "@mui/material";
 import StarRateIcon from "@mui/icons-material/StarRate";
-// 1. Import useNavigate
 import { useNavigate } from "react-router-dom";
 
 export type Product = {
@@ -21,21 +20,19 @@ type Props = {
 
 const ProductCard = ({ product, p }: Props) => {
   const item = product ?? p;
-  // 2. Khởi tạo hook navigate
   const navigate = useNavigate();
 
   if (!item) return null;
 
-  // 3. Hàm xử lý khi click vào card
+  // Hàm xử lý khi click vào card
   const handleCardClick = () => {
-    // Chuyển hướng đến đường dẫn /products/ID_SẢN_PHẨM
-    navigate(`/products/${item.id}`);
+    // Chuyển hướng đến đường dẫn /products/details/ID_SẢN_PHẨM
+    navigate(`/products/details/${item.id}`);
   };
 
   return (
     <Paper
       elevation={0}
-      // 4. Gắn sự kiện onClick vào Paper
       onClick={handleCardClick}
       sx={{
         borderRadius: "20px",
@@ -46,7 +43,7 @@ const ProductCard = ({ product, p }: Props) => {
         flexDirection: "column",
         textAlign: "left",
         transition: "all 0.3s ease",
-        cursor: "pointer", // Đổi con trỏ chuột thành bàn tay
+        cursor: "pointer",
         "&:hover": {
           transform: "translateY(-5px)",
           boxShadow: "0 10px 20px rgba(0,0,0,0.05)",

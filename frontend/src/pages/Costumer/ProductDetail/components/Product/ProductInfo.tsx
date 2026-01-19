@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -8,6 +9,11 @@ import IconButton from "@mui/material/IconButton";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 
+export type BreadcrumbItem = {
+  name: string;
+  slug: string;
+};
+
 export type ProductRating = {
   value: number;
   count: number;
@@ -15,13 +21,11 @@ export type ProductRating = {
 
 export type ProductInfoProps = {
   name: string;
-  breadcrumbs?: string[];
+  breadcrumbs?: BreadcrumbItem[];
   badges?: string[];
   rating?: ProductRating;
   description?: string[];
   className?: string;
-
-  // THÊM PROPS MỚI ĐỂ CONTROL TỪ BÊN NGOÀI
   isLiked: boolean;
   onToggleLike: () => void;
 };
@@ -36,15 +40,13 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
   isLiked, // Nhận từ props
   onToggleLike, // Nhận từ props
 }) => {
-  // (Đã xóa useState nội bộ ở đây)
-
   return (
     <Stack
       className={className}
       spacing={2}
       alignItems="flex-start"
       sx={{
-        fontFamily: '"DM Sans", sans-serif',
+        fontFamily: '"Lexend", sans-serif',
         width: "100%",
         textAlign: "left",
       }}
@@ -57,23 +59,67 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
         sx={{ width: "100%" }}
       >
         {breadcrumbs.length > 0 ? (
-          <Typography
-            variant="subtitle1"
-            sx={{
-              fontWeight: 600,
-              color: "#546E7A",
-              fontFamily: '"Lexend", sans-serif',
-            }}
-          >
-            {breadcrumbs.join(" > ")}
-          </Typography>
+          <Stack direction="row" spacing={1} alignItems="center">
+            {breadcrumbs.map((item, index) => {
+              // Logic: Chỉ phần tử cuối cùng mới là link
+              const isLastItem = index === breadcrumbs.length - 1;
+
+              return (
+                <React.Fragment key={item.slug}>
+                  {/* Dấu > ngăn cách */}
+                  {index > 0 && (
+                    <Typography variant="subtitle1" sx={{ color: "#98A2B3" }}>
+                      {">"}
+                    </Typography>
+                  )}
+
+                  {/* NẾU LÀ MỤC CON (CUỐI CÙNG) -> Dùng Link */}
+                  {isLastItem ? (
+                    <Link
+                      to={`/products/${item.slug}`}
+                      style={{ textDecoration: "none" }}
+                    >
+                      <Typography
+                        variant="subtitle1"
+                        sx={{
+                          fontWeight: 600,
+                          color: "#546E7A",
+                          fontFamily: '"Lexend", sans-serif',
+                          cursor: "pointer",
+                          "&:hover": {
+                            color: "#2C3E50",
+                            textDecoration: "underline",
+                          },
+                        }}
+                      >
+                        {item.name}
+                      </Typography>
+                    </Link>
+                  ) : (
+                    // NẾU LÀ MỤC CHA -> Chỉ hiện chữ (Text)
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        fontWeight: 600,
+                        color: "#546E7A",
+                        fontFamily: '"Lexend", sans-serif',
+                        cursor: "default",
+                      }}
+                    >
+                      {item.name}
+                    </Typography>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </Stack>
         ) : (
           <Box />
         )}
 
         {/* --- NÚT TIM --- */}
         <IconButton
-          onClick={onToggleLike} // Gọi hàm từ props
+          onClick={onToggleLike}
           disableRipple
           sx={{
             bgcolor: "#fff",
@@ -108,7 +154,7 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
           color: "#2C3E50",
           letterSpacing: "-1px",
           lineHeight: 1.2,
-          fontFamily: '"DM Sans", sans-serif',
+          fontFamily: '"Lexend", sans-serif',
         }}
       >
         {name}
@@ -129,7 +175,7 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
               fontWeight: 600,
               color: "#546E7A",
               mt: 0.5,
-              fontFamily: '"DM Sans", sans-serif',
+              fontFamily: '"Lexend", sans-serif',
             }}
           >
             {rating.count} Đánh giá
@@ -146,7 +192,7 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
               sx={{
                 bgcolor: "#C8D9E6",
                 color: "#567C8D",
-                fontFamily: '"DM Sans", sans-serif',
+                fontFamily: '"Lexend", sans-serif',
                 fontWeight: 600,
                 fontSize: "0.85rem",
                 borderRadius: "8px",
@@ -167,7 +213,7 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
               fontWeight: 700,
               mb: 1,
               color: "#2C3E50",
-              fontFamily: '"DM Sans", sans-serif',
+              fontFamily: '"Lexend", sans-serif',
             }}
           >
             Mô tả sản phẩm
@@ -181,7 +227,7 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
                   color: "#4a4a4a",
                   fontSize: "0.95rem",
                   lineHeight: 1.6,
-                  fontFamily: '"DM Sans", sans-serif',
+                  fontFamily: '"Lexend", sans-serif',
                   textAlign: "left",
                 }}
               >

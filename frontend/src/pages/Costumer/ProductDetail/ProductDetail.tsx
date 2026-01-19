@@ -27,12 +27,16 @@ import {
   removeFromWishlistFake,
 } from "../../../services/fakeProductDetailsServices";
 
+type BreadcrumbItem = {
+  name: string;
+  slug: string;
+};
+
 const COLOR_MAP: Record<string, string> = {
   white: "#ffffff",
   black: "#000000",
   red: "#ff0000",
   blue: "#0000ff",
-  // Map thêm màu nếu cần
 };
 
 const ProductDetail: React.FC = () => {
@@ -132,9 +136,21 @@ const ProductDetail: React.FC = () => {
   if (!product) return <Box sx={{ p: 4 }}>Không tìm thấy sản phẩm</Box>;
 
   // 1. Breadcrumbs
-  const breadcrumbs: string[] = [];
-  if (product.category?.parent) breadcrumbs.push(product.category.parent.name);
-  if (product.category?.name) breadcrumbs.push(product.category.name);
+  const breadcrumbs: BreadcrumbItem[] = [];
+  // Kiểm tra danh mục cha
+  if (product.category?.parent) {
+    breadcrumbs.push({
+      name: product.category.parent.name,
+      slug: product.category.parent.slug || "", // Fallback nếu thiếu slug
+    });
+  }
+  // Kiểm tra danh mục hiện tại
+  if (product.category?.name) {
+    breadcrumbs.push({
+      name: product.category.name,
+      slug: product.category.slug || "",
+    });
+  }
 
   // 2. Images: Cố gắng lấy nhiều ảnh nhất có thể để Gallery đẹp
   // - Lấy ảnh chính (Avatar)
@@ -178,10 +194,13 @@ const ProductDetail: React.FC = () => {
     uiDescription = ["Chưa có mô tả chi tiết."];
   }
 
-  // 4. Badges (Tags): Backend chưa có, tự tạo giả từ Category hoặc Logic "Mới"
-  // Ví dụ: Nếu stock < 10 thì hiện "Sắp hết hàng", hoặc luôn hiện "Mới về"
-  const uiBadges = ["Mới về"];
-  if (product.category?.name) uiBadges.push(product.category.name);
+  // 4. Badges (Tags)
+  const uiBadges =
+    product.tags && product.tags.length > 0
+      ? product.tags
+      : product.category?.name
+      ? [product.category.name]
+      : [];
 
   // 5. Sizes & Colors
   const uiSizes = product.sizes.map((s) => ({
@@ -215,6 +234,7 @@ const ProductDetail: React.FC = () => {
       color: c.color,
       price: c.price,
       stock: c.stock,
+      avatar: typeof c.avatar === "object" ? c.avatar?.url : c.avatar,
     })),
   }));
 
@@ -226,7 +246,7 @@ const ProductDetail: React.FC = () => {
       sx={{
         bgcolor: "#F9F5F1",
         minHeight: "100vh",
-        fontFamily: '"DM Sans", sans-serif',
+        fontFamily: '"Lexend", sans-serif',
       }}
     >
       <Header />
@@ -234,10 +254,9 @@ const ProductDetail: React.FC = () => {
         <ProductForm
           name={product.title}
           defaultPrice={0}
-          // --- TRUYỀN DATA ĐÃ ĐƯỢC "BIẾN HÌNH" ---
           images={uiImages}
           description={uiDescription}
-          badges={uiBadges} // Thêm badges
+          badges={uiBadges}
           breadcrumbs={breadcrumbs}
           sizes={uiSizes}
           colors={uiColors}
