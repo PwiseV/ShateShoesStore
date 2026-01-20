@@ -13,6 +13,8 @@ import HomePage from "./pages/Costumer/Homepage/Homepage.tsx";
 import Login from "./pages/Signin/SigninForm.tsx";
 import Signup from "./pages/Signup/SignupForm";
 import Users from "./pages/Admin/Users/Users.tsx";
+import OrderHistory from "./pages/Costumer/OrderHistory/OrderHistory.tsx";
+import OrderDetail from "./pages/Costumer/OrderHistory/OrderDetail.tsx";
 
 export default function AppRoutes() {
   return (
@@ -24,6 +26,9 @@ export default function AppRoutes() {
           <Route path="/homepage" element={<HomePage />} />
           <Route path="/admin/dashboard" element={<Dashboard />} />
           <Route path="/admin/users" element={<Users />} />
+          <Route path="/history" element={<OrderHistory />} />
+          <Route path="/history/:orderId" element={<OrderDetail />} />
+
           <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/admin/dashboard" element={<Dashboard />} />
             <Route path="/admin/users" element={<Users />} />
@@ -31,6 +36,10 @@ export default function AppRoutes() {
 
           <Route element={<ProtectedRoute role="customer" />}>
             <Route path="/homepage" element={<HomePage />} />
+            {/*
+            <Route path="/history" element={<OrderHistory />} />
+            <Route path="/history/:orderId" element={<OrderDetail />} /> 
+            */}
           </Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />
