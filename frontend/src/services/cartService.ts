@@ -1,5 +1,5 @@
 import api from "./axios";
-import type { CartItem } from "../pages/Customer/Cart/types";
+import type { CartItem } from "../pages/Costumer/Cart/types";
 
 // ===== CART ENDPOINTS =====
 
@@ -20,14 +20,12 @@ export const getCartItems = async (): Promise<CartItem[]> => {
  * Thêm một sản phẩm (variant) vào giỏ hàng
  * @param payload - Thông tin item cần thêm (productId, size, color, quantity,...)
  */
-export const addToCart = async (
-  payload: {
-    productId: number;
-    size: string;
-    color: string;
-    quantity: number;
-  }
-): Promise<CartItem> => {
+export const addToCart = async (payload: {
+  productId: number;
+  size: string;
+  color: string;
+  quantity: number;
+}): Promise<CartItem> => {
   try {
     const response = await api.post("/api/cart", payload);
     return response.data; // trả về CartItem vừa thêm
@@ -104,13 +102,11 @@ export const removeCoupon = async (): Promise<{ message: string }> => {
  * Đặt hàng từ giỏ hàng hiện tại
  * @param payload - Thông tin đơn hàng (địa chỉ, phương thức thanh toán, ghi chú,...)
  */
-export const placeOrder = async (
-  payload: {
-    shippingAddress: string;
-    paymentMethod: string;
-    note?: string;
-  }
-): Promise<{ success: boolean; orderId: string; message: string }> => {
+export const placeOrder = async (payload: {
+  shippingAddress: string;
+  paymentMethod: string;
+  note?: string;
+}): Promise<{ success: boolean; orderId: string; message: string }> => {
   try {
     const response = await api.post("/api/orders", payload);
     return response.data;

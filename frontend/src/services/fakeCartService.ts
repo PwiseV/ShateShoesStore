@@ -1,4 +1,4 @@
-import type { CartItem, Product } from "../pages/Customer/Cart/types";
+import type { CartItem, Product } from "../pages/Costumer/Cart/types";
 
 // Helper để tạo data gọn hơn
 const createCategory = (id: string, name: string) => ({
