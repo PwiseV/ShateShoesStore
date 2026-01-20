@@ -38,3 +38,20 @@ export const subscribeNewsletter = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+
+/**
+ * GET /api/blog/posts/:id
+ */
+export const getBlogPostDetail = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = await blogService.getBlogPostDetailById(id);
+    res.json(data);
+  } catch (error) {
+    if (error.message === "POST_NOT_FOUND") {
+      return res.status(404).json({ message: "POST_NOT_FOUND" });
+    }
+    res.status(500).json({ message: "SERVER_ERROR" });
+  }
+};
+

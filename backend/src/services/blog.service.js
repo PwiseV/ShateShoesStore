@@ -41,3 +41,26 @@ export const subscribeNewsletter = async (email) => {
   }
   return true;
 };
+
+/**
+ * BLOG - get post detail by id (PUBLIC)
+ */
+export const getBlogPostDetailById = async (id) => {
+  const post = await Post.findOne({
+    _id: id,
+    status: "active",
+  });
+
+  if (!post) {
+    throw new Error("POST_NOT_FOUND");
+  }
+
+  return {
+    id: post.id,
+    title: post.title,
+    author: post.author,
+    published_at: post.createdAt,
+    image: post.thumbnail?.url,
+    content: post.content,
+  };
+};
