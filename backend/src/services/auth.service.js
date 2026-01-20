@@ -95,8 +95,9 @@ export const requestPasswordReset = async (email) => {
 
   await user.save();
 
-  // for testing purpose, return the raw token
-  // return rawToken;
+  // In production, this token should be sent via email.
+  // For demo/testing purpose, we return it directly.
+  return rawToken;
 };
 
 // -------- verify reset token -------
