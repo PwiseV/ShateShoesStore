@@ -24,7 +24,7 @@ export default function AppRoutes() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Signup />} />
           <Route path="/homepage" element={<HomePage />} />
-          <Route path="/blogpost/:id" element={<BlogPost />} />
+          <Route path="/blog/:postid" element={<BlogPost />} />
 
           <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/admin/dashboard" element={<Dashboard />} />
@@ -34,6 +34,7 @@ export default function AppRoutes() {
 
           <Route element={<ProtectedRoute role="customer" />}>
             <Route path="/homepage" element={<HomePage />} />
+            <Route path="/blog/:postid" element={<BlogPost />} />
             <Route path="*" element={<Products />} />
           </Route>
 
