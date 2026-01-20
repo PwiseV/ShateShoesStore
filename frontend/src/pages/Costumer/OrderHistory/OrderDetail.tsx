@@ -10,18 +10,21 @@ import {
   Divider,
   Stack,
 } from "@mui/material";
+// Icons
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
+import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
+import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
 
 // Import components con
-import OrderStatusTimeline from "./components/OrderStatusTimeline";
 import ProductItem from "./components/ProductItem";
 
-// Import Header & Footer
+// Layout
 import Header from "../../../components/Customer/Header";
 import Footer from "../../../components/Customer/Footer";
 import SideBar from "../../../components/Customer/SideBar";
 
-// Import Type và Mock Data từ file cha
+// Import Type và Mock Data
 import { type Order, MOCK_ORDERS } from "./OrderHistory";
 
 const OrderDetail = () => {
@@ -38,6 +41,18 @@ const OrderDetail = () => {
 
   if (!order) return <Box sx={{ p: 4 }}>Loading...</Box>;
 
+  // Style cho viên thuốc địa điểm (Màu trắng, bo tròn)
+  const locationPillStyle = {
+    bgcolor: "white",
+    borderRadius: "30px", // Bo tròn mạnh
+    px: 3,
+    py: 1.2, // Độ cao vừa phải
+    display: "flex",
+    alignItems: "center",
+    gap: 1.5,
+    boxShadow: "0 2px 4px rgba(0,0,0,0.02)", // Bóng rất nhẹ hoặc bỏ nếu muốn phẳng lì
+  };
+
   return (
     <Box
       sx={{
@@ -51,15 +66,13 @@ const OrderDetail = () => {
 
       <Container sx={{ maxWidth: "lg", flex: 1, py: 8 }}>
         <Grid container spacing={2}>
-          {/* --- CỘT TRÁI: SIDEBAR --- */}
           <Grid item xs={12} md={3}>
             <SideBar selectedMenu="History" />
           </Grid>
 
-          {/* --- CỘT PHẢI: CHI TIẾT ĐƠN HÀNG --- */}
           <Grid item xs={12} md={9}>
             <Box sx={{ pl: { md: 4 } }}>
-              {/* Header: Nút back + Title */}
+              {/* Header: Quay lại & Title */}
               <Stack direction="row" alignItems="center" spacing={2} mb={3}>
                 <Button
                   startIcon={<ArrowBackIcon />}
@@ -68,6 +81,10 @@ const OrderDetail = () => {
                     color: "#546E7A",
                     fontWeight: "bold",
                     textTransform: "none",
+                    "&:hover": {
+                      bgcolor: "transparent",
+                      textDecoration: "underline",
+                    },
                   }}
                 >
                   Quay lại
@@ -84,135 +101,277 @@ const OrderDetail = () => {
                 </Typography>
               </Stack>
 
-              {/* 1. Timeline */}
-              <Paper
-                elevation={0}
-                sx={{ p: 3, mb: 3, borderRadius: "16px", bgcolor: "#E3F2FD" }}
+              {/* BOX NỀN XANH BAO BỌC */}
+              <Box
+                sx={{
+                  bgcolor: "#C8D9E6", // Màu nền xanh chủ đạo
+                  borderRadius: "20px",
+                  p: { xs: 2, md: 4 },
+                }}
               >
+                {/* 1. Header Mã đơn & Trạng thái */}
                 <Stack
                   direction="row"
                   justifyContent="space-between"
                   alignItems="center"
-                  mb={2}
+                  mb={4}
                 >
-                  <Typography
-                    variant="h6"
-                    sx={{ fontWeight: 700, color: "#1565C0" }}
+                  <Box>
+                    <Typography
+                      variant="body1"
+                      textAlign="left"
+                      sx={{ color: "#546E7A", mb: 0.5, fontWeight: 500 }}
+                    >
+                      Mã đơn hàng
+                    </Typography>
+                    <Typography
+                      variant="h6"
+                      sx={{ fontWeight: 700, color: "#2C3E50" }}
+                    >
+                      {order.id}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      bgcolor: "#C8E6C9", // Hoặc đổi màu theo status
+                      color: "#2E7D32",
+                      px: 2.5,
+                      py: 0.8,
+                      borderRadius: "30px",
+                      fontWeight: 700,
+                      fontSize: "0.9rem",
+                    }}
                   >
-                    Mã đơn hàng: {order.id}
-                  </Typography>
-                  <Typography sx={{ color: "#1565C0", fontWeight: 600 }}>
                     {order.statusLabel}
-                  </Typography>
+                  </Box>
                 </Stack>
-                <Divider sx={{ borderColor: "#BBDEFB" }} />
-                <OrderStatusTimeline status={order.status} />
-              </Paper>
 
-              {/* 2. Địa chỉ & Vận chuyển */}
-              <Grid container spacing={3} mb={3}>
-                <Grid item xs={12} md={6}>
-                  <Paper
-                    elevation={0}
+                {/* --- 2. LỘ TRÌNH VẬN CHUYỂN (GIỐNG HÌNH image_bdf79a.png) --- */}
+                <Stack
+                  direction={{ xs: "column", md: "row" }} // Mobile dọc, PC ngang
+                  alignItems="center"
+                  justifyContent="space-between"
+                  spacing={2}
+                  sx={{ mb: 4 }}
+                >
+                  {/* Pill 1: Điểm gửi */}
+                  <Box sx={locationPillStyle}>
+                    <LocalShippingOutlinedIcon sx={{ color: "#546E7A" }} />
+                    <Typography
+                      variant="body2"
+                      fontWeight={600}
+                      color="#37474F"
+                    >
+                      Thủ Đức, Tp Hồ Chí Minh
+                    </Typography>
+                  </Box>
+
+                  {/* Mũi tên kết nối (Nằm trực tiếp trên nền xanh) */}
+                  <Box
                     sx={{
-                      p: 3,
-                      borderRadius: "16px",
-                      height: "100%",
-                      bgcolor: "white",
-                      textAlign: "left",
+                      display: "flex",
+                      alignItems: "center",
+                      color: "#546E7A",
+                      opacity: 0.6,
+                      flex: 1, // Co giãn chiếm khoảng trống
+                      justifyContent: "center",
+                      px: 2,
                     }}
                   >
                     <Typography
-                      variant="h6"
-                      sx={{ fontWeight: 700, mb: 2, color: "#2C3E50" }}
+                      sx={{
+                        letterSpacing: 4,
+                        mr: 1,
+                        fontWeight: 700,
+                        fontSize: "1.2rem",
+                      }}
                     >
-                      Địa chỉ nhận hàng
+                      - - - - - -
                     </Typography>
-                    <Typography fontWeight="bold" sx={{ mb: 0.5 }}>
-                      {order.shippingAddress?.name}
-                    </Typography>
-                    <Typography sx={{ color: "#555", mb: 0.5 }}>
-                      {order.shippingAddress?.phone}
-                    </Typography>
-                    <Typography sx={{ color: "#555" }}>
-                      {order.shippingAddress?.address}
-                    </Typography>
-                  </Paper>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      p: 3,
-                      borderRadius: "16px",
-                      height: "100%",
-                      bgcolor: "white",
-                      textAlign: "left",
-                    }}
-                  >
-                    <Typography
-                      variant="h6"
-                      sx={{ fontWeight: 700, mb: 2, color: "#2C3E50" }}
-                    >
-                      Thông tin vận chuyển
-                    </Typography>
-                    <Typography sx={{ color: "#555" }}>
-                      Phương thức: <b>Nhanh</b>
-                    </Typography>
-                    <Typography sx={{ color: "#555" }}>
-                      Đơn vị: <b>Giao Hàng Tiết Kiệm</b>
-                    </Typography>
-                    <Typography sx={{ color: "#555" }}>
-                      Mã vận đơn: <b>8329384923</b>
-                    </Typography>
-                  </Paper>
-                </Grid>
-              </Grid>
+                    <ArrowRightAltIcon />
+                  </Box>
 
-              {/* 3. Sản phẩm & Tổng tiền */}
-              <Paper
-                elevation={0}
-                sx={{ p: 3, borderRadius: "16px", bgcolor: "white" }}
-              >
+                  {/* Pill 2: Điểm nhận */}
+                  <Box sx={locationPillStyle}>
+                    <LocationOnOutlinedIcon sx={{ color: "#546E7A" }} />
+                    <Typography
+                      variant="body2"
+                      fontWeight={600}
+                      color="#37474F"
+                    >
+                      Bình Sơn, Quãng Ngãi
+                    </Typography>
+                  </Box>
+                </Stack>
+                {/* ----------------------------------------------------------- */}
+
+                {/* 3. Địa chỉ & Vận chuyển */}
+                <Grid container spacing={3} mb={3}>
+                  <Grid item xs={12} md={6}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 3,
+                        borderRadius: "16px",
+                        height: "100%",
+                        bgcolor: "white",
+                      }}
+                    >
+                      <Typography
+                        variant="subtitle1"
+                        sx={{ fontWeight: 700, mb: 2, color: "#546E7A" }}
+                      >
+                        Địa chỉ nhận hàng
+                      </Typography>
+                      <Typography
+                        fontWeight="bold"
+                        sx={{ mb: 0.5, color: "#2C3E50" }}
+                      >
+                        {order.shippingAddress?.name}
+                      </Typography>
+                      <Typography
+                        sx={{ color: "#555", mb: 0.5, fontSize: "0.95rem" }}
+                      >
+                        {order.shippingAddress?.phone}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          color: "#555",
+                          fontSize: "0.95rem",
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        {order.shippingAddress?.address}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 3,
+                        borderRadius: "16px",
+                        height: "100%",
+                        bgcolor: "white",
+                      }}
+                    >
+                      <Typography
+                        variant="subtitle1"
+                        sx={{ fontWeight: 700, mb: 2, color: "#546E7A" }}
+                      >
+                        Thông tin vận chuyển
+                      </Typography>
+                      <Stack spacing={1.5}>
+                        <Stack direction="row" justifyContent="space-between">
+                          <Typography
+                            sx={{ color: "#555", fontSize: "0.95rem" }}
+                          >
+                            Phương thức:
+                          </Typography>
+                          <Typography
+                            sx={{ fontWeight: 600, color: "#2C3E50" }}
+                          >
+                            Nhanh
+                          </Typography>
+                        </Stack>
+                        <Stack direction="row" justifyContent="space-between">
+                          <Typography
+                            sx={{ color: "#555", fontSize: "0.95rem" }}
+                          >
+                            Đơn vị:
+                          </Typography>
+                          <Typography
+                            sx={{ fontWeight: 600, color: "#2C3E50" }}
+                          >
+                            Giao Hàng Tiết Kiệm
+                          </Typography>
+                        </Stack>
+                        <Stack direction="row" justifyContent="space-between">
+                          <Typography
+                            sx={{ color: "#555", fontSize: "0.95rem" }}
+                          >
+                            Mã vận đơn:
+                          </Typography>
+                          <Typography
+                            sx={{ fontWeight: 600, color: "#2C3E50" }}
+                          >
+                            8329384923
+                          </Typography>
+                        </Stack>
+                        {order.deliveryDuration && (
+                          <Stack direction="row" justifyContent="space-between">
+                            <Typography
+                              sx={{ color: "#555", fontSize: "0.95rem" }}
+                            >
+                              Thời gian:
+                            </Typography>
+                            <Typography
+                              sx={{ fontWeight: 600, color: "#2C3E50" }}
+                            >
+                              {order.deliveryDuration}
+                            </Typography>
+                          </Stack>
+                        )}
+                      </Stack>
+                    </Paper>
+                  </Grid>
+                </Grid>
+
+                {/* 4. Sản phẩm */}
                 <Typography
-                  variant="h6"
-                  sx={{
-                    fontWeight: 700,
-                    mb: 2,
-                    color: "#2C3E50",
-                    textAlign: "left",
-                  }}
+                  variant="body1"
+                  textAlign="left"
+                  sx={{ fontWeight: 500, mb: 2, color: "#2C3E50" }}
                 >
                   Sản phẩm
                 </Typography>
-                <Stack spacing={3}>
+                <Stack spacing={2}>
                   {order.products.map((prod) => (
-                    <div key={prod.id}>
+                    <Paper
+                      key={prod.id}
+                      elevation={0}
+                      sx={{ p: 2, borderRadius: "12px", bgcolor: "white" }}
+                    >
                       <ProductItem product={prod} />
-                      <Divider sx={{ mt: 2 }} />
-                    </div>
+                    </Paper>
                   ))}
                 </Stack>
 
+                {/* Tổng tiền */}
                 <Box
                   sx={{ mt: 3, display: "flex", justifyContent: "flex-end" }}
                 >
-                  <Stack spacing={1} sx={{ minWidth: 250 }}>
+                  <Stack spacing={1} sx={{ minWidth: 300 }}>
                     <Stack direction="row" justifyContent="space-between">
-                      <Typography color="text.secondary">
-                        Tổng tiền hàng:
-                      </Typography>
-                      <Typography>
-                        {(order.totalAmount + 20000).toLocaleString()}đ
+                      <Typography color="#546E7A">Tổng tiền hàng:</Typography>
+                      <Typography fontWeight={500}>
+                        {(
+                          order.totalAmount - order.shippingFee
+                        ).toLocaleString()}
+                        đ
                       </Typography>
                     </Stack>
                     <Stack direction="row" justifyContent="space-between">
-                      <Typography color="text.secondary">
-                        Phí vận chuyển:
+                      <Typography color="#546E7A">Phí vận chuyển:</Typography>
+                      <Typography fontWeight={500}>
+                        {order.shippingFee.toLocaleString()}đ
                       </Typography>
-                      <Typography>-20.000đ</Typography>
                     </Stack>
-                    <Divider />
+                    <Stack direction="row" justifyContent="space-between">
+                      <Typography color="#546E7A">Thanh toán:</Typography>
+                      <Typography
+                        fontWeight={500}
+                        sx={{
+                          textAlign: "right",
+                          maxWidth: "150px",
+                          fontSize: "0.9rem",
+                        }}
+                      >
+                        {order.paymentMethod}
+                      </Typography>
+                    </Stack>
+                    <Divider sx={{ my: 1 }} />
                     <Stack
                       direction="row"
                       justifyContent="space-between"
@@ -235,12 +394,11 @@ const OrderDetail = () => {
                     </Stack>
                   </Stack>
                 </Box>
-              </Paper>
+              </Box>
             </Box>
           </Grid>
         </Grid>
       </Container>
-
       <Footer />
     </Box>
   );

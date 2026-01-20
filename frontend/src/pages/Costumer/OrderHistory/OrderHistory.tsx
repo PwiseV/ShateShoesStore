@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import OrderTabs from "./components/OrderTabs";
 import OrderCard from "./components/OrderCard";
 
@@ -19,7 +20,7 @@ import Header from "../../../components/Customer/Header";
 import Footer from "../../../components/Customer/Footer";
 import SideBar from "../../../components/Customer/SideBar";
 
-// --- TYPE DEFINITIONS ---
+// --- 1. CẬP NHẬT TYPE DEFINITION (Dựa trên ERD và Thiết kế) ---
 export type OrderStatus = "pending" | "shipping" | "delivered" | "cancelled";
 
 export type OrderProduct = {
@@ -33,20 +34,32 @@ export type OrderProduct = {
 };
 
 export type Order = {
-  id: string;
-  status: OrderStatus;
+  id: string; // ERD: order_number
+  status: OrderStatus; // ERD: status
   statusLabel: string;
-  totalAmount: number;
+  totalAmount: number; // ERD: total (Thành tiền cuối cùng)
+  shippingFee: number; // ERD: shipping_fee
+  paymentMethod: string; // ERD: payment_method (từ bảng Payment hoặc Order)
   products: OrderProduct[];
-  date: string;
-  shippingAddress?: {
+
+  // Thời gian (ERD: created_at, delivered_at...)
+  date: string; // Ngày đặt hàng
+  dates: {
+    shipped?: string; // Ngày vận chuyển
+    delivered?: string; // Ngày giao hàng thành công
+    expected?: string; // Ngày dự kiến
+  };
+  deliveryDuration?: string; // VD: "5 ngày" (Tính toán hoặc lưu trữ)
+
+  // Địa chỉ (ERD: name, phone, address)
+  shippingAddress: {
     name: string;
     phone: string;
     address: string;
   };
 };
 
-// --- MOCK DATA (4 Đơn hàng - Link ảnh thật) ---
+// --- 2. CẬP NHẬT MOCK DATA (5 Đơn hàng đầy đủ thông tin) ---
 export const MOCK_ORDERS: Order[] = [
   // 1. ĐANG VẬN CHUYỂN
   {
@@ -54,7 +67,18 @@ export const MOCK_ORDERS: Order[] = [
     status: "shipping",
     statusLabel: "Đang vận chuyển",
     totalAmount: 239000,
-    date: "2025-10-20",
+    shippingFee: 30000,
+    paymentMethod: "Thanh toán khi nhận hàng (COD)",
+    date: "20/10/2025",
+    dates: {
+      shipped: "21/10/2025",
+      expected: "25/10/2025",
+    },
+    shippingAddress: {
+      name: "Tuấn Ngọc",
+      phone: "0389183498",
+      address: "123 Đường Số 1, Phường Linh Trung, Thủ Đức, TP.HCM",
+    },
     products: [
       {
         id: "p1",
@@ -63,19 +87,31 @@ export const MOCK_ORDERS: Order[] = [
         price: 189000,
         originalPrice: 200000,
         quantity: 1,
-        // Link ảnh thật
         image:
           "https://res.cloudinary.com/dvh9n5dtf/image/upload/v1768232214/variants/jgvv3pcb1rv82ylylf6u.jpg",
       },
     ],
   },
-  // 2. THÀNH CÔNG (Giao hàng thành công)
+  // 2. THÀNH CÔNG (Khớp với hình orderdetail.png)
   {
     id: "CHT-882211",
     status: "delivered",
     statusLabel: "Giao hàng thành công",
     totalAmount: 550000,
-    date: "2025-09-25",
+    shippingFee: 20000,
+    paymentMethod: "Thanh toán khi nhận hàng",
+    date: "28/9/2024",
+    deliveryDuration: "5 ngày",
+    dates: {
+      shipped: "24/09/2025",
+      delivered: "28/09/2025",
+    },
+    shippingAddress: {
+      name: "Tuấn Ngọc",
+      phone: "0389183498",
+      address:
+        "Cổng sau kí túc xá khu B, đại học quốc gia, Phường Linh Trung, Quận Thủ Đức, Hồ Chí Minh",
+    },
     products: [
       {
         id: "p3",
@@ -89,13 +125,23 @@ export const MOCK_ORDERS: Order[] = [
       },
     ],
   },
-  // 3. CHỜ XÁC NHẬN (Mới thêm)
+  // 3. CHỜ XÁC NHẬN
   {
     id: "CHT-773322",
     status: "pending",
     statusLabel: "Chờ xác nhận",
     totalAmount: 1250000,
-    date: "2025-10-28",
+    shippingFee: 0, // Freeship
+    paymentMethod: "Chuyển khoản ngân hàng",
+    date: "28/10/2025",
+    dates: {
+      expected: "01/11/2025",
+    },
+    shippingAddress: {
+      name: "Nguyễn Văn A",
+      phone: "0909123456",
+      address: "456 Lê Văn Việt, Quận 9, TP.HCM",
+    },
     products: [
       {
         id: "p4",
@@ -110,7 +156,7 @@ export const MOCK_ORDERS: Order[] = [
         id: "p5",
         name: "NIKE AIR JORDAN 1",
         variant: "Phân loại: Đỏ, 41",
-        price: 0, // Quà tặng
+        price: 0,
         originalPrice: 50000,
         quantity: 1,
         image:
@@ -118,13 +164,21 @@ export const MOCK_ORDERS: Order[] = [
       },
     ],
   },
-  // 4. ĐÃ HỦY (Mới thêm)
+  // 4. ĐÃ HỦY
   {
     id: "CHT-661100",
     status: "cancelled",
     statusLabel: "Đã hủy",
     totalAmount: 300000,
-    date: "2025-08-15",
+    shippingFee: 25000,
+    paymentMethod: "Ví MoMo",
+    date: "15/08/2025",
+    dates: {},
+    shippingAddress: {
+      name: "Trần Thị B",
+      phone: "0912345678",
+      address: "789 Nguyễn Huệ, Quận 1, TP.HCM",
+    },
     products: [
       {
         id: "p6",
@@ -138,13 +192,25 @@ export const MOCK_ORDERS: Order[] = [
       },
     ],
   },
-  // 5. [MỚI] ĐƠN HÀNG TEST LOAD MORE (5 SẢN PHẨM)
+  // 5. TEST LOAD MORE
   {
     id: "CHT-TEST-MORE",
     status: "delivered",
     statusLabel: "Giao hàng thành công",
     totalAmount: 2500000,
-    date: "2025-11-01",
+    shippingFee: 50000,
+    paymentMethod: "Thanh toán khi nhận hàng",
+    date: "01/11/2025",
+    deliveryDuration: "3 ngày",
+    dates: {
+      shipped: "02/11/2025",
+      delivered: "05/11/2025",
+    },
+    shippingAddress: {
+      name: "Lê Văn C",
+      phone: "0987654321",
+      address: "101 Đường 3/2, Cần Thơ",
+    },
     products: [
       {
         id: "t1",
@@ -173,7 +239,6 @@ export const MOCK_ORDERS: Order[] = [
         image:
           "https://res.cloudinary.com/dvh9n5dtf/image/upload/v1768235813/variants/fdljulagbgtmkunlvy4u.jpg",
       },
-      // --- Nếu limit là 3, từ đây trở xuống sẽ bị ẩn ---
       {
         id: "t4",
         name: "Giày Test 4",
@@ -237,10 +302,16 @@ const OrderHistory = () => {
   });
 
   const displayedOrders = filteredOrders.slice(0, visibleCount);
-  const hasMore = visibleCount < filteredOrders.length;
+  const isAllShown = visibleCount >= filteredOrders.length;
+  const remainingCount = filteredOrders.length - visibleCount;
+  const nextLoadCount = Math.min(PAGE_SIZE, Math.max(0, remainingCount));
 
-  const handleLoadMore = () => {
-    setVisibleCount((prev) => prev + PAGE_SIZE);
+  const handleToggleOrders = () => {
+    if (isAllShown) {
+      setVisibleCount(PAGE_SIZE);
+    } else {
+      setVisibleCount((prev) => prev + PAGE_SIZE);
+    }
   };
 
   return (
@@ -313,17 +384,21 @@ const OrderHistory = () => {
               <Box>
                 {displayedOrders.length > 0 ? (
                   <>
-                    {/* Hiển thị danh sách đã cắt */}
                     {displayedOrders.map((order) => (
                       <OrderCard key={order.id} order={order} />
                     ))}
 
-                    {/* [MỚI] Nút Load More cho danh sách đơn hàng */}
-                    {hasMore && (
+                    {filteredOrders.length > PAGE_SIZE && (
                       <Box sx={{ textAlign: "center", mt: 4, mb: 2 }}>
                         <Button
-                          onClick={handleLoadMore}
-                          endIcon={<KeyboardArrowDownIcon />}
+                          onClick={handleToggleOrders}
+                          endIcon={
+                            isAllShown ? (
+                              <KeyboardArrowUpIcon />
+                            ) : (
+                              <KeyboardArrowDownIcon />
+                            )
+                          }
                           disableRipple
                           sx={{
                             textTransform: "none",
@@ -345,7 +420,9 @@ const OrderHistory = () => {
                             },
                           }}
                         >
-                          Xem thêm đơn hàng cũ hơn
+                          {isAllShown
+                            ? "Thu gọn"
+                            : `Xem thêm ${nextLoadCount} lịch sử đơn hàng`}
                         </Button>
                       </Box>
                     )}
