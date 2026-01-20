@@ -19,7 +19,7 @@ import addressRoute from "./routes/address.route.js"
 import postRoute from "./routes/post.route.js"
 //import cartRoute from "./routes/cart.route.js"
 //import orderRoute from "./routes/order.route.js"
-
+import blogRoute from "./routes/blog.route.js"
 
 import { protectedRoute } from "./middlewares/authMiddleware.js";
 import { adminOnly } from './middlewares/adminMiddleware.js';
@@ -42,9 +42,10 @@ app.use(express.json());
 
 // public routes (KHÔNG token)
 app.use("/api/auth", authRoute);
+app.use("/api/blog", blogRoute);
 
 // private user routes (CẦN đăng nhập)
-app.use("/api/users", protectedRoute, userRoute, productRoute, favouriteRoute, addressRoute);
+app.use("/api/users", protectedRoute, userRoute, productRoute, favouriteRoute, addressRoute, postRoute);
 
 // admin routes (CẦN đăng nhập + quyền admin)
 app.use("/api/admin", protectedRoute, adminOnly, adminRoute, productRoute, promotionRoute, userRoute, postRoute);
