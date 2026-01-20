@@ -1,38 +1,24 @@
 import React from "react";
 import { Box, Typography } from "@mui/material";
+import { type BlogPost } from "../../../../../services/blogServices";
 
-const STORIES = [
-  {
-    id: 1,
-    title: "Mẹo hay cho tín đồ giày đẹp",
-    date: "Sun September 10th 2025",
-    img: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=200",
-  },
-  {
-    id: 2,
-    title: "Từ đôi giày đến phong cách sống",
-    date: "Sun September 10th 2025",
-    img: "https://images.unsplash.com/photo-1562183241-b937e95585b6?w=200",
-  },
-  {
-    id: 3,
-    title: "Cập nhật xu hướng giày mới nhất",
-    date: "Sun September 10th 2025",
-    img: "https://images.unsplash.com/photo-1515347619252-60a4bf4fff4f?w=200",
-  },
-];
+// [MỚI] Định nghĩa Props
+interface StoryListProps {
+  data: BlogPost[];
+}
 
-const StoryList = () => {
+const StoryList: React.FC<StoryListProps> = ({ data }) => {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
-      {STORIES.map((story) => (
+      {/* Map qua mảng data nhận được từ props */}
+      {data.map((story) => (
         <Box
           key={story.id}
           sx={{ display: "flex", gap: 2, alignItems: "center" }}
         >
           <Box
             component="img"
-            src={story.img}
+            src={story.thumbnail}
             sx={{
               width: 100,
               height: 100,
@@ -41,7 +27,7 @@ const StoryList = () => {
               flexShrink: 0,
             }}
           />
-          <Box>
+          <Box sx={{ textAlign: "left" }}>
             <Typography
               sx={{
                 fontWeight: 800,
@@ -60,7 +46,7 @@ const StoryList = () => {
                 fontFamily: '"Lexend", sans-serif',
               }}
             >
-              {story.date}
+              {story.published_at}
             </Typography>
           </Box>
         </Box>

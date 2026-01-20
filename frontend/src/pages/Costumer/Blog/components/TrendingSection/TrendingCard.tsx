@@ -12,7 +12,7 @@ const TrendingCard: React.FC<TrendingCardProps> = ({ name, image }) => {
       elevation={0}
       sx={{
         bgcolor: "white", // Nền trắng của khung
-        p: 1.5, // Padding tạo khoảng trắng quanh ảnh (quan trọng)
+        p: 2, // Padding tạo khoảng trắng quanh ảnh (quan trọng)
         borderRadius: "16px", // Bo góc khung ngoài
         height: "100%",
         cursor: "pointer",
@@ -26,8 +26,9 @@ const TrendingCard: React.FC<TrendingCardProps> = ({ name, image }) => {
       {/* Khung chứa ảnh */}
       <Box
         sx={{
-          width: "100%",
-          aspectRatio: "1/1", // Ép ảnh thành hình vuông cho đều
+          width: "90%",
+          mx: "auto",
+          aspectRatio: "4/3", // Ép ảnh thành hình vuông cho đều
           overflow: "hidden",
           borderRadius: "12px", // Bo góc ảnh bên trong
           mb: 2, // Khoảng cách xuống tên

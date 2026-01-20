@@ -1,7 +1,49 @@
-import React from "react";
-import { Box, Container, Typography, TextField, Button } from "@mui/material";
+import React, { useState } from "react";
+import {
+  Box,
+  Container,
+  Typography,
+  TextField,
+  Button,
+  Snackbar,
+  Alert,
+} from "@mui/material"; // Thêm Snackbar, Alert
+import { subscribeNewsletter } from "../../../../../services/fakeBlogServices"; // Import Service
 
 const Newsletter = () => {
+  // [MỚI] State cho form
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState<{
+    open: boolean;
+    type: "success" | "error";
+    message: string;
+  }>({
+    open: false,
+    type: "success",
+    message: "",
+  });
+
+  // [MỚI] Xử lý gửi form
+  const handleSubscribe = async () => {
+    if (!email) return;
+
+    setLoading(true);
+    try {
+      const response = await subscribeNewsletter(email);
+      setToast({ open: true, type: "success", message: response.message });
+      setEmail(""); // Reset input
+    } catch (error: any) {
+      setToast({
+        open: true,
+        type: "error",
+        message: error.message || "Có lỗi xảy ra",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Box
       sx={{ bgcolor: "#34495E", color: "white", py: 10, textAlign: "center" }}
@@ -32,6 +74,10 @@ const Newsletter = () => {
           <TextField
             placeholder="example@email.com"
             variant="outlined"
+            // [MỚI] Binding state
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={loading}
             sx={{
               bgcolor: "white",
               borderRadius: "50px",
@@ -44,6 +90,9 @@ const Newsletter = () => {
           />
           <Button
             variant="contained"
+            // [MỚI] Gắn sự kiện click
+            onClick={handleSubscribe}
+            disabled={loading}
             sx={{
               bgcolor: "#5D7C89",
               borderRadius: "50px",
@@ -55,7 +104,7 @@ const Newsletter = () => {
               "&:hover": { bgcolor: "#4a6370", boxShadow: "none" },
             }}
           >
-            Send message
+            {loading ? "Sending..." : "Send message"}
           </Button>
         </Box>
 
@@ -76,6 +125,18 @@ const Newsletter = () => {
           phối giày cực hay nhé!
         </Typography>
       </Container>
+
+      {/* [MỚI] Hiển thị thông báo */}
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={4000}
+        onClose={() => setToast({ ...toast, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert severity={toast.type} sx={{ width: "100%" }}>
+          {toast.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

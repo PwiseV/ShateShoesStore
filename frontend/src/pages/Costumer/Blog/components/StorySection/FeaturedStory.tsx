@@ -1,13 +1,20 @@
 import React from "react";
 import { Box, Typography } from "@mui/material";
+import { type BlogPost } from "../../../../../services/blogServices";
+// import { type BlogPost } from "../../../../../services/blogServices";
 
-const FeaturedStory = () => {
+// [MỚI] Định nghĩa Props
+interface FeaturedStoryProps {
+  data: BlogPost;
+}
+
+const FeaturedStory: React.FC<FeaturedStoryProps> = ({ data }) => {
   return (
     <Box>
       <Box
         component="img"
-        src="https://images.unsplash.com/photo-1519415943484-9fa1873496d4?w=800&q=80"
-        alt="Featured"
+        src={data.thumbnail} // Dùng data từ props
+        alt={data.title}
         sx={{
           width: "100%",
           height: 350,
@@ -25,14 +32,29 @@ const FeaturedStory = () => {
           fontFamily: '"Lexend", sans-serif',
         }}
       >
-        Chuyện những đôi giày kể
+        {data.title}
       </Typography>
-      <Typography sx={{ color: "#567C8D", fontWeight: 500 }}>
-        Khám phá xu hướng, bí quyết chọn giày và cảm hứng thời trang dành riêng
-        cho bạn.
+
+      <Typography
+        sx={{
+          color: "#567C8D",
+          fontWeight: 500,
+          textAlign: "left",
+        }}
+      >
+        {data.summary}
       </Typography>
-      <Typography variant="caption" sx={{ color: "#999" }}>
-        Sun September 10th 2025
+
+      <Typography
+        variant="caption"
+        sx={{
+          color: "#999",
+          display: "block",
+          textAlign: "left",
+          fontFamily: '"Lexend", sans-serif',
+        }}
+      >
+        {data.published_at}
       </Typography>
     </Box>
   );

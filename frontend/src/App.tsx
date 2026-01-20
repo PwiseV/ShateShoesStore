@@ -33,6 +33,7 @@ export default function AppRoutes() {
 
           <Route element={<ProtectedRoute role="customer" />}>
             <Route path="/homepage" element={<HomePage />} />
+            <Route path="/blog" element={<BlogPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />
