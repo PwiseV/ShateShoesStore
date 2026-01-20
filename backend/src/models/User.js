@@ -44,7 +44,13 @@ const userSChema = new  mongoose.Schema ({
         type: String,
         enum: ["local", "google"],
         default: "local"
-    }
+    },
+    resetPasswordToken: {
+        type: String,
+    },
+    resetPasswordExpires: {
+        type: Date,
+    },
 }, {
     timestamps: true,
 });

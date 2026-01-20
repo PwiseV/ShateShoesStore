@@ -17,13 +17,17 @@ import Products from "./pages/Admin/Products/Products.tsx";
 import Promotions from "./pages/Admin/Promotions/Promotions.tsx";
 import ProductList from "./pages/Costumer/ProductList/ProductList.tsx";
 import Orders from "./pages/Admin/Orders/Orders.tsx";
-
+// forgot password components
+import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword/ResetPassword";
 export default function AppRoutes() {
   return (
     <Router>
       <Suspense fallback={<div>Loading...</div>}>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/register" element={<Signup />} />
           <Route path="/homepage" element={<HomePage />} />
 

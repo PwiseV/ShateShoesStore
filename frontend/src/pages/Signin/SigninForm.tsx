@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link as RouterLink } from "react-router-dom";
 import {
   Box,
   Paper,
@@ -234,7 +234,8 @@ const LoginForm: React.FC = () => {
 
             <Box textAlign="center" mt={2}>
               <MuiLink
-                href="/forgot-password"
+                component={RouterLink}
+                to="/forgot-password"
                 underline="hover"
                 sx={{
                   color: "#567C8D",
