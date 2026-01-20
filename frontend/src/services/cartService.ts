@@ -1,5 +1,5 @@
 import api from "./axios";
-import type { CartItem } from "../pages/Costumer/Cart/types";
+import type { CartItem } from "../pages/Customer/Cart/types";
 
 // ===== CART ENDPOINTS =====
 

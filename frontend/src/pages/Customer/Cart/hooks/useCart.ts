@@ -2,6 +2,11 @@ import { useState, useEffect, useMemo } from "react";
 import {
   getCartItems,
   applyCoupon,
+  updateCartItemQty as apiUpdateQty,
+  removeCartItem as apiRemoveItem,
+  updateCartItemVariant as apiUpdateVariant,
+  toggleCartItemSelection as apiToggleSelection,
+  removeCoupon as apiRemoveCoupon, // Import API mới
 } from "../../../../services/fakeCartService";
 import type { CartItem, CartColor } from "../types";
 
@@ -16,7 +21,7 @@ export const useCart = () => {
     const fetchCart = async () => {
       try {
         const data = await getCartItems();
-        // Mặc định chọn tất cả sản phẩm khi mới load
+        // Mặc định chọn tất cả
         setItems(data.map((item) => ({ ...item, selected: true })));
       } catch (err) {
         console.error("Load cart error:", err);
@@ -27,48 +32,51 @@ export const useCart = () => {
     fetchCart();
   }, []);
 
-  const increaseQty = (id: number | string) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
-      )
-    );
+  const increaseQty = async (id: number | string) => {
+    // Tìm item hiện tại để lấy quantity + 1
+    const currentItem = items.find((i) => i.id === id);
+    if (currentItem) {
+      const newCart = await apiUpdateQty(id, currentItem.quantity + 1);
+      setItems(newCart);
+    }
   };
 
-  const decreaseQty = (id: number | string) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id && item.quantity > 1
-          ? { ...item, quantity: item.quantity - 1 }
-          : item
-      )
-    );
+  const decreaseQty = async (id: number | string) => {
+    const currentItem = items.find((i) => i.id === id);
+    if (currentItem && currentItem.quantity > 1) {
+      const newCart = await apiUpdateQty(id, currentItem.quantity - 1);
+      setItems(newCart);
+    }
   };
 
-  const removeItem = (id: number | string) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
+  const removeItem = async (id: number | string) => {
+    const newCart = await apiRemoveItem(id);
+    setItems(newCart);
   };
 
-  const toggleSelection = (id: number | string) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, selected: !item.selected } : item
-      )
-    );
+  const toggleSelection = async (id: number | string) => {
+    const newCart = await apiToggleSelection(id);
+    setItems(newCart);
   };
 
-  // --- Logic mới: Cập nhật Biến thể (Size/Màu) ---
-  const updateVariant = (
+  // Cập nhật Size/Màu
+  const updateVariant = async (
     id: number | string,
     newSize: string,
     newColor: CartColor
   ) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, size: newSize, color: newColor } : item
-      )
-    );
+    const newCart = await apiUpdateVariant(id, newSize, newColor);
+    setItems(newCart);
   };
+
+  const total = useMemo(
+    () =>
+      items.reduce((sum, item) => {
+        const price = item.color.price || 0;
+        return item.selected ? sum + price * item.quantity : sum;
+      }, 0),
+    [items]
+  );
 
   const applyDiscount = async (code: string) => {
     if (!code.trim()) {
@@ -101,22 +109,29 @@ export const useCart = () => {
     }
   };
 
-  const removeDiscount = () => {
-    setDiscount(0);
-    setCouponCode("");
-    setCouponMessage("");
-  };
+  // Hàm gỡ mã giảm giá
+  const removeDiscount = async () => {
+    try {
+      setLoading(true); // Có thể bật loading nhẹ nếu muốn
 
-  // --- Tính toán lại Total dựa trên giá của Color Variant ---
-  const total = useMemo(
-    () =>
-      items.reduce((sum, item) => {
-        // Ưu tiên lấy giá của màu đã chọn, fallback về 0 nếu lỗi data
-        const price = item.color.price || 0;
-        return item.selected ? sum + price * item.quantity : sum;
-      }, 0),
-    [items]
-  );
+      // 1. Gọi API
+      const response = await apiRemoveCoupon();
+
+      if (response.success) {
+        // 2. Reset State về ban đầu
+        setDiscount(0);
+        setCouponCode("");
+        setCouponMessage("");
+
+        // Có thể return message để UI hiện thông báo
+        return { success: true, message: response.message };
+      }
+    } catch (error) {
+      console.error("Lỗi gỡ mã:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const finalTotal = total - discount;
 
@@ -127,7 +142,7 @@ export const useCart = () => {
     decreaseQty,
     removeItem,
     toggleSelection,
-    updateVariant, // Export hàm này
+    updateVariant,
     total,
     discount,
     finalTotal,

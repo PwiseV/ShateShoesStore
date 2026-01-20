@@ -7,7 +7,7 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  type SelectChangeEvent, // Fix lỗi verbatimModuleSyntax
+  type SelectChangeEvent,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -35,29 +35,33 @@ const CartItemView = ({
   onToggle,
   onUpdateVariant,
 }: Props) => {
-  // 1. Lấy danh sách Size Options từ Product
-  const sizeOptions = item.product.sizeOptions || [];
+  // 1. Lấy danh sách Sizes từ Product (Theo type mới là .sizes)
+  const sizes = item.product.sizes || [];
 
   // 2. Tìm danh sách màu dựa trên Size đang chọn
-  const currentSizeOption = sizeOptions.find((opt) => opt.size === item.size);
-  const availableColors = currentSizeOption ? currentSizeOption.colors : [];
+  const currentSizeVariant = sizes.find((s) => s.size === item.size);
+  const availableColors = currentSizeVariant ? currentSizeVariant.colors : [];
 
-  // 3. Xử lý đổi Size
+  // 3. Helper để lấy URL ảnh an toàn (vì type avatar có thể là string | object)
+  const getAvatarUrl = (avatar?: string | { url: string }): string => {
+    if (!avatar) return "";
+    if (typeof avatar === "string") return avatar;
+    return avatar.url;
+  };
+
   const handleSizeChange = (event: SelectChangeEvent) => {
     const newSize = event.target.value;
-    const newSizeOption = sizeOptions.find((opt) => opt.size === newSize);
+    const newSizeVariant = sizes.find((s) => s.size === newSize);
 
-    if (newSizeOption && newSizeOption.colors.length > 0) {
-      // Logic: Khi đổi size, tự động reset về màu đầu tiên của size đó
-      const defaultColorForNewSize = newSizeOption.colors[0];
-      onUpdateVariant(item.id, newSize, defaultColorForNewSize);
+    if (newSizeVariant && newSizeVariant.colors.length > 0) {
+      // Mặc định chọn màu đầu tiên của size mới
+      const defaultColor = newSizeVariant.colors[0];
+      onUpdateVariant(item.id, newSize, defaultColor);
     }
   };
 
-  // 4. Xử lý đổi Màu
   const handleColorChange = (event: SelectChangeEvent) => {
     const newColorName = event.target.value;
-    // Tìm object CartColor đầy đủ dựa trên tên màu
     const newColorObj = availableColors.find((c) => c.color === newColorName);
 
     if (newColorObj) {
@@ -65,7 +69,6 @@ const CartItemView = ({
     }
   };
 
-  // Style cho Select Box
   const selectStyle = {
     fontFamily: "'Lexend', sans-serif",
     fontSize: "13px",
@@ -77,12 +80,9 @@ const CartItemView = ({
     },
   };
 
-  // Xác định ảnh hiển thị: Ưu tiên ảnh của màu, nếu không có lấy ảnh product
-  // Lưu ý: Kiểm tra xem Product gốc của bạn dùng 'avatar' hay 'image'. Code này giả định bạn đã map đúng.
-  // @ts-ignore: Bỏ qua check type strict nếu base product chưa có avatar (xử lý ở runtime)
-  const displayImage = item.color.avatar || item.product.image;
-  // @ts-ignore
-  const displayTitle = item.product.title || item.product.name;
+  // Ưu tiên ảnh của màu, nếu không có thì lấy ảnh gốc sản phẩm
+  const displayImage =
+    getAvatarUrl(item.color.avatar) || getAvatarUrl(item.product.avatar);
 
   return (
     <Box
@@ -97,34 +97,35 @@ const CartItemView = ({
         alignItems: "center",
       }}
     >
-      {/* Checkbox chọn sản phẩm */}
+      {/* Checkbox */}
       <Checkbox
         checked={!!item.selected}
         onChange={() => onToggle(item.id)}
         sx={{ p: 0 }}
       />
 
-      {/* Ảnh sản phẩm */}
+      {/* Ảnh */}
       <Box
         component="img"
         src={displayImage}
-        alt={displayTitle}
+        alt={item.product.title}
         sx={{ width: 90, height: 90, borderRadius: 2, objectFit: "cover" }}
       />
 
-      {/* Thông tin & Dropdown */}
+      {/* Info */}
       <Box sx={{ textAlign: "left" }}>
         <Typography
           fontWeight={700}
           variant="subtitle1"
           color="#567C8D"
+          // Đã sửa lỗi syntax ở dòng này
           sx={{ fontFamily: "'Lexend', sans-serif", mb: 1 }}
         >
-          {displayTitle}
+          {item.product.title}
         </Typography>
 
         <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
-          {/* Dropdown Size */}
+          {/* Size Select */}
           <FormControl size="small" sx={{ minWidth: 80 }}>
             <InputLabel
               sx={{ fontSize: 12, top: -4, fontFamily: "'Lexend', sans-serif" }}
@@ -137,19 +138,19 @@ const CartItemView = ({
               onChange={handleSizeChange}
               sx={selectStyle}
             >
-              {sizeOptions.map((opt) => (
+              {sizes.map((s) => (
                 <MenuItem
-                  key={opt.size}
-                  value={opt.size}
+                  key={s.sizeId}
+                  value={s.size}
                   sx={{ fontSize: 13, fontFamily: "'Lexend', sans-serif" }}
                 >
-                  {opt.size}
+                  {s.size}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
 
-          {/* Dropdown Màu */}
+          {/* Color Select */}
           <FormControl size="small" sx={{ minWidth: 100 }}>
             <InputLabel
               sx={{ fontSize: 12, top: -4, fontFamily: "'Lexend', sans-serif" }}
@@ -162,20 +163,19 @@ const CartItemView = ({
               onChange={handleColorChange}
               sx={selectStyle}
             >
-              {availableColors.map((col) => (
+              {availableColors.map((c) => (
                 <MenuItem
-                  key={col.color}
-                  value={col.color}
+                  key={c.colorId}
+                  value={c.color}
                   sx={{ fontSize: 13, fontFamily: "'Lexend', sans-serif" }}
                 >
-                  {col.color}
+                  {c.color}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
         </Box>
 
-        {/* Giá tiền của biến thể */}
         <Typography
           fontWeight={700}
           color="#2F4156"
@@ -186,7 +186,7 @@ const CartItemView = ({
         </Typography>
       </Box>
 
-      {/* Bộ đếm số lượng */}
+      {/* Số lượng + Xóa */}
       <Box
         sx={{
           display: "flex",
@@ -236,7 +236,6 @@ const CartItemView = ({
           </IconButton>
         </Box>
 
-        {/* Nút xóa */}
         <IconButton
           color="error"
           size="small"
