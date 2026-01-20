@@ -19,6 +19,10 @@ import ProductList from "./pages/Costumer/ProductList/ProductList.tsx";
 import ProductDetail from "./pages/Costumer/ProductDetail/ProductDetail.tsx";
 import Posts from "./pages/Admin/Post/Posts.tsx";
 
+import Orders from "./pages/Admin/Orders/Orders.tsx";
+// forgot password components
+import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword/ResetPassword";
 export default function AppRoutes() {
   return (
     <Router>
@@ -26,6 +30,8 @@ export default function AppRoutes() {
         <Routes>
           {/* --- PUBLIC ROUTES (Ai cũng vào được) --- */}
           <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/register" element={<Signup />} />
           <Route path="/homepage" element={<HomePage />} />
           <Route path="/admin/products" element={<Products />} />

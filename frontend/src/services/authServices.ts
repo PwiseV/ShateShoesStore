@@ -110,3 +110,46 @@ export const getMe = async (params?: unknown): Promise<AuthResponse> => {
     throw error;
   }
 };
+
+
+/* ============================
+   FORGOT PASSWORD
+============================ */
+
+export const requestPasswordReset = async (
+  email: string
+): Promise<{ message: string; token: string }> => {
+  try {
+    const response = await api.post<{
+      message: string;
+      token: string;
+    }>("/auth/forgot-password", { email });
+
+    return response.data;
+  } catch (error: any) {
+    console.error("Request password reset error:", error);
+    throw error?.response?.data || error;
+  }
+};
+
+
+/* ============================
+   RESET PASSWORD
+============================ */
+
+export const resetPassword = async (params: {
+  token: string;
+  newPassword: string;
+}): Promise<{ message: string }> => {
+  try {
+    const response = await api.post<{ message: string }>(
+      "/auth/reset-password",
+      params
+    );
+
+    return response.data;
+  } catch (error: any) {
+    console.error("Reset password error:", error);
+    throw error?.response?.data || error;
+  }
+};

@@ -15,7 +15,6 @@ export interface NewCustomer {
   username: string;
   email: string;
   avatar?: string | undefined;
-  
 }
 
 export interface ProductItem {
@@ -186,19 +185,19 @@ export const getDashboardNewCustomers = async (): Promise<NewCustomer[]> => {
   return mockNewCustomers;
 };
 
-
 export const getDashboardPopularProducts = async (): Promise<ProductItem[]> => {
   await new Promise((res) => setTimeout(res, 600));
   return listProducts;
 };
 
-
-export const getDashboardProductViewsLast7Days = async (): Promise<DayData[]> => {
-    await new Promise((res) => setTimeout(res, 500));
-    return mockProductViews7Days;
+export const getDashboardProductViewsLast7Days = async (): Promise<
+  DayData[]
+> => {
+  await new Promise((res) => setTimeout(res, 500));
+  return mockProductViews7Days;
 };
 
 export const getDashboardComments = async (): Promise<CommentItem[]> => {
-    await new Promise((res) => setTimeout(res, 500));
-    return mockShoeComments;
+  await new Promise((res) => setTimeout(res, 500));
+  return mockShoeComments;
 };
