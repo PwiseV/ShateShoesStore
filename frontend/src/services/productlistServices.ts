@@ -21,7 +21,7 @@ export interface ParentCategory {
 
 // 3. Cấu trúc Response của Product từ Backend
 interface BackendProductItem {
-  id: string;
+  productId: string;
   title: string;
   avatar: string;
   category?: {
@@ -66,7 +66,7 @@ export const getAllProducts = async (params?: {
     const data = response.data?.data || [];
 
     return (data as BackendProductItem[]).map((item) => ({
-      id: item.id,
+      id: item.productId,
       name: item.title,
       priceVnd: item.sizes?.[0]?.colors?.[0]?.price || 0,
       rating: item.rating || 5.0,

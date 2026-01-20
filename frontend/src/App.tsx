@@ -16,6 +16,7 @@ import Users from "./pages/Admin/Users/Users.tsx";
 import Products from "./pages/Admin/Products/Products.tsx";
 import Promotions from "./pages/Admin/Promotions/Promotions.tsx";
 import ProductList from "./pages/Costumer/ProductList/ProductList.tsx";
+import ProductDetail from "./pages/Costumer/ProductDetail/ProductDetail.tsx";
 import Posts from "./pages/Admin/Post/Posts.tsx";
 
 export default function AppRoutes() {
@@ -23,15 +24,21 @@ export default function AppRoutes() {
     <Router>
       <Suspense fallback={<div>Loading...</div>}>
         <Routes>
+          {/* --- PUBLIC ROUTES (Ai cũng vào được) --- */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Signup />} />
           <Route path="/homepage" element={<HomePage />} />
           <Route path="/admin/products" element={<Products />} />
           <Route path="/admin/promotions" element={<Promotions />} />
+          <Route
+            path="/products/details/:productid"
+            element={<ProductDetail />}
+          />
           <Route path="/admin/dashboard" element={<Dashboard />} />
           <Route path="/admin/users" element={<Users />} />
           <Route path="/products" element={<ProductList />} />
           <Route path="/products/:slug" element={<ProductList />} />
+
           <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/admin/dashboard" element={<Dashboard />} />
             <Route path="/admin/users" element={<Users />} />
@@ -43,7 +50,14 @@ export default function AppRoutes() {
           <Route element={<ProtectedRoute role="customer" />}>
             <Route path="/homepage" element={<HomePage />} />
             <Route path="/products" element={<ProductList />} />
+            <Route
+              path="/products/details/:productid/"
+              element={<ProductDetail />}
+            />
+            <Route path="/products/:slug" element={<ProductList />} />
           </Route>
+
+          <Route element={<ProtectedRoute role="customer" />}></Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
