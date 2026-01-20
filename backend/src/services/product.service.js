@@ -2,6 +2,7 @@ import Product from "../models/Product.js";
 import Category from "../models/Category.js";
 import ProductVariant from "../models/ProductVariant.js";
 import ProductVariantImage from "../models/ProductVariantImage.js";
+import Favourite from "../models/Favourite.js";
 import slugify from "slugify";
 import { uploadImageToCloudinary } from "./cloudinary.service.js";
 import { deleteImageFromCloudinary } from "./cloudinary.service.js";
@@ -208,7 +209,7 @@ export const getProducts = async ({
   return { products: formattedProducts, total };
 };
 
-export const getOneProduct = async ({ id }) => {
+export const getOneProduct = async ({ id, userId }) => {
   const product = await Product.findById(id)
     .populate({
       path: "categoryId",
@@ -219,6 +220,16 @@ export const getOneProduct = async ({ id }) => {
   if (!product) {
     throw new Error("Sản phẩm không tồn tại");
   }
+
+  let isFavourite = false;
+  if (userId) {
+    const favouriteExist = await Favourite.findOne({
+      productId: id,
+      userId: userId,
+    }).lean();
+    isFavourite = !!favouriteExist; 
+  }
+
   const variants = await ProductVariant.find({ productId: product._id })
     .populate("productVariantImageId")
     .lean();
@@ -248,6 +259,7 @@ export const getOneProduct = async ({ id }) => {
     description: product.description,
     tag: product.tag,
     slug: product.slug,
+    isFavourite: isFavourite,
     avatar: product.avatar?.url,
     category: {
       categoryId: product.categoryId?._id,

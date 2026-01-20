@@ -77,8 +77,9 @@ export const getProduct = async (req, res) => {
 export const getOneProduct = async (req, res) => {
   try {
     const { id } = req.params;
+    const userId = req.user._id;
 
-    const product = await productService.getOneProduct({ id });
+    const product = await productService.getOneProduct({ id, userId });
 
     return res.status(200).json({
       success: "Fetch product success",

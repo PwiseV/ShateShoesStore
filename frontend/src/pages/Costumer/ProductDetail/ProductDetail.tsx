@@ -15,6 +15,8 @@ import {
   type ProductReview,
   type Promotion,
   getProductDetails,
+  addToWishlist,
+  removeFromWishlist,
 } from "../../../services/productDetailsServices";
 import { useToast } from "../../../context/useToast";
 
@@ -89,16 +91,16 @@ const ProductDetail: React.FC = () => {
     return () => controller.abort();
   }, [id]);
 
-  const handleToggleLike = async () => {
+  const handleToggleLike = async (data: any) => {
     try {
-      if (!isLiked) {
-        const res = await addToWishlistFake(id);
+      if (!data.isFavourite) {
+        const res = await addToWishlist(id);
         if (res.success) {
           setIsLiked(true);
           showToast(res.message, "success");
         }
       } else {
-        const res = await removeFromWishlistFake(id);
+        const res = await removeFromWishlist(id);
         if (res.success) {
           setIsLiked(false);
           showToast(res.message, "success");
@@ -132,7 +134,6 @@ const ProductDetail: React.FC = () => {
     }
   };
 
-  if (loading) return <Box sx={{ p: 4 }}>Loading...</Box>;
   if (!product) return <Box sx={{ p: 4 }}>Không tìm thấy sản phẩm</Box>;
 
   // 1. Breadcrumbs
@@ -265,7 +266,6 @@ const ProductDetail: React.FC = () => {
           promotion={promotion}
           onSubmit={handleAddToCart}
           onBuyNow={() => console.log("Buy now")}
-          isLiked={isLiked}
           onToggleLike={handleToggleLike}
         />
 
