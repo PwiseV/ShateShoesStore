@@ -63,6 +63,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
             className="blog-title"
             variant="h6"
             sx={{
+              textAlign: "left",
               fontWeight: 800,
               fontFamily: '"Lexend", sans-serif',
               color: "#2C3E50",
