@@ -19,6 +19,7 @@ import ProductList from "./pages/Costumer/ProductList/ProductList.tsx";
 import ProductDetail from "./pages/Costumer/ProductDetail/ProductDetail.tsx";
 import Posts from "./pages/Admin/Post/Posts.tsx";
 import Orders from "./pages/Admin/Orders/Orders.tsx";
+import ReviewProduct from "./pages/Costumer/ReviewProduct/ReviewProduct.tsx";
 
 export default function AppRoutes() {
   return (
@@ -40,7 +41,7 @@ export default function AppRoutes() {
           <Route path="/products" element={<ProductList />} />
           <Route path="/products/:slug" element={<ProductList />} />
           <Route path="/admin/orders" element={<Orders />} />
-
+          <Route path="/review/:productid" element={<ReviewProduct />} />
 
           <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/admin/dashboard" element={<Dashboard />} />
@@ -59,6 +60,7 @@ export default function AppRoutes() {
               element={<ProductDetail />}
             />
             <Route path="/products/:slug" element={<ProductList />} />
+            <Route path="/review/:productid" element={<ReviewProduct />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />
