@@ -17,6 +17,7 @@ import {
   getProductDetails,
   addToWishlist,
   removeFromWishlist,
+  addToCart
 } from "../../../services/productDetailsServices";
 import { useToast } from "../../../context/useToast";
 
@@ -25,8 +26,6 @@ import {
   getProductReviewsFake,
   getProductPromotionFake,
   addToCartFake,
-  addToWishlistFake,
-  removeFromWishlistFake,
 } from "../../../services/fakeProductDetailsServices";
 
 type BreadcrumbItem = {
@@ -126,13 +125,13 @@ const ProductDetail: React.FC = () => {
       return;
     }
     try {
-      const response = await addToCartFake({
-        productId: id,
+      const response = await addToCart({
         variantId: data.variantId,
         quantity: data.quantity,
       });
       if (response.success) {
         showToast(response.message, "success");
+        
       } else {
         showToast(response.message, "error");
       }
@@ -150,7 +149,7 @@ const ProductDetail: React.FC = () => {
   if (product.category?.parent) {
     breadcrumbs.push({
       name: product.category.parent.name,
-      slug: product.category.parent.slug || "", // Fallback nếu thiếu slug
+      slug: product.category.parent.slug || "",
     });
   }
   // Kiểm tra danh mục hiện tại
@@ -239,7 +238,7 @@ const ProductDetail: React.FC = () => {
     sizeId: s.sizeId,
     size: s.size,
     colors: s.colors.map((c) => ({
-      colorId: c.colorId,
+      variantId: c.variantId,
       color: c.color,
       price: c.price,
       stock: c.stock,

@@ -16,11 +16,10 @@ export type BackendCategory = {
 };
 
 export type BackendColorVariant = {
-  colorId: string;
+  variantId: string;
   color: string;
   price: number;
   stock: number;
-  // Backend trả về avatar lúc thì string, lúc thì object -> dùng union type
   avatar?: string | { url: string; publicId: string };
 };
 
@@ -73,7 +72,6 @@ export type Promotion = {
 };
 
 export type AddToCartRequest = {
-  productId: string;
   variantId: string;
   quantity: number;
 };
@@ -141,7 +139,7 @@ export const addToCart = async (
   payload: AddToCartRequest
 ): Promise<AddToCartResponse> => {
   try {
-    const response = await api.post(`/users/cart/item`, payload);
+    const response = await api.post(`/users/cart`, payload);
     return response.data;
   } catch (error: any) {
     return {

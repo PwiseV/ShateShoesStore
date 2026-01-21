@@ -212,7 +212,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 onSubmit?.({
                   sizeId: size,
                   colorName: color,
-                  variantId: currentVariant?.colorId,
+                  variantId: currentVariant?.variantId,
                   price: displayPrice,
                   quantity,
                 })
