@@ -6,6 +6,7 @@ import Header from "../../../components/Customer/Header";
 import Footer from "../../../components/Customer/Footer";
 import BlogHero from "./components/BlogHero";
 import BlogContent from "./components/BlogContent";
+import { formatDate } from "../../Admin/Post/utils";
 
 // [MỚI] Import Services
 import { getBlogPostById } from "../../../services/blogPostServices";
@@ -97,7 +98,7 @@ const BlogPost = () => {
         <BlogHero
           title={post.title}
           author={post.author}
-          date={post.published_at} // Map 'published_at' sang 'date'
+          date={formatDate(post.published_at)} // Map 'published_at' sang 'date'
           image={post.image}
         />
 

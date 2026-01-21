@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { formatDate } from "../../../../Admin/Post/utils";
 import { type BlogPost } from "../../../../../services/blogServices";
 
 interface FeaturedStoryProps {
@@ -61,7 +62,7 @@ const FeaturedStory: React.FC<FeaturedStoryProps> = ({ data }) => {
           fontFamily: '"Lexend", sans-serif',
         }}
       >
-        {data.published_at}
+        {formatDate(data.published_at)}
       </Typography>
     </Box>
   );
