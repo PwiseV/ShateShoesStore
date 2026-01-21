@@ -19,6 +19,7 @@ import ProductList from "./pages/Costumer/ProductList/ProductList.tsx";
 import ProductDetail from "./pages/Costumer/ProductDetail/ProductDetail.tsx";
 import Posts from "./pages/Admin/Post/Posts.tsx";
 import Orders from "./pages/Admin/Orders/Orders.tsx";
+import FAQs from "./pages/Costumer/FAQs/FAQs.tsx";
 
 export default function AppRoutes() {
   return (
@@ -40,7 +41,7 @@ export default function AppRoutes() {
           <Route path="/products" element={<ProductList />} />
           <Route path="/products/:slug" element={<ProductList />} />
           <Route path="/admin/orders" element={<Orders />} />
-
+          <Route path="/faqs" element={<FAQs />} />
 
           <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/admin/dashboard" element={<Dashboard />} />
