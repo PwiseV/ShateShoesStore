@@ -39,6 +39,7 @@ export type Product = {
   avatar: string;
   category: BackendCategory;
   stock: number;
+  isFavourite: boolean;
   sizes: BackendSizeVariant[];
   tags: string[];
   rating?: {
