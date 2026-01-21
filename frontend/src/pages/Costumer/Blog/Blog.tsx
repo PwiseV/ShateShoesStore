@@ -30,7 +30,6 @@ const Blog = () => {
         <StorySection />
       </Container>
 
-      {/* Newsletter nằm full màn hình (ngoài container) */}
       {/* <Newsletter /> */}
 
       <Footer />

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, Grid, Button, CircularProgress } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import FeaturedStory from "./FeaturedStory";
 import StoryList from "./StoryList";
 
@@ -9,6 +10,7 @@ import { type BlogPost } from "../../../../../services/blogServices";
 const StorySection = () => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -61,6 +63,7 @@ const StorySection = () => {
       <Box sx={{ textAlign: "center", mt: 6 }}>
         <Button
           variant="outlined"
+          onClick={() => navigate("/blog/list")}
           sx={{
             borderRadius: "50px",
             px: 5,
