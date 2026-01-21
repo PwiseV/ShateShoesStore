@@ -19,7 +19,6 @@ import ProductList from "./pages/Customer/ProductList/ProductList.tsx";
 import ProductDetail from "./pages/Customer/ProductDetail/ProductDetail.tsx";
 import Posts from "./pages/Admin/Post/Posts.tsx";
 import CartPage from "./pages/Customer/Cart/CartPage.tsx";
-import { Check } from "@mui/icons-material";
 import CheckoutPage from "./pages/Customer/Checkout/CheckoutPage.tsx";
 import Orders from "./pages/Admin/Orders/Orders.tsx";
 
@@ -28,7 +27,7 @@ export default function AppRoutes() {
     <Router>
       <Suspense fallback={<div>Loading...</div>}>
         <Routes>
-          {/* --- PUBLIC ROUTES (Ai cũng vào được) --- */}
+
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Signup />} />
           <Route path="/homepage" element={<HomePage />} />
@@ -61,8 +60,6 @@ export default function AppRoutes() {
             />
             <Route path="/products/:slug" element={<ProductList />} />
           </Route>
-
-          <Route element={<ProtectedRoute role="customer" />}></Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
