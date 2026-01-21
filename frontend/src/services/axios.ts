@@ -52,7 +52,8 @@ api.interceptors.response.use(
 
     if (
       error.response?.status === 401 &&
-      !originalRequest._retry
+      !originalRequest._retry &&
+      !originalRequest.url?.includes("/auth")
     ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
@@ -67,7 +68,11 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const res = await api.post("/auth/refresh-token");
+        const res = await axios.post(
+          `${import.meta.env.VITE_API_URL}/auth/refresh-token`,
+          {},
+          { withCredentials: true }
+        );
         const newAccessToken = res.data.accessToken;
 
         setAccessToken(newAccessToken);

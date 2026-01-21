@@ -21,17 +21,27 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const auth = await refreshToken();
-        setUser(auth.user);
-      } catch {
+  const initAuth = async () => {
+    try {
+      // KHÔNG gọi refresh nếu không có cookie session
+      const hasSession = document.cookie.includes("refreshToken");
+      if (!hasSession) {
         setUser(null);
-      } finally {
-        setLoading(false);
+        return;
       }
-    })();
-  }, []);
+
+      const auth = await refreshToken();
+      setUser(auth.user);
+    } catch {
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  initAuth();
+}, []);
+
 
   // Logout function
   const logout = async () => {
