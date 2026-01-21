@@ -14,11 +14,9 @@ import productRoute from "./routes/product.route.js"
 import promotionRoute from "./routes/promotion.route.js"
 import favouriteRoute from "./routes/favourite.route.js"
 import addressRoute from "./routes/address.route.js"
-// import cartRoute from "./routes/cart.route.js"
+import cartRoute from "./routes/cart.route.js"
 // import orderRoute from "./routes/order.route.js"
 import postRoute from "./routes/post.route.js"
-//import cartRoute from "./routes/cart.route.js"
-//import orderRoute from "./routes/order.route.js"
 
 
 import { protectedRoute } from "./middlewares/authMiddleware.js";
@@ -44,10 +42,10 @@ app.use(express.json());
 app.use("/api/auth", authRoute);
 
 // private user routes (CẦN đăng nhập)
-app.use("/api/users", protectedRoute, userRoute, productRoute, favouriteRoute, addressRoute);
+app.use("/api/users", protectedRoute, userRoute, productRoute, favouriteRoute, addressRoute, cartRoute);
 
 // admin routes (CẦN đăng nhập + quyền admin)
-app.use("/api/admin", protectedRoute, adminOnly, adminRoute, productRoute, promotionRoute, userRoute, postRoute);
+app.use("/api/admin", protectedRoute, adminOnly, adminRoute, productRoute, promotionRoute, userRoute, postRoute, adminOrderRoute);
 
 
 

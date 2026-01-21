@@ -18,8 +18,9 @@ import Promotions from "./pages/Admin/Promotions/Promotions.tsx";
 import ProductList from "./pages/Costumer/ProductList/ProductList.tsx";
 import ProductDetail from "./pages/Costumer/ProductDetail/ProductDetail.tsx";
 import Posts from "./pages/Admin/Post/Posts.tsx";
-
 import Orders from "./pages/Admin/Orders/Orders.tsx";
+
+
 // forgot password components
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword/ResetPassword";
@@ -44,6 +45,8 @@ export default function AppRoutes() {
           <Route path="/admin/users" element={<Users />} />
           <Route path="/products" element={<ProductList />} />
           <Route path="/products/:slug" element={<ProductList />} />
+          <Route path="/admin/orders" element={<Orders />} />
+
 
           <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/admin/dashboard" element={<Dashboard />} />
@@ -51,6 +54,7 @@ export default function AppRoutes() {
             <Route path="/admin/products" element={<Products />} />
             <Route path="/admin/promotions" element={<Promotions />} />
             <Route path="/admin/posts" element={<Posts />} />
+            <Route path="/admin/orders" element={<Orders />} />
           </Route>
 
           <Route element={<ProtectedRoute role="customer" />}>
@@ -62,8 +66,6 @@ export default function AppRoutes() {
             />
             <Route path="/products/:slug" element={<ProductList />} />
           </Route>
-
-          <Route element={<ProtectedRoute role="customer" />}></Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

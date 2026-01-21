@@ -171,6 +171,7 @@ export const getProducts = async ({
           };
         }
         sizesMap[v.size].colors.push({
+          variantId: v._id,
           color: v.color,
           price: v.price,
           stock: v.stock,
@@ -246,6 +247,7 @@ export const getOneProduct = async ({ id, userId }) => {
       };
     }
     sizesMap[v.size].colors.push({
+      variantId: v._id,
       color: v.color,
       price: v.price,
       stock: v.stock,

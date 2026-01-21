@@ -17,6 +17,7 @@ import {
   getProductDetails,
   addToWishlist,
   removeFromWishlist,
+  addToCart
 } from "../../../services/productDetailsServices";
 import { useToast } from "../../../context/useToast";
 
@@ -25,8 +26,6 @@ import {
   getProductReviewsFake,
   getProductPromotionFake,
   addToCartFake,
-  addToWishlistFake,
-  removeFromWishlistFake,
 } from "../../../services/fakeProductDetailsServices";
 
 type BreadcrumbItem = {
@@ -52,12 +51,14 @@ const ProductDetail: React.FC = () => {
   const [reviews, setReviews] = useState<ProductReview[]>([]);
   const [promotion, setPromotion] = useState<Promotion | null>(null);
   const [isLiked, setIsLiked] = useState(false);
+  const [likeState, setLikeState] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const { showToast } = useToast();
   const isDev = import.meta.env?.DEV ?? true;
   if (!id && isDev) id = "demo-001";
 
+  // --- SỬA LẠI USEEFFECT ---
   useEffect(() => {
     if (!id) {
       setLoading(false);
@@ -67,15 +68,9 @@ const ProductDetail: React.FC = () => {
     (async () => {
       try {
         setLoading(true);
-        // Gọi API thật
-        try {
-          const data = await getProductDetails(id, controller.signal);
-          setProduct(data);
-        } catch (e) {
-          console.warn("API Product lỗi, kiểm tra lại Backend");
-        }
-
-        // Gọi các API phụ
+        const data = await getProductDetails(id, controller.signal);
+        setProduct(data);
+        setIsLiked(data.isFavourite);
         const [reviewsData, promoData] = await Promise.all([
           getProductReviewsFake(id),
           getProductPromotionFake(id),
@@ -83,32 +78,44 @@ const ProductDetail: React.FC = () => {
         setReviews(reviewsData);
         setPromotion(promoData);
       } catch (err) {
-        console.error(err);
+        if (err.name !== "AbortError") console.error(err);
       } finally {
         setLoading(false);
       }
     })();
     return () => controller.abort();
-  }, [id]);
+  }, [id, likeState]);
 
-  const handleToggleLike = async (data: any) => {
+  const handleToggleLike = async () => {
+    const previousLiked = isLiked;
     try {
-      if (!data.isFavourite) {
-        const res = await addToWishlist(id);
-        if (res.success) {
-          setIsLiked(true);
+      if (isLiked) {
+        setIsLiked(false);
+        const res = await removeFromWishlist(id);
+        if (!res) {
+          setIsLiked(previousLiked);
+          
+          showToast(res.message || "Lỗi", "error");
+        } else {
+          setLikeState(previousLiked);
           showToast(res.message, "success");
         }
       } else {
-        const res = await removeFromWishlist(id);
-        if (res.success) {
-          setIsLiked(false);
+        setIsLiked(true);
+        const res = await addToWishlist(id);
+        if (!res) {
+          setIsLiked(previousLiked);
+          
+          showToast(res.message || "Lỗi", "error");
+        } else {
+          setLikeState(previousLiked);
           showToast(res.message, "success");
         }
       }
     } catch (error) {
+      setIsLiked(previousLiked);
       console.error(error);
-      showToast("Lỗi cập nhật yêu thích", "error");
+      showToast("Lỗi kết nối", "error");
     }
   };
 
@@ -118,13 +125,13 @@ const ProductDetail: React.FC = () => {
       return;
     }
     try {
-      const response = await addToCartFake({
-        productId: id,
+      const response = await addToCart({
         variantId: data.variantId,
         quantity: data.quantity,
       });
       if (response.success) {
         showToast(response.message, "success");
+        
       } else {
         showToast(response.message, "error");
       }
@@ -142,7 +149,7 @@ const ProductDetail: React.FC = () => {
   if (product.category?.parent) {
     breadcrumbs.push({
       name: product.category.parent.name,
-      slug: product.category.parent.slug || "", // Fallback nếu thiếu slug
+      slug: product.category.parent.slug || "",
     });
   }
   // Kiểm tra danh mục hiện tại
@@ -200,8 +207,8 @@ const ProductDetail: React.FC = () => {
     product.tags && product.tags.length > 0
       ? product.tags
       : product.category?.name
-      ? [product.category.name]
-      : [];
+        ? [product.category.name]
+        : [];
 
   // 5. Sizes & Colors
   const uiSizes = product.sizes.map((s) => ({
@@ -222,7 +229,7 @@ const ProductDetail: React.FC = () => {
           swatch: COLOR_MAP[colorKey] || "#cccccc",
         });
       }
-    })
+    }),
   );
   const uiColors = Array.from(uniqueColorsMap.values());
 
@@ -231,7 +238,7 @@ const ProductDetail: React.FC = () => {
     sizeId: s.sizeId,
     size: s.size,
     colors: s.colors.map((c) => ({
-      colorId: c.colorId,
+      variantId: c.variantId,
       color: c.color,
       price: c.price,
       stock: c.stock,
@@ -266,6 +273,7 @@ const ProductDetail: React.FC = () => {
           promotion={promotion}
           onSubmit={handleAddToCart}
           onBuyNow={() => console.log("Buy now")}
+          isLiked={isLiked}
           onToggleLike={handleToggleLike}
         />
 
