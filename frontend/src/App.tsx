@@ -19,6 +19,8 @@ import ProductList from "./pages/Customer/ProductList/ProductList.tsx";
 import ProductDetail from "./pages/Customer/ProductDetail/ProductDetail.tsx";
 import Posts from "./pages/Admin/Post/Posts.tsx";
 import CartPage from "./pages/Customer/Cart/CartPage.tsx";
+import { Check } from "@mui/icons-material";
+import CheckoutPage from "./pages/Customer/Checkout/CheckoutPage.tsx";
 
 export default function AppRoutes() {
   return (
@@ -36,6 +38,7 @@ export default function AppRoutes() {
           <Route path="/cart" element={<CartPage />} />
           <Route path="/products" element={<ProductList />} />
           <Route path="/products/:slug" element={<ProductList />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
 
           <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/admin/dashboard" element={<Dashboard />} />

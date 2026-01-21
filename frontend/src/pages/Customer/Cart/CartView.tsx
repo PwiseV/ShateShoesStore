@@ -54,6 +54,7 @@ const CartView = ({
       onUpdateVariant={updateVariant}
     />
     <CartSummary
+      items={items.filter(i => i.selected)}
       total={total}
       discount={discount}
       finalTotal={finalTotal}

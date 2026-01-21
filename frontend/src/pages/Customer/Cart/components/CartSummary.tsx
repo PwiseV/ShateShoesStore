@@ -8,16 +8,17 @@ import {
   Divider,
   Snackbar,
   Alert,
-  Chip,
   IconButton,
-  InputAdornment,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import ConfirmationNumberIcon from "@mui/icons-material/ConfirmationNumber"; // Icon vé
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import type { CartItem } from "../types";
 
 interface Props {
+  items: CartItem[];
   total: number;
   discount: number;
   finalTotal: number;
@@ -32,6 +33,7 @@ interface Props {
 }
 
 const CartSummary = ({
+  items,
   total,
   discount,
   finalTotal,
@@ -46,6 +48,7 @@ const CartSummary = ({
     "success" | "error" | "info"
   >("success");
   const [snackbarMessage, setSnackbarMessage] = useState("");
+  const navigate = useNavigate();
 
   const handleApply = async () => {
     if (!couponCode.trim()) {
@@ -294,6 +297,17 @@ const CartSummary = ({
               },
               textTransform: "none",
             }}
+            disabled={items.length === 0}
+            onClick={() => {
+                navigate("/checkout", {
+                  state: {
+                    items,
+                    total,
+                    discount,
+                    finalTotal,
+                  },
+                });
+              }}
           >
             Đặt hàng
           </Button>
