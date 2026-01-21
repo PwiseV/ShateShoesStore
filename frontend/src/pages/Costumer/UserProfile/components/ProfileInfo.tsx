@@ -35,10 +35,10 @@ const ProfileInfo = () => {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
 
-  // Lấy UserID (Ví dụ lấy từ localStorage hoặc Context)
-  // Bạn cần đảm bảo logic lấy ID này đúng với cách app bạn đang hoạt động
+  // [LƯU Ý] Vì API dùng /users/profile (dựa trên Token) nên không cần dùng currentUserId để gọi API nữa.
+  // Tuy nhiên vẫn giữ biến này nếu bạn cần dùng cho logic khác (như check role, v.v...)
   const currentUserId =
-    localStorage.getItem("userId") || "69206c045dee2bcc7351a962"; // Fallback ID ví dụ
+    localStorage.getItem("userId") || "69206c045dee2bcc7351a962";
 
   const [userData, setUserData] = useState<UserProfile | null>(null);
 
@@ -51,8 +51,9 @@ const ProfileInfo = () => {
   // --- 1. HÀM FETCH DATA ---
   const fetchUserProfile = useCallback(async () => {
     try {
-      if (!userData) setLoading(true); // Chỉ hiện loading lần đầu hoặc khi cần thiết
-      const data = await getUserProfile(currentUserId);
+      if (!userData) setLoading(true);
+      // [SỬA LỖI 1] Bỏ tham số currentUserId, vì service getUserProfile không nhận tham số nào
+      const data = await getUserProfile();
       setUserData(data);
     } catch (error) {
       showToast("Lỗi tải thông tin người dùng", "error");
@@ -60,7 +61,7 @@ const ProfileInfo = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentUserId, showToast]);
+  }, [showToast]); // Bỏ currentUserId khỏi dependency
 
   useEffect(() => {
     fetchUserProfile();
@@ -69,12 +70,12 @@ const ProfileInfo = () => {
   // --- 2. XỬ LÝ CẬP NHẬT PROFILE ---
   const handleUpdateProfile = async (newData: ProfileData) => {
     try {
-      // Backend yêu cầu formData, service đã xử lý việc này
-      await updateUserProfile(currentUserId, {
-        displayName: newData.displayName, // Mapping đúng field
+      // [SỬA LỖI 2] Bỏ tham số currentUserId, chỉ truyền object data
+      await updateUserProfile({
+        displayName: newData.displayName,
         phone: newData.phone,
         username: newData.username,
-        avatar: newData.avatar, // File hoặc URL string
+        avatar: newData.avatar,
       });
 
       showToast("Cập nhật thông tin thành công", "success");
@@ -82,13 +83,11 @@ const ProfileInfo = () => {
       setOpenModal(false);
     } catch (error) {
       showToast("Cập nhật thất bại", "error");
+      console.error(error);
     }
   };
 
-  // --- 3. XỬ LÝ ĐỊA CHỈ ---
-  // Lưu ý: Sau khi Thêm/Sửa/Xóa địa chỉ, ta gọi lại fetchUserProfile()
-  // để lấy danh sách địa chỉ mới nhất được cập nhật trong User Object.
-
+  // --- 3. XỬ LÝ ĐỊA CHỈ (Giữ nguyên) ---
   const handleAddNewAddress = async (newAddr: AddressFormState) => {
     try {
       await addUserAddress({
@@ -101,7 +100,7 @@ const ProfileInfo = () => {
       });
 
       showToast("Thêm địa chỉ thành công", "success");
-      fetchUserProfile(); // Refresh data
+      fetchUserProfile();
       setOpenAddModal(false);
     } catch (error) {
       showToast("Thêm địa chỉ thất bại", "error");
@@ -135,10 +134,10 @@ const ProfileInfo = () => {
   const handleDeleteAddress = async () => {
     if (!selectedAddress) return;
     try {
-      await deleteUserAddress(selectedAddress.addressId); // Dùng addressId
+      await deleteUserAddress(selectedAddress.addressId);
 
       showToast("Xóa địa chỉ thành công", "success");
-      fetchUserProfile(); // Refresh data
+      fetchUserProfile();
       setOpenAddressModal(false);
     } catch (error) {
       showToast("Xóa địa chỉ thất bại", "error");
@@ -163,6 +162,7 @@ const ProfileInfo = () => {
 
   return (
     <Box sx={{ width: "100%", pl: { md: 4 } }}>
+      {/* ... (Phần UI Render giữ nguyên như cũ) ... */}
       <Box sx={{ mb: 3 }}>
         <Typography
           variant="h4"
@@ -208,8 +208,7 @@ const ProfileInfo = () => {
               }}
             >
               <InfoRow label="Username" value={userData.username} />
-              <InfoRow label="Name" value={userData.displayName} />{" "}
-              {/* Dùng displayName */}
+              <InfoRow label="Name" value={userData.displayName} />
               <InfoRow label="Email" value={userData.email} />
               <InfoRow label="Phone number" value={userData.phone} />
               <InfoRow label="Orders" value={userData.orderCount.toString()} />
@@ -282,7 +281,7 @@ const ProfileInfo = () => {
           {userData.addresses &&
             userData.addresses.map((addr) => (
               <Box
-                key={addr.addressId} // Dùng addressId
+                key={addr.addressId}
                 onClick={() => handleAddressClick(addr)}
                 sx={{
                   bgcolor: "white",
@@ -299,7 +298,6 @@ const ProfileInfo = () => {
                   },
                 }}
               >
-                {/* Hiển thị chuỗi Address từ Backend hoặc tự ghép */}
                 <Typography
                   sx={{ fontWeight: 700, color: "#2C3E50", fontSize: "0.9rem" }}
                 >
@@ -344,7 +342,7 @@ const ProfileInfo = () => {
         onClose={() => setOpenModal(false)}
         initialData={{
           username: userData.username,
-          displayName: userData.displayName, // Map đúng
+          displayName: userData.displayName,
           phone: userData.phone,
           avatar: userData.avatar,
         }}
@@ -354,8 +352,6 @@ const ProfileInfo = () => {
       <UpdateAddressModal
         open={openAddressModal}
         onClose={() => setOpenAddressModal(false)}
-        // Truyền chuỗi địa chỉ để modal hiển thị hoặc tự parse lại trong modal
-        // Vì Modal này đang parse chuỗi string, ta nên truyền Address string từ backend
         addressString={selectedAddress?.Address || ""}
         isDefault={selectedAddress?.isDefault || false}
         onDelete={handleDeleteAddress}
