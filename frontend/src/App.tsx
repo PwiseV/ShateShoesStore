@@ -9,15 +9,18 @@ import "./App.css";
 
 import ProtectedRoute from "./routes/protectedRoutes.tsx";
 import Dashboard from "./pages/Admin/Dashboard/Dashboard.tsx";
-import HomePage from "./pages/Costumer/Homepage/Homepage.tsx";
+import HomePage from "./pages/Customer/Homepage/Homepage.tsx";
 import Login from "./pages/Signin/SigninForm.tsx";
 import Signup from "./pages/Signup/SignupForm";
 import Users from "./pages/Admin/Users/Users.tsx";
 import Products from "./pages/Admin/Products/Products.tsx";
 import Promotions from "./pages/Admin/Promotions/Promotions.tsx";
-import ProductList from "./pages/Costumer/ProductList/ProductList.tsx";
-import ProductDetail from "./pages/Costumer/ProductDetail/ProductDetail.tsx";
+import ProductList from "./pages/Customer/ProductList/ProductList.tsx";
+import ProductDetail from "./pages/Customer/ProductDetail/ProductDetail.tsx";
 import Posts from "./pages/Admin/Post/Posts.tsx";
+import CartPage from "./pages/Customer/Cart/CartPage.tsx";
+import { Check } from "@mui/icons-material";
+import CheckoutPage from "./pages/Customer/Checkout/CheckoutPage.tsx";
 import Orders from "./pages/Admin/Orders/Orders.tsx";
 
 export default function AppRoutes() {
@@ -29,18 +32,16 @@ export default function AppRoutes() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Signup />} />
           <Route path="/homepage" element={<HomePage />} />
-          <Route path="/admin/products" element={<Products />} />
-          <Route path="/admin/promotions" element={<Promotions />} />
           <Route
             path="/products/details/:productid"
             element={<ProductDetail />}
           />
-          <Route path="/admin/dashboard" element={<Dashboard />} />
-          <Route path="/admin/users" element={<Users />} />
+          <Route path="/users/cart" element={<CartPage />} />
           <Route path="/products" element={<ProductList />} />
           <Route path="/products/:slug" element={<ProductList />} />
           <Route path="/admin/orders" element={<Orders />} />
 
+          <Route path="/checkout" element={<CheckoutPage />} />
 
           <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/admin/dashboard" element={<Dashboard />} />
@@ -60,6 +61,8 @@ export default function AppRoutes() {
             />
             <Route path="/products/:slug" element={<ProductList />} />
           </Route>
+
+          <Route element={<ProtectedRoute role="customer" />}></Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

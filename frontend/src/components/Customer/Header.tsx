@@ -79,7 +79,7 @@ const Header: React.FC = () => {
 
         {/* ICONS */}
         <Box sx={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-          <IconButton aria-label="Open cart" sx={{ color: "#627D98" }}>
+          <IconButton component={Link} to="/cart" aria-label="Open cart" sx={{ color: "#627D98" }}>
             <ShoppingBagIcon fontSize="small"/>
           </IconButton>
 
