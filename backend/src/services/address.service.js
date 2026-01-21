@@ -89,47 +89,49 @@ export const updateUserAddress = async (
   userId,
   { street, ward, district, city, country, isDefault }
 ) => {
-  const user = await User.findById(userId);
-  if (!user) throw new Error("USER_NOT_FOUND");
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  const currentAddress = await Address.findOne({ _id: addressId, userId });
-  if (!currentAddress) throw new Error("ADDRESS_NOT_FOUND");
+  try {
+    const user = await User.findById(userId).session(session);
+    if (!user) throw new Error("USER_NOT_FOUND");
 
-  let finalIsDefault = isDefault;
+    const currentAddress = await Address.findOne({ _id: addressId, userId }).session(session);
+    if (!currentAddress) throw new Error("ADDRESS_NOT_FOUND");
 
-  if (finalIsDefault === true) {
-    await Address.updateMany(
-      { userId: userId, _id: { $ne: addressId } },
-      { $set: { isDefault: false } }
-    );
-  } else {
-    if (currentAddress.isDefault === true) {
-      throw new Error("CANNOT_UNSET_DEFAULT_ADDRESS");
-    }
+    let finalIsDefault = isDefault === true;
+
+    if (finalIsDefault) {
+      await Address.updateMany(
+        { userId: userId, _id: { $ne: addressId } },
+        { $set: { isDefault: false } },
+        { session }
+      );
+    } 
+    const updatedAddress = await Address.findByIdAndUpdate(
+      addressId,
+      { street, ward, district, city, country, isDefault: finalIsDefault },
+      { new: true, runValidators: true, session } // Thêm session vào đây
+    ).lean();
+
+    await session.commitTransaction();
+
+    return {
+      addressId: updatedAddress._id,
+      street: updatedAddress.street,
+      ward: updatedAddress.ward,
+      district: updatedAddress.district,
+      city: updatedAddress.city,
+      country: updatedAddress.country,
+      isDefault: updatedAddress.isDefault,
+      fullAddress: `${updatedAddress.street}, ${updatedAddress.ward}, ${updatedAddress.district}, ${updatedAddress.city}`,
+    };
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
   }
-  const updatedAddress = await Address.findByIdAndUpdate(
-    addressId,
-    {
-      street,
-      ward,
-      district,
-      city,
-      country,
-      isDefault: finalIsDefault,
-    },
-    { new: true, runValidators: true }
-  ).lean();
-
-  return {
-    addressId: updatedAddress._id,
-    street: updatedAddress.street,
-    ward: updatedAddress.ward,
-    district: updatedAddress.district,
-    city: updatedAddress.city,
-    country: updatedAddress.country,
-    isDefault: updatedAddress.isDefault,
-    Address: `${updatedAddress.street}, ${updatedAddress.ward}, ${updatedAddress.district}, ${updatedAddress.city}`,
-  };
 };
 
 export const deleteUserAddress = async (addressId, userId) => {

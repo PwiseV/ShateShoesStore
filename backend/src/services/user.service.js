@@ -33,7 +33,7 @@ export const getUsers = async ({
 
   const rawUsers = await User.aggregate([
     { $match: filter },
-    { $sort: sortCriteria},
+    { $sort: sortCriteria },
     { $skip: skip },
     { $limit: limit },
     {
@@ -41,13 +41,13 @@ export const getUsers = async ({
         from: "addresses",
         localField: "_id",
         foreignField: "userId",
-        as: "userAddresses"
-      }
+        as: "userAddresses",
+      },
     },
     {
-      $project: { hashedPassword: 0 }
-    }
-  ])
+      $project: { hashedPassword: 0 },
+    },
+  ]);
 
   const total = await User.countDocuments(filter);
 
@@ -65,7 +65,7 @@ export const getUsers = async ({
     totalSpent: 300000000,
     addresses: (user.userAddresses || [])
       .sort((a, b) => (a.isDefault === b.isDefault ? 0 : a.isDefault ? -1 : 1))
-      .map(addr => ({
+      .map((addr) => ({
         addressId: addr._id,
         isDefault: addr.isDefault,
         street: addr.street,
@@ -73,18 +73,18 @@ export const getUsers = async ({
         district: addr.district,
         city: addr.city,
         country: addr.country,
-        Address: `${addr.street}, ${addr.ward}, ${addr.district}, ${addr.city}, ${addr.country}`
-      }))
+        Address: `${addr.street}, ${addr.ward}, ${addr.district}, ${addr.city}, ${addr.country}`,
+      })),
   }));
 
   return { users, total };
 };
 
-export const getUser = async (id) => {
+export const getUser = async ({ id }) => {
   if (!id) throw new Error("USER_ID_REQUIRED");
   const [user, rawAddresses] = await Promise.all([
     User.findById(id).select("-hashedPassword").lean(),
-    Address.find({ userId: id }).sort({ isDefault: -1, createdAt: -1 }).lean()
+    Address.find({ userId: id }).sort({ isDefault: -1, createdAt: -1 }).lean(),
   ]);
   if (!user) throw new Error("USER_NOT_FOUND");
 
@@ -100,7 +100,7 @@ export const getUser = async (id) => {
     avatar: user.avatar?.url || null,
     orderCount: 5,
     totalSpent: 300000000,
-    addresses: rawAddresses.map(addr => ({
+    addresses: rawAddresses.map((addr) => ({
       addressId: addr._id,
       isDefault: addr.isDefault,
       street: addr.street,
@@ -108,20 +108,20 @@ export const getUser = async (id) => {
       district: addr.district,
       city: addr.city,
       country: addr.country,
-      Address: `${addr.street}, ${addr.ward}, ${addr.district}, ${addr.city}, ${addr.country}`
-    }))
+      Address: `${addr.street}, ${addr.ward}, ${addr.district}, ${addr.city}, ${addr.country}`,
+    })),
   };
 };
 
 export const updateUser = async (
   id,
-  { email, displayName, phone, role, status },
-  fileBuffer
+  { username, displayName, phone, role, status },
+  fileBuffer,
 ) => {
   if (!id) throw new Error("USER_ID_REQUIRED");
 
   const updateData = {
-    email,
+    username,
     displayName,
     phone,
     role,
@@ -131,9 +131,9 @@ export const updateUser = async (
   if (fileBuffer) {
     const imageResult = await uploadImageToCloudinary(
       fileBuffer.buffer,
-      "users"
+      "users",
     );
-    
+
     updateData.avatar = {
       url: imageResult.url,
       publicId: imageResult.publicId,
@@ -143,7 +143,7 @@ export const updateUser = async (
   const updatedUser = await User.findByIdAndUpdate(
     id,
     { $set: updateData },
-    { new: true, runValidators: true }
+    { new: true, runValidators: true },
   )
     .select("-password -hashedPassword")
     .lean();
