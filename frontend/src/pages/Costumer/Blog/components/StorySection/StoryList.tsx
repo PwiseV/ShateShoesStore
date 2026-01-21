@@ -1,27 +1,36 @@
 import React from "react";
 import { Box, Typography } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import { type BlogPost } from "../../../../../services/blogServices";
 
-// [MỚI] Định nghĩa Props
 interface StoryListProps {
   data: BlogPost[];
 }
 
 const StoryList: React.FC<StoryListProps> = ({ data }) => {
+  const navigate = useNavigate();
+
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
-      {/* Map qua mảng data nhận được từ props */}
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
       {data.map((story) => (
         <Box
           key={story.id}
-          sx={{ display: "flex", gap: 2, alignItems: "center" }}
+          onClick={() => navigate(`/blog/${story.id}`)}
+          sx={{
+            display: "flex",
+            gap: 2,
+            alignItems: "center",
+            cursor: "pointer",
+            transition: "0.2s",
+            "&:hover": { transform: "translateX(5px)" },
+          }}
         >
           <Box
             component="img"
             src={story.thumbnail}
             sx={{
-              width: 100,
-              height: 100,
+              width: 150,
+              height: 135,
               borderRadius: "12px",
               objectFit: "cover",
               flexShrink: 0,

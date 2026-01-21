@@ -45,7 +45,7 @@ export default function AppRoutes() {
           <Route path="/admin/users" element={<Users />} />
           <Route path="/products" element={<ProductList />} />
           <Route path="/products/:slug" element={<ProductList />} />
-           <Route path="/blog" element={<BlogPage />} />
+          <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:postid" element={<BlogPost />} />
           <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/admin/dashboard" element={<Dashboard />} />
@@ -63,6 +63,8 @@ export default function AppRoutes() {
               element={<ProductDetail />}
             />
             <Route path="/products/:slug" element={<ProductList />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/:postid" element={<BlogPost />} />
           </Route>
 
           <Route element={<ProtectedRoute role="customer" />}></Route>

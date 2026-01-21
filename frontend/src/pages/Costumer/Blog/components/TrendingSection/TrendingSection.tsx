@@ -4,28 +4,23 @@ import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import TrendingCard from "./TrendingCard";
 
-// [MỚI] Import Service và Type
 import { getTrendingProducts } from "../../../../../services/blogServices";
-// import { getTrendingProducts } from "../../../../../services/blogServices";
 import { type Product } from "../../../../../services/blogServices";
 
 const TrendingSection = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // [MỚI] State lưu dữ liệu và trạng thái loading
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // State cho nút cuộn
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
-  // [MỚI] Gọi API khi component load
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const data = await getTrendingProducts(6); // Lấy 6 sản phẩm
+        const data = await getTrendingProducts(6);
         setProducts(data);
       } catch (error) {
         console.error("Failed to fetch trending products", error);
@@ -36,7 +31,6 @@ const TrendingSection = () => {
     fetchData();
   }, []);
 
-  // Hàm kiểm tra vị trí cuộn (Giữ nguyên logic cũ)
   const checkForScrollPosition = () => {
     const { current } = scrollContainerRef;
     if (current) {
@@ -46,12 +40,11 @@ const TrendingSection = () => {
     }
   };
 
-  // Cập nhật lại useEffect để lắng nghe sự thay đổi của products
   useEffect(() => {
     checkForScrollPosition();
     window.addEventListener("resize", checkForScrollPosition);
     return () => window.removeEventListener("resize", checkForScrollPosition);
-  }, [products]); // Thêm products vào dependency
+  }, [products]);
 
   const handleScroll = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {
@@ -127,11 +120,17 @@ const TrendingSection = () => {
               <Box
                 key={item.id}
                 sx={{
-                  minWidth: { xs: "140px", md: "150px" },
+                  width: { xs: "220px", md: "280px" },
+                  minWidth: { xs: "220px", md: "280px" },
+                  maxWidth: { xs: "220px", md: "280px" },
                   flex: "0 0 auto",
                 }}
               >
-                <TrendingCard name={item.name} image={item.image} />
+                <TrendingCard
+                  id={item.id}
+                  name={item.name}
+                  image={item.image}
+                />
               </Box>
             ))}
           </Box>

@@ -1,23 +1,30 @@
 import React from "react";
 import { Box, Typography } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import { type BlogPost } from "../../../../../services/blogServices";
-// import { type BlogPost } from "../../../../../services/blogServices";
 
-// [MỚI] Định nghĩa Props
 interface FeaturedStoryProps {
   data: BlogPost;
 }
 
 const FeaturedStory: React.FC<FeaturedStoryProps> = ({ data }) => {
+  const navigate = useNavigate();
+
   return (
-    <Box>
+    <Box
+      onClick={() => navigate(`/blog/${data.id}`)}
+      sx={{
+        cursor: "pointer",
+        "&:hover": { opacity: 0.9 },
+      }}
+    >
       <Box
         component="img"
-        src={data.thumbnail} // Dùng data từ props
+        src={data.thumbnail}
         alt={data.title}
         sx={{
           width: "100%",
-          height: 350,
+          height: 450,
           objectFit: "cover",
           borderRadius: "12px",
           mb: 3,
