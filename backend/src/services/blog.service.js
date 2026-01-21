@@ -64,3 +64,45 @@ export const getBlogPostDetailById = async (id) => {
     content: post.content,
   };
 };
+
+/**
+ * BLOG LIST (PUBLIC)
+ * - status = active
+ * - pagination
+ * - search by title
+ */
+export const getBlogList = async ({ page, limit, search }) => {
+  const filter = {
+    status: "active",
+  };
+
+  if (search) {
+    filter.title = { $regex: search, $options: "i" };
+  }
+
+  const skip = (page - 1) * limit;
+
+  const [posts, total] = await Promise.all([
+    Post.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    Post.countDocuments(filter),
+  ]);
+
+  return {
+    data: posts.map((p) => ({
+      id: p._id,
+      title: p.title,
+      slug: p.slug,
+      thumbnail: p.thumbnail?.url || "",
+      category: p.category,
+      createdAt: p.createdAt,
+      excerpt: p.content.slice(0, 120) + "...",
+    })),
+    total,
+    currentPage: page,
+    totalPages: Math.ceil(total / limit),
+  };
+};

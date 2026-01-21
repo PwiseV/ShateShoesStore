@@ -15,7 +15,7 @@ import BlogCard from "./components/BlogCard";
 import BlogSearch from "./components/BlogSearch";
 
 // Import Services
-import { getBlogList } from "../../../services/fakeBlogListServices";
+import { getBlogList } from "../../../services/blogListServices";
 import type { BlogPost } from "../../../services/blogServices";
 
 const BlogList = () => {
