@@ -8,6 +8,7 @@ import { connectDB } from './libs/db.js';
 import "./config/cloudinary.js";
 import authRoute from './routes/auth.route.js'
 import adminRoute from "./routes/admin.route.js";
+import adminOrderRoute from "./routes/adminOrder.route.js"
 import userRoute from "./routes/user.route.js";
 import productRoute from "./routes/product.route.js"
 import promotionRoute from "./routes/promotion.route.js"
@@ -48,6 +49,7 @@ app.use("/api/users", protectedRoute, userRoute, productRoute, favouriteRoute, a
 // admin routes (CẦN đăng nhập + quyền admin)
 app.use("/api/admin", protectedRoute, adminOnly, adminRoute, productRoute, promotionRoute, userRoute, postRoute);
 
+app.use("/api/admin",  adminRoute, productRoute, promotionRoute, adminOrderRoute);
 
 
 
