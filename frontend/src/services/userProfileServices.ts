@@ -64,11 +64,10 @@ export interface AddressDTO {
  * Lấy thông tin chi tiết user (bao gồm cả addresses)
  */
 export const getUserProfile = async (
-  userId: string | number,
 ): Promise<UserProfile> => {
   // Gọi API
   const response = await api.get<ApiResponse<UserProfile>>(
-    `/users/users/${userId}`,
+    `/users/profile`,
   );
   // Trả về object UserProfile nằm trong data
   return response.data.data;
@@ -79,7 +78,6 @@ export const getUserProfile = async (
  * Cập nhật thông tin User (dùng FormData để upload ảnh)
  */
 export const updateUserProfile = async (
-  userId: string | number,
   data: UpdateProfileDTO,
 ): Promise<UserProfile> => {
   const formData = new FormData();
@@ -92,7 +90,7 @@ export const updateUserProfile = async (
   }
 
   const response = await api.patch<ApiResponse<UserProfile>>(
-    `/users/users/${userId}`,
+    `/users/profile`,
     formData,
     {
       headers: { "Content-Type": "multipart/form-data" },

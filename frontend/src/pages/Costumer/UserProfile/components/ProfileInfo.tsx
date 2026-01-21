@@ -255,7 +255,7 @@ const ProfileInfo = () => {
                   "&:hover": { bgcolor: "#f5f5f5" },
                 }}
               >
-                Cập nhật hồ sơ
+                Cập nhập hồ sơ
               </Button>
             </Box>
           </Grid>
