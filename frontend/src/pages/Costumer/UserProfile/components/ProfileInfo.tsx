@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Typography,
@@ -9,17 +9,16 @@ import {
   CircularProgress,
 } from "@mui/material";
 
-// Import các Modal
+// Import Modals
 import UpdateProfileModal, { type ProfileData } from "./UpdateProfileModal";
 import UpdateAddressModal, {
   type AddressFormState as UpdateAddressState,
 } from "./UpdateAddressModal";
 import AddAddressModal, { type AddressFormState } from "./AddAddressModal";
 
-// Import useToast
 import { useToast } from "../../../../context/useToast";
 
-// [QUAN TRỌNG] Đã đổi sang import từ userProfileServices (Real API)
+// Import Services
 import {
   getUserProfile,
   updateUserProfile,
@@ -27,8 +26,6 @@ import {
   updateUserAddress,
   deleteUserAddress,
 } from "../../../../services/userProfileServices";
-
-// Import Types
 import type {
   UserProfile,
   Address,
@@ -38,76 +35,63 @@ const ProfileInfo = () => {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
 
-  // Khởi tạo state
-  const [userData, setUserData] = useState<UserProfile>({
-    username: "",
-    name: "",
-    email: "",
-    phone: "",
-    avatar: "",
-    addresses: [],
-  });
+  // Lấy UserID (Ví dụ lấy từ localStorage hoặc Context)
+  // Bạn cần đảm bảo logic lấy ID này đúng với cách app bạn đang hoạt động
+  const currentUserId =
+    localStorage.getItem("userId") || "69206c045dee2bcc7351a962"; // Fallback ID ví dụ
 
-  const [addressList, setAddressList] = useState<Address[]>([]);
+  const [userData, setUserData] = useState<UserProfile | null>(null);
 
   // Modal States
   const [openModal, setOpenModal] = useState(false);
   const [openAddressModal, setOpenAddressModal] = useState(false);
   const [openAddModal, setOpenAddModal] = useState(false);
-
-  // Selected Address State
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
 
-  // --- 1. FETCH DATA KHI MOUNT ---
+  // --- 1. HÀM FETCH DATA ---
+  const fetchUserProfile = useCallback(async () => {
+    try {
+      if (!userData) setLoading(true); // Chỉ hiện loading lần đầu hoặc khi cần thiết
+      const data = await getUserProfile(currentUserId);
+      setUserData(data);
+    } catch (error) {
+      showToast("Lỗi tải thông tin người dùng", "error");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentUserId, showToast]);
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const data = await getUserProfile();
-
-        // Kiểm tra dữ liệu trả về có đúng format không
-        if (data) {
-          setUserData(data);
-          setAddressList(data.addresses || []); // Fallback nếu addresses null
-        }
-      } catch (error) {
-        showToast("Lỗi tải thông tin người dùng", "error");
-        console.error("Fetch Error:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [showToast]);
+    fetchUserProfile();
+  }, [fetchUserProfile]);
 
   // --- 2. XỬ LÝ CẬP NHẬT PROFILE ---
   const handleUpdateProfile = async (newData: ProfileData) => {
     try {
-      const updatedUser = await updateUserProfile({
-        name: newData.name,
+      // Backend yêu cầu formData, service đã xử lý việc này
+      await updateUserProfile(currentUserId, {
+        displayName: newData.displayName, // Mapping đúng field
         phone: newData.phone,
-        avatar: newData.avatar,
+        username: newData.username,
+        avatar: newData.avatar, // File hoặc URL string
       });
 
-      setUserData(updatedUser);
       showToast("Cập nhật thông tin thành công", "success");
+      fetchUserProfile(); // Load lại data mới nhất từ server
       setOpenModal(false);
     } catch (error) {
-      console.error(error);
-      showToast("Cập nhật thất bại. Vui lòng thử lại.", "error");
+      showToast("Cập nhật thất bại", "error");
     }
   };
 
-  // --- 3. XỬ LÝ CÁC HÀM KHÁC (Giữ nguyên logic) ---
-  const handleAddressClick = (addr: Address) => {
-    setSelectedAddress(addr);
-    setOpenAddressModal(true);
-  };
+  // --- 3. XỬ LÝ ĐỊA CHỈ ---
+  // Lưu ý: Sau khi Thêm/Sửa/Xóa địa chỉ, ta gọi lại fetchUserProfile()
+  // để lấy danh sách địa chỉ mới nhất được cập nhật trong User Object.
 
   const handleAddNewAddress = async (newAddr: AddressFormState) => {
     try {
-      const newAddressList = await addUserAddress({
+      await addUserAddress({
         street: newAddr.street,
         ward: newAddr.ward,
         district: newAddr.district,
@@ -116,32 +100,18 @@ const ProfileInfo = () => {
         isDefault: newAddr.isDefault,
       });
 
-      // Cập nhật lại danh sách địa chỉ từ phản hồi của server (chính xác nhất)
-      // Nếu server trả về 1 item mới -> setAddressList([...prev, newItem])
-      // Nếu server trả về toàn bộ list -> setAddressList(newAddressList)
-      // Code hiện tại giả định server trả về toàn bộ list (như trong fake service)
-      if (Array.isArray(newAddressList)) {
-        setAddressList(newAddressList);
-      } else {
-        // Trường hợp server chỉ trả về object mới thêm, bạn cần tự push vào mảng
-        // Nhưng tốt nhất hãy để logic này khớp với backend của bạn
-        // Ở đây tôi giữ nguyên logic nhận về mảng mới
-        setAddressList(newAddressList as unknown as Address[]);
-      }
-
       showToast("Thêm địa chỉ thành công", "success");
+      fetchUserProfile(); // Refresh data
       setOpenAddModal(false);
     } catch (error) {
-      console.error(error);
       showToast("Thêm địa chỉ thất bại", "error");
     }
   };
 
   const handleUpdateAddress = async (updatedData: UpdateAddressState) => {
     if (!selectedAddress) return;
-
     try {
-      const newAddressList = await updateUserAddress(selectedAddress.id, {
+      await updateUserAddress(selectedAddress.addressId, {
         street: updatedData.street,
         ward: updatedData.ward,
         district: updatedData.district,
@@ -150,44 +120,46 @@ const ProfileInfo = () => {
         isDefault: updatedData.isDefault,
       });
 
-      setAddressList(newAddressList);
       showToast("Cập nhật địa chỉ thành công", "success");
+      fetchUserProfile();
       setOpenAddressModal(false);
-    } catch (error) {
-      console.error(error);
-      showToast("Cập nhật địa chỉ thất bại", "error");
+    } catch (error: any) {
+      console.error("Lỗi cập nhật địa chỉ:", error.response?.data);
+      const errorMessage =
+        error.response?.data?.message ||
+        "Cập nhật địa chỉ thất bại (Lỗi dữ liệu)";
+      showToast(errorMessage, "error");
     }
   };
 
   const handleDeleteAddress = async () => {
     if (!selectedAddress) return;
-
     try {
-      const newAddressList = await deleteUserAddress(selectedAddress.id);
+      await deleteUserAddress(selectedAddress.addressId); // Dùng addressId
 
-      setAddressList(newAddressList);
       showToast("Xóa địa chỉ thành công", "success");
+      fetchUserProfile(); // Refresh data
       setOpenAddressModal(false);
     } catch (error) {
-      console.error(error);
       showToast("Xóa địa chỉ thất bại", "error");
     }
   };
 
+  // Helper mở modal sửa
+  const handleAddressClick = (addr: Address) => {
+    setSelectedAddress(addr);
+    setOpenAddressModal(true);
+  };
+
   if (loading) {
     return (
-      <Box
-        sx={{
-          width: "100%",
-          display: "flex",
-          justifyContent: "center",
-          py: 10,
-        }}
-      >
-        <CircularProgress sx={{ color: "#567C8D" }} />
+      <Box sx={{ display: "flex", justifyContent: "center", py: 10 }}>
+        <CircularProgress />
       </Box>
     );
   }
+
+  if (!userData) return null;
 
   return (
     <Box sx={{ width: "100%", pl: { md: 4 } }}>
@@ -195,27 +167,27 @@ const ProfileInfo = () => {
         <Typography
           variant="h4"
           sx={{
-            textAlign: "left",
             fontWeight: 800,
             color: "#2C3E50",
-            mb: 0.5,
             fontFamily: '"Lexend", sans-serif',
+            textAlign: "left",
           }}
         >
           Hồ sơ của tôi
         </Typography>
         <Typography
           sx={{
-            textAlign: "left",
             color: "#567C8D",
             fontSize: "0.95rem",
             fontFamily: '"Lexend", sans-serif',
+            textAlign: "left",
           }}
         >
           Quản lý thông tin hồ sơ để bảo mật tài khoản
         </Typography>
       </Box>
 
+      {/* --- USER INFO CARD --- */}
       <Box
         sx={{
           bgcolor: "#D0E1E9",
@@ -236,24 +208,16 @@ const ProfileInfo = () => {
               }}
             >
               <InfoRow label="Username" value={userData.username} />
-              <InfoRow label="Name" value={userData.name} />
+              <InfoRow label="Name" value={userData.displayName} />{" "}
+              {/* Dùng displayName */}
               <InfoRow label="Email" value={userData.email} />
               <InfoRow label="Phone number" value={userData.phone} />
+              <InfoRow label="Orders" value={userData.orderCount.toString()} />
+              <InfoRow
+                label="Total Spent"
+                value={userData.totalSpent.toLocaleString() + " đ"}
+              />
             </Box>
-          </Grid>
-          <Grid
-            item
-            xs={false}
-            md={1}
-            sx={{
-              display: { xs: "none", md: "flex" },
-              justifyContent: "center",
-            }}
-          >
-            <Divider
-              orientation="vertical"
-              sx={{ height: "100%", borderColor: "#AAB7C4" }}
-            />
           </Grid>
           <Grid item xs={12} md={4} lg={3}>
             <Box
@@ -261,7 +225,6 @@ const ProfileInfo = () => {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                textAlign: "center",
               }}
             >
               <Avatar
@@ -271,43 +234,25 @@ const ProfileInfo = () => {
                   height: 120,
                   mb: 2,
                   border: "4px solid white",
-                  boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
                 }}
               />
               <Typography
-                sx={{
-                  fontWeight: 800,
-                  fontSize: "1.1rem",
-                  color: "#2C3E50",
-                  fontFamily: '"Lexend", sans-serif',
-                }}
+                sx={{ fontWeight: 800, fontSize: "1.1rem", color: "#2C3E50" }}
               >
-                {userData.username}
+                {userData.displayName}
               </Typography>
-              <Typography
-                sx={{
-                  fontSize: "0.85rem",
-                  color: "white",
-                  mb: 3,
-                  fontFamily: '"Lexend", sans-serif',
-                }}
-              >
+              <Typography sx={{ fontSize: "0.85rem", color: "white", mb: 3 }}>
                 {userData.email}
               </Typography>
-
               <Button
                 onClick={() => setOpenModal(true)}
                 variant="contained"
                 sx={{
                   bgcolor: "white",
                   color: "#2C3E50",
-                  textTransform: "none",
                   borderRadius: "30px",
                   fontWeight: 600,
-                  px: 3,
-                  boxShadow: "none",
-                  fontFamily: '"Lexend", sans-serif',
-                  "&:hover": { bgcolor: "#f5f5f5", boxShadow: "none" },
+                  "&:hover": { bgcolor: "#f5f5f5" },
                 }}
               >
                 Cập nhật hồ sơ
@@ -317,19 +262,14 @@ const ProfileInfo = () => {
         </Grid>
       </Box>
 
-      <Box sx={{ textAlign: "left", mb: 2 }}>
+      {/* --- ADDRESS LIST --- */}
+      <Box sx={{ mb: 2 }}>
         <Typography
-          sx={{
-            color: "#567C8D",
-            fontWeight: 600,
-            fontSize: "1rem",
-            fontFamily: '"Lexend", sans-serif',
-          }}
+          sx={{ color: "#567C8D", fontWeight: 600, textAlign: "left" }}
         >
           Địa chỉ đặt hàng
         </Typography>
       </Box>
-
       <Box
         sx={{
           bgcolor: "#D0E1E9",
@@ -339,68 +279,57 @@ const ProfileInfo = () => {
         }}
       >
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {addressList.map((addr) => (
-            <Box
-              key={addr.id}
-              onClick={() => handleAddressClick(addr)}
-              sx={{
-                bgcolor: "white",
-                borderRadius: "10px",
-                p: 2,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.02)",
-                cursor: "pointer",
-                transition: "all 0.2s",
-                "&:hover": {
-                  transform: "translateY(-2px)",
-                  boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-                },
-              }}
-            >
-              <Typography
+          {userData.addresses &&
+            userData.addresses.map((addr) => (
+              <Box
+                key={addr.addressId} // Dùng addressId
+                onClick={() => handleAddressClick(addr)}
                 sx={{
-                  fontWeight: 700,
-                  color: "#2C3E50",
-                  fontFamily: '"Lexend", sans-serif',
-                  fontSize: "0.9rem",
+                  bgcolor: "white",
+                  borderRadius: "10px",
+                  p: 2,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                  "&:hover": {
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                  },
                 }}
               >
-                {addr.content}
-              </Typography>
-              {addr.isDefault && (
+                {/* Hiển thị chuỗi Address từ Backend hoặc tự ghép */}
                 <Typography
-                  sx={{
-                    fontSize: "0.75rem",
-                    color: "#99AAB5",
-                    fontWeight: 400,
-                    fontStyle: "italic",
-                    ml: 2,
-                    fontFamily: '"Lexend", sans-serif',
-                  }}
+                  sx={{ fontWeight: 700, color: "#2C3E50", fontSize: "0.9rem" }}
                 >
-                  Mặc định
+                  {addr.Address ||
+                    `${addr.street}, ${addr.ward}, ${addr.district}, ${addr.city}`}
                 </Typography>
-              )}
-            </Box>
-          ))}
+                {addr.isDefault && (
+                  <Typography
+                    sx={{
+                      fontSize: "0.75rem",
+                      color: "#99AAB5",
+                      fontStyle: "italic",
+                      ml: 2,
+                    }}
+                  >
+                    Mặc định
+                  </Typography>
+                )}
+              </Box>
+            ))}
         </Box>
-
         <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
           <Button
             variant="outlined"
             onClick={() => setOpenAddModal(true)}
             sx={{
               borderRadius: "30px",
-              textTransform: "none",
               color: "#2C3E50",
               borderColor: "#2C3E50",
-              fontWeight: 600,
-              px: 4,
-              py: 1,
               bgcolor: "white",
-              fontFamily: '"Lexend", sans-serif',
               "&:hover": { bgcolor: "#f5f5f5", borderColor: "#2C3E50" },
             }}
           >
@@ -415,7 +344,7 @@ const ProfileInfo = () => {
         onClose={() => setOpenModal(false)}
         initialData={{
           username: userData.username,
-          name: userData.name,
+          displayName: userData.displayName, // Map đúng
           phone: userData.phone,
           avatar: userData.avatar,
         }}
@@ -425,7 +354,9 @@ const ProfileInfo = () => {
       <UpdateAddressModal
         open={openAddressModal}
         onClose={() => setOpenAddressModal(false)}
-        addressString={selectedAddress?.content || ""}
+        // Truyền chuỗi địa chỉ để modal hiển thị hoặc tự parse lại trong modal
+        // Vì Modal này đang parse chuỗi string, ta nên truyền Address string từ backend
+        addressString={selectedAddress?.Address || ""}
         isDefault={selectedAddress?.isDefault || false}
         onDelete={handleDeleteAddress}
         onUpdate={handleUpdateAddress}
@@ -447,21 +378,13 @@ const InfoRow = ({ label, value }: { label: string; value: string }) => (
         width: { xs: "120px", sm: "150px" },
         fontWeight: 800,
         color: "#2C3E50",
-        fontSize: "1rem",
-        fontFamily: '"Lexend", sans-serif',
         flexShrink: 0,
       }}
     >
       {label}:
     </Typography>
     <Typography
-      sx={{
-        color: "#567C8D",
-        fontWeight: 500,
-        fontSize: "1rem",
-        fontFamily: '"Lexend", sans-serif',
-        wordBreak: "break-word",
-      }}
+      sx={{ color: "#567C8D", fontWeight: 500, wordBreak: "break-word" }}
     >
       {value}
     </Typography>

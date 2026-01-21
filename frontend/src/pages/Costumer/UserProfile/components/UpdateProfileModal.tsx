@@ -10,9 +10,10 @@ import {
 } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 
+// [SỬA] Interface khớp với Backend
 export interface ProfileData {
   username: string;
-  name: string;
+  displayName: string; // Đổi name -> displayName
   phone: string;
   avatar: string;
 }
@@ -21,7 +22,6 @@ interface Props {
   open: boolean;
   onClose: () => void;
   initialData: ProfileData;
-  // [MỚI] Hàm callback khi cập nhật thành công
   onUpdate: (data: ProfileData) => void;
 }
 
@@ -33,9 +33,15 @@ const UpdateProfileModal = ({
 }: Props) => {
   const [formData, setFormData] = useState<ProfileData>(initialData);
 
+  // [MỚI] State lưu file ảnh tạm thời để preview hoặc gửi đi
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewAvatar, setPreviewAvatar] = useState<string>("");
+
   useEffect(() => {
     if (open) {
       setFormData(initialData);
+      setPreviewAvatar(initialData.avatar);
+      setSelectedFile(null);
     }
   }, [open, initialData]);
 
@@ -43,13 +49,23 @@ const UpdateProfileModal = ({
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      setPreviewAvatar(URL.createObjectURL(file)); // Preview ảnh mới
+    }
+  };
+
   const handleSubmit = () => {
-    // [MỚI] Gọi hàm onUpdate thay vì chỉ console.log
-    onUpdate(formData);
+    // Gửi data kèm file (nếu có) ra ngoài
+    onUpdate({
+      ...formData,
+      avatar: selectedFile ? (selectedFile as any) : formData.avatar,
+    });
     onClose();
   };
 
-  // ... (Phần Style và Render giữ nguyên không đổi)
   const labelStyle = {
     fontWeight: 400,
     fontSize: "1rem",
@@ -65,12 +81,7 @@ const UpdateProfileModal = ({
       onClose={onClose}
       maxWidth="sm"
       fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: "20px",
-          p: 2,
-        },
-      }}
+      PaperProps={{ sx: { borderRadius: "20px", p: 2 } }}
     >
       <DialogContent sx={{ p: 3 }}>
         <Typography
@@ -106,7 +117,7 @@ const UpdateProfileModal = ({
             />
           </Box>
 
-          {/* NAME */}
+          {/* DISPLAY NAME (Sửa name -> displayName) */}
           <Box
             sx={{
               display: "flex",
@@ -114,11 +125,11 @@ const UpdateProfileModal = ({
               gap: 1,
             }}
           >
-            <Typography sx={labelStyle}>Name</Typography>
+            <Typography sx={labelStyle}>Tên hiển thị</Typography>
             <TextField
               fullWidth
-              name="name"
-              value={formData.name}
+              name="displayName"
+              value={formData.displayName}
               onChange={handleChange}
               variant="outlined"
               size="small"
@@ -126,7 +137,7 @@ const UpdateProfileModal = ({
             />
           </Box>
 
-          {/* PHONE NUMBER */}
+          {/* PHONE */}
           <Box
             sx={{
               display: "flex",
@@ -134,7 +145,7 @@ const UpdateProfileModal = ({
               gap: 1,
             }}
           >
-            <Typography sx={labelStyle}>Phone number</Typography>
+            <Typography sx={labelStyle}>Số điện thoại</Typography>
             <TextField
               fullWidth
               name="phone"
@@ -146,7 +157,7 @@ const UpdateProfileModal = ({
             />
           </Box>
 
-          {/* ẢNH ĐẠI DIỆN */}
+          {/* AVATAR */}
           <Box
             sx={{
               display: "flex",
@@ -155,36 +166,43 @@ const UpdateProfileModal = ({
             }}
           >
             <Typography sx={labelStyle}>Ảnh đại diện</Typography>
-            <Box sx={{ flex: 1 }}>
+            <Box
+              sx={{ flex: 1, display: "flex", gap: 2, alignItems: "center" }}
+            >
+              {/* Preview ảnh nhỏ */}
+              <Box
+                component="img"
+                src={previewAvatar}
+                sx={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                }}
+              />
               <Button
                 component="label"
                 variant="contained"
-                fullWidth
                 sx={{
                   bgcolor: "#C4C4C4",
                   color: "black",
                   textTransform: "none",
-                  fontWeight: 500,
-                  borderRadius: "8px",
-                  py: 1.2,
                   boxShadow: "none",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 1,
-                  fontFamily: '"Lexend", sans-serif',
-                  "&:hover": { bgcolor: "#b0b0b0", boxShadow: "none" },
+                  "&:hover": { bgcolor: "#b0b0b0" },
                 }}
               >
-                <CloudUploadIcon fontSize="small" />
-                Tải ảnh lên
-                <input type="file" hidden accept=".jpg, .jpeg, .png" />
+                <CloudUploadIcon fontSize="small" sx={{ mr: 1 }} /> Tải ảnh lên
+                <input
+                  type="file"
+                  hidden
+                  accept=".jpg, .jpeg, .png, .webp"
+                  onChange={handleFileChange}
+                />
               </Button>
             </Box>
           </Box>
         </Stack>
 
-        {/* CÁC NÚT HÀNH ĐỘNG */}
         <Box sx={{ display: "flex", justifyContent: "center", gap: 3, mt: 5 }}>
           <Button
             onClick={handleSubmit}
@@ -192,34 +210,20 @@ const UpdateProfileModal = ({
             sx={{
               bgcolor: "#567C8D",
               color: "white",
-              textTransform: "none",
-              fontWeight: 700,
               borderRadius: "8px",
               px: 4,
-              py: 1,
-              minWidth: "120px",
-              boxShadow: "none",
-              fontFamily: '"Lexend", sans-serif',
-              "&:hover": { bgcolor: "#456372", boxShadow: "none" },
             }}
           >
             Xác nhận
           </Button>
-
           <Button
             onClick={onClose}
             variant="outlined"
             sx={{
               color: "#333",
               borderColor: "#ccc",
-              textTransform: "none",
-              fontWeight: 700,
               borderRadius: "8px",
               px: 4,
-              py: 1,
-              minWidth: "120px",
-              fontFamily: '"Lexend", sans-serif',
-              "&:hover": { borderColor: "#999", bgcolor: "transparent" },
             }}
           >
             Trở về

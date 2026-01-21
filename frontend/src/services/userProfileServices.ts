@@ -1,38 +1,51 @@
-import api from "./axios"; // Config axios của bạn
+import api from "./axios";
 
 // ==========================================
-// 1. TYPE DEFINITIONS
+// 1. TYPE DEFINITIONS (Khớp với Backend Response)
 // ==========================================
 
 export interface Address {
-  id: number;
-  content: string; // Chuỗi hiển thị: "123 Đường A,..."
+  addressId: string; // Backend trả về string ObjectId
+  street: string;
+  ward: string;
+  district: string;
+  city: string;
+  country: string;
+  Address: string; // Backend trả về key "Address" (viết hoa chữ A)
   isDefault: boolean;
-  // Các trường chi tiết để bind vào Modal
-  street?: string;
-  ward?: string;
-  district?: string;
-  city?: string;
-  country?: string;
 }
 
 export interface UserProfile {
+  userId: string;
   username: string;
-  name: string;
   email: string;
+  displayName: string; // Backend dùng displayName
   phone: string;
-  avatar: string; // URL ảnh
+  role: "admin" | "customer";
+  status: "active" | "blocked";
+  avatar: string;
+  orderCount: number;
+  totalSpent: number;
+  createdAt: string;
   addresses: Address[];
 }
 
-// Dữ liệu từ Form Cập nhật Profile
-export interface UpdateProfileDTO {
-  name: string;
-  phone: string;
-  avatar?: File | string; // Có thể là File mới hoặc URL cũ
+// Wrapper cho Response chuẩn của Backend
+interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
 }
 
-// Dữ liệu từ Form Địa chỉ
+// DTO gửi đi khi cập nhật Profile
+export interface UpdateProfileDTO {
+  username?: string;
+  displayName?: string;
+  phone?: string;
+  avatar?: File | string;
+}
+
+// DTO gửi đi khi thao tác Address
 export interface AddressDTO {
   street: string;
   ward: string;
@@ -46,54 +59,77 @@ export interface AddressDTO {
 // 2. SERVICES
 // ==========================================
 
-// GET: Lấy thông tin user
-export const getUserProfile = async (): Promise<UserProfile> => {
-  const response = await api.get("/user/profile");
-  return response.data;
+/**
+ * GET /users/users/:userId
+ * Lấy thông tin chi tiết user (bao gồm cả addresses)
+ */
+export const getUserProfile = async (
+  userId: string | number,
+): Promise<UserProfile> => {
+  // Gọi API
+  const response = await api.get<ApiResponse<UserProfile>>(
+    `/users/users/${userId}`,
+  );
+  // Trả về object UserProfile nằm trong data
+  return response.data.data;
 };
 
-// PUT: Cập nhật Profile (Dùng FormData cho Avatar)
+/**
+ * PATCH /users/users/:userId
+ * Cập nhật thông tin User (dùng FormData để upload ảnh)
+ */
 export const updateUserProfile = async (
+  userId: string | number,
   data: UpdateProfileDTO,
 ): Promise<UserProfile> => {
   const formData = new FormData();
+  if (data.displayName) formData.append("displayName", data.displayName);
+  if (data.phone) formData.append("phone", data.phone);
+  if (data.username) formData.append("username", data.username);
 
-  // Append các trường text
-  formData.append("name", data.name);
-  formData.append("phone", data.phone);
-
-  // Chỉ append Avatar nếu người dùng có chọn file mới
   if (data.avatar && data.avatar instanceof File) {
     formData.append("avatar", data.avatar);
   }
 
-  // Gửi request với Content-Type multipart/form-data
-  const response = await api.put("/user/profile", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
+  const response = await api.patch<ApiResponse<UserProfile>>(
+    `/users/users/${userId}`,
+    formData,
+    {
+      headers: { "Content-Type": "multipart/form-data" },
     },
-  });
+  );
 
+  // Backend có thể trả về user đã update hoặc chỉ message success.
+  // Nếu trả về data user mới thì return, không thì component sẽ tự fetch lại.
+  return response.data.data;
+};
+
+/**
+ * POST /users/addresses
+ * Thêm địa chỉ mới
+ */
+export const addUserAddress = async (data: AddressDTO): Promise<any> => {
+  const response = await api.post("/users/addresses", data);
   return response.data;
 };
 
-// POST: Thêm địa chỉ
-export const addUserAddress = async (data: AddressDTO): Promise<Address[]> => {
-  const response = await api.post("/user/addresses", data);
-  return response.data; // Trả về danh sách địa chỉ mới
-};
-
-// PUT: Cập nhật địa chỉ
+/**
+ * PATCH /users/addresses/:addressId
+ * Cập nhật địa chỉ
+ */
 export const updateUserAddress = async (
-  id: number,
+  addressId: string,
   data: AddressDTO,
-): Promise<Address[]> => {
-  const response = await api.put(`/user/addresses/${id}`, data);
+): Promise<any> => {
+  const response = await api.patch(`/users/addresses/${addressId}`, data);
   return response.data;
 };
 
-// DELETE: Xóa địa chỉ
-export const deleteUserAddress = async (id: number): Promise<Address[]> => {
-  const response = await api.delete(`/user/addresses/${id}`);
+/**
+ * DELETE /users/addresses/:addressId
+ * Xóa địa chỉ
+ */
+export const deleteUserAddress = async (addressId: string): Promise<any> => {
+  const response = await api.delete(`/users/addresses/${addressId}`);
   return response.data;
 };
