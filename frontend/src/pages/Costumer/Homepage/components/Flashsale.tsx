@@ -1,262 +1,142 @@
 import React, { useEffect, useState } from "react";
-import { Box, Paper, Typography, Stack, Button } from "@mui/material";
+import { Box, Paper, Typography, Stack, Button, Container } from "@mui/material";
 
 const FlashSale: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState({
-    days: 0,
-    hours: 23,
-    minutes: 59,
-    seconds: 59,
+    days: 0, hours: 23, minutes: 59, seconds: 59,
   });
 
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
-        if (prev.minutes > 0)
-          return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
-        if (prev.hours > 0)
-          return { ...prev, hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        if (prev.days > 0)
-          return {
-            ...prev,
-            days: prev.days - 1,
-            hours: 23,
-            minutes: 59,
-            seconds: 59,
-          };
-        return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+        if (prev.minutes > 0) return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
+        if (prev.hours > 0) return { ...prev, hours: prev.hours - 1, minutes: 59, seconds: 59 };
+        return { ...prev, days: Math.max(0, prev.days - 1), hours: 23, minutes: 59, seconds: 59 };
       });
     }, 1000);
     return () => clearInterval(timer);
   }, []);
 
-  const TimeBox: React.FC<{ val: number; label: string }> = ({
-    val,
-    label,
-  }) => (
-    <Stack alignItems="center" minWidth={64}>
-      <Box sx={{ fontSize: "1.9rem", fontWeight: 700, lineHeight: 1 }}>
+  const TimeBox: React.FC<{ val: number; label: string }> = ({ val, label }) => (
+    <Stack alignItems="center" minWidth={{ xs: 40, md: 55 }}>
+      <Box sx={{ fontSize: { xs: "1.1rem", md: "1.6rem" }, fontWeight: 800, lineHeight: 1 }}>
         {String(val).padStart(2, "0")}
       </Box>
-      <Typography
-        variant="caption"
-        sx={{
-          textTransform: "uppercase",
-          color: "rgba(255,255,255,0.85)",
-          letterSpacing: "1px",
-          mt: 0.5,
-        }}
-      >
+      <Typography variant="caption" sx={{ fontSize: "0.6rem", fontWeight: 600, textTransform: "uppercase", mt: 0.2, opacity: 0.7 }}>
         {label}
       </Typography>
     </Stack>
   );
 
   const products = [
-    {
-      id: "p1",
-      title: "Vintage Sneaker",
-      desc: "Giày chạy bộ cực kỳ thoải mái...",
-      img: "https://images.unsplash.com/photo-1603808033192-082d6919d3e1?w=600",
-    },
-    {
-      id: "p2",
-      title: "Classic Runner",
-      desc: "Thiết kế tối giản, phù hợp mọi phong cách.",
-      img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600",
-    },
+    { id: "p1", title: "Vintage Sneaker", img: "https://images.unsplash.com/photo-1603808033192-082d6919d3e1?w=600" },
+    { id: "p2", title: "Classic Runner", img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600" },
   ];
 
   return (
-    <Box
-      component="section"
-      sx={{ margin: "0 2rem", maxWidth: "1200px", mx: "0 auto", mb: 5 }}
-    >
-      {/* Outer flex container: two main columns always horizontal */}
+    <Container maxWidth="lg" sx={{ mb: 4, px: { xs: 2, md: 4 } }}>
       <Box
         sx={{
           display: "flex",
-          gap: 3,
+          flexDirection: "row",
+          flexWrap: "nowrap",
+          gap: 2,
           alignItems: "stretch",
           width: "100%",
-          minHeight: 420,
+          minHeight: "320px", // Đã giảm chiều cao để bớt "to"
         }}
       >
-        {/* LEFT: Countdown panel (flex:2) */}
-        <Box sx={{ flex: "2 1 0" }}>
+        {/* LEFT: Countdown panel - Gọn gàng hơn */}
+        <Box sx={{ flex: "0 0 55%" }}>
           <Paper
             elevation={0}
             sx={{
-              borderRadius: 3,
-              p: 3,
-              background: "#2C4A5C",
+              borderRadius: 4,
+              p: { xs: 2, md: 4 }, // Padding vừa phải
+              background: "linear-gradient(135deg, #2C4A5C 0%, #1A2E3A 100%)",
               color: "white",
               height: "100%",
-              minWidth: 650,
               display: "flex",
               flexDirection: "column",
+              justifyContent: "center",
             }}
           >
-            {/* Top: Title + description */}
-            <Box>
-              <Typography sx={{ fontSize: "3rem", fontWeight: 700, mb: 1 }}>
-                Flash Sale!
-              </Typography>
-              <Typography
-                sx={{
-                  fontSize: "0.95rem",
-                  color: "rgba(255,255,255,0.85)",
-                  maxWidth: 520,
-                }}
-              >
-                Thời gian ưu đãi đặc biệt đã bắt đầu - hãy để đôi giày hoàn hảo
-                nâng bước bạn với mức giá ưu đãi chỉ trong thời gian giới hạn.
-              </Typography>
+            <Typography sx={{ fontSize: { xs: "1.5rem", md: "2.5rem" }, fontWeight: 800, mb: 0.5 }}>
+              Flash Sale!
+            </Typography>
+            <Typography sx={{ mb: 3, opacity: 0.8, fontSize: "0.85rem", maxWidth: "90%" }}>
+              Ưu đãi giới hạn cho những đôi giày đẳng cấp.
+            </Typography>
+            
+            <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 0.5, md: 1.5 }, mb: 3 }}>
+              <TimeBox val={timeLeft.days} label="Ngày" />
+              <Typography sx={{ fontSize: "1.2rem", pb: 1.5 }}>:</Typography>
+              <TimeBox val={timeLeft.hours} label="Giờ" />
+              <Typography sx={{ fontSize: "1.2rem", pb: 1.5 }}>:</Typography>
+              <TimeBox val={timeLeft.minutes} label="Phút" />
+              <Typography sx={{ fontSize: "1.2rem", pb: 1.5 }}>:</Typography>
+              <TimeBox val={timeLeft.seconds} label="Giây" />
             </Box>
 
-            {/* Middle: centered time counter + button */}
-            <Box
+            <Button
+              variant="contained"
+              size="small"
               sx={{
+                bgcolor: "white",
+                color: "#2C4A5C",
+                width: "fit-content",
+                px: 3,
+                fontWeight: 700,
+                borderRadius: "4px",
+                "&:hover": { bgcolor: "#f0f0f0" }
+              }}
+            >
+              MUA NGAY
+            </Button>
+          </Paper>
+        </Box>
+
+        {/* RIGHT: Products - Kích thước vừa vặn */}
+        <Box sx={{ display: "flex", flexDirection: "row", gap: 2, flex: 1 }}>
+          {products.map((p) => (
+            <Paper
+              key={p.id}
+              elevation={0}
+              sx={{
+                borderRadius: 4,
+                p: 2,
+                flex: 1,
+                border: "1px solid #eee",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: 2,
-                mt: 3,
-              }}
-            >
-              {/* TIME ROW */}
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1.5,
-                }}
-              >
-                <TimeBox val={timeLeft.days} label="Days" />
-                <Typography sx={{ fontSize: "1.6rem", opacity: 0.6 }}>
-                  :
-                </Typography>
-                <TimeBox val={timeLeft.hours} label="Hours" />
-                <Typography sx={{ fontSize: "1.6rem", opacity: 0.6 }}>
-                  :
-                </Typography>
-                <TimeBox val={timeLeft.minutes} label="Mins" />
-                <Typography sx={{ fontSize: "1.6rem", opacity: 0.6 }}>
-                  :
-                </Typography>
-                <TimeBox val={timeLeft.seconds} label="Secs" />
-              </Box>
-
-              {/* BUTTON centered under counter */}
-              <Button
-                variant="outlined"
-                sx={{
-                  borderColor: "rgba(255,255,255,0.18)",
-                  color: "white",
-                  textTransform: "none",
-                  fontWeight: 600,
-                  px: 3,
-                  py: 1,
-                  borderRadius: 2,
-                  whiteSpace: "nowrap",
-                  mt: 1,
-                  "&:hover": {
-                    borderColor: "rgba(255,255,255,0.28)",
-                    backgroundColor: "rgba(255,255,255,0.02)",
-                  },
-                }}
-              >
-                See more →
-              </Button>
-            </Box>
-
-            {/* Spacer to push nothing — keep Paper flexible */}
-            <Box sx={{ flex: "1 1 auto" }} />
-          </Paper>
-        </Box>
-
-        {/* RIGHT: products panel (flex:1) — product cards arranged horizontally */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 3,
-          }}
-        >
-          {products.map((p) => (
-            <Paper
-              key={p.id}
-              elevation={1}
-              sx={{
-                borderRadius: 3,
-                p: 2,
-                minWidth: 220,
-                width: 220,
-                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                display: "flex",
-                flexDirection: "column",
-                gap: 4,
-                alignItems: "center",
-                pt: 8,
-                pb: 8,
+                textAlign: "center",
               }}
             >
               <Box
                 sx={{
-                  width: 120,
-                  height: 120,
+                  width: { xs: 80, md: 130 }, // Ảnh nhỏ lại
+                  height: { xs: 80, md: 130 },
                   borderRadius: "50%",
                   overflow: "hidden",
-                  background: "#F5F5F5",
-                  border: "3px solid #2C4A5C",
+                  mb: 1.5
                 }}
               >
-                <Box
-                  component="img"
-                  src={p.img}
-                  alt={p.title}
-                  sx={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    display: "block",
-                  }}
-                />
+                <img src={p.img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </Box>
-
-              <Typography
-                sx={{ fontSize: "1rem", fontWeight: 700, color: "#2C3E50" }}
-              >
+              <Typography sx={{ fontSize: "0.9rem", fontWeight: 700, color: "#2C4A5C" }} noWrap>
                 {p.title}
               </Typography>
-              <Typography
-                sx={{ color: "#777", fontSize: "0.85rem", flex: "1 1 auto" }}
-              >
-                {p.desc}
-              </Typography>
-
-              <Button
-                variant="contained"
-                size="large"
-                sx={{
-                  mt: 1,
-                  background: "#4A7C9E",
-                  color: "white",
-                  textTransform: "none",
-                  borderRadius: "50px",
-                  py: 0.6,
-                  "&:hover": { background: "#3c6b80" },
-                }}
-              >
-                Find more
+              <Button size="small" sx={{ mt: 1, fontSize: "0.7rem", color: "#666" }}>
+                Chi tiết
               </Button>
             </Paper>
           ))}
         </Box>
       </Box>
-    </Box>
+    </Container>
   );
 };
 
