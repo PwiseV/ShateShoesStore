@@ -11,7 +11,7 @@ import {
   getCartItems as getCartService,
   updateCartItem as updateCartService,
   removeCartItem as removeCartService,
-} from "../../../../services/fakeCartService";
+} from "../../../../services/cartService.ts";
 
 // --- OPTION 2: REAL API (KHI NÀO CÓ BE THÌ MỞ RA & COMMENT OPTION 1 LẠI) ---
 // import {
