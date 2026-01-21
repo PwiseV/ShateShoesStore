@@ -3,31 +3,53 @@ import type {
   BackendColorVariant,
 } from "../../../services/productdetailsServices";
 
-export type CartColor = BackendColorVariant;
-export type Product = BaseProduct;
+// --- START: Cấu trúc dữ liệu khớp với API BE ---
 
-export interface CartItem {
-  product: Product;
+// 1. Cấu trúc Product nằm trong CartItem
+export interface BackendCartVariant {
+  variantId: string;
+  color: string;
+  price: number;
+  avatar: string;
+  stock: number;
+}
+
+export interface BackendCartSize {
   size: string;
-  color: CartColor;
-  quantity: number;
-  id: string | number;
-  selected?: boolean;
+  colors: BackendCartVariant[];
 }
 
-// --- MỚI: Promotion Type chuẩn ---
-export type DiscountType = "PERCENTAGE" | "FIXED_AMOUNT";
-export type PromotionStatus = "ACTIVE" | "INACTIVE" | "EXPIRED";
-
-export interface Promotion {
-  id: number | string;
+export interface CartProduct {
+  productId: string;
   code: string;
+  title: string;
   description: string;
-  discountType: DiscountType;
-  discountAmount: number;
-  minOrderAmount: number;
-  startDate: string; // ISO Date String
-  endDate: string; // ISO Date String
-  totalQuantity: number;
-  status: PromotionStatus;
+  avatar: string;
+  sizes: BackendCartSize[];
 }
+
+// 2. Cấu trúc CartItem trả về từ API GET users/cart
+export interface CartItem {
+  cartItemId: string; // ID duy nhất của dòng giỏ hàng (để xóa/sửa)
+  variantId: string; // ID biến thể hiện tại
+  quantity: number;
+  size: string;
+  color: string;
+  price: number;
+  stock: number;
+  avatar: string;
+  isOutOfStock: boolean;
+  isAdjust: boolean; // True nếu quantity > stock -> FE cần cảnh báo
+  product: CartProduct;
+  selected?: boolean; // FE state (để chọn thanh toán)
+}
+
+// Type cho payload update (PATCH)
+export interface UpdateCartPayload {
+  quantity: number;
+  variantId: string;
+}
+
+// Giữ lại alias nếu cần dùng ở nơi khác, nhưng CartItem giờ dùng cấu trúc trên
+export type CartColor = BackendCartVariant;
+export type Product = CartProduct;

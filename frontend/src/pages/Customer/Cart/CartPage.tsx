@@ -47,19 +47,13 @@ const CartPage = () => {
             decreaseQty={cart.decreaseQty}
             removeItem={cart.removeItem}
             toggleSelection={cart.toggleSelection}
+            toggleAll={cart.toggleAll}
             updateVariant={cart.updateVariant}
             total={cart.total}
-            discount={cart.discount}
             finalTotal={cart.finalTotal}
-            couponCode={cart.couponCode}
-            setCouponCode={cart.setCouponCode}
-            applyDiscount={cart.applyDiscount}
-            couponMessage={cart.couponMessage}
-            removeDiscount={cart.removeDiscount}
           />
         </Box>
       )}
-
       <Footer />
     </Box>
   );

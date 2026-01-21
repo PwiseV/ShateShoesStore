@@ -35,7 +35,7 @@ export default function AppRoutes() {
             path="/products/details/:productid"
             element={<ProductDetail />}
           />
-          <Route path="/cart" element={<CartPage />} />
+          <Route path="/users/cart" element={<CartPage />} />
           <Route path="/products" element={<ProductList />} />
           <Route path="/products/:slug" element={<ProductList />} />
           <Route path="/checkout" element={<CheckoutPage />} />

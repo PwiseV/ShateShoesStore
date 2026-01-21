@@ -1,155 +1,180 @@
 import { useState, useEffect, useMemo } from "react";
+import type { CartItem } from "../types";
+import { useToast } from "../../../../context/useToast";
+
+// ==========================================
+// KHU VỰC IMPORT SERVICE (CHỌN 1 TRONG 2)
+// ==========================================
+
+// --- OPTION 1: MOCK DATA (ĐANG SỬ DỤNG) ---
 import {
-  getCartItems,
-  applyCoupon,
-  updateCartItemQty as apiUpdateQty,
-  removeCartItem as apiRemoveItem,
-  updateCartItemVariant as apiUpdateVariant,
-  toggleCartItemSelection as apiToggleSelection,
-  removeCoupon as apiRemoveCoupon, // Import API mới
+  getCartItems as getCartService,
+  updateCartItem as updateCartService,
+  removeCartItem as removeCartService,
 } from "../../../../services/fakeCartService";
-import type { CartItem, CartColor } from "../types";
+
+// --- OPTION 2: REAL API (KHI NÀO CÓ BE THÌ MỞ RA & COMMENT OPTION 1 LẠI) ---
+// import {
+//   getCartItems as getCartService,
+//   updateCartItem as updateCartService,
+//   removeCartItem as removeCartService,
+// } from "../../../../services/cartService";
+
+// ==========================================
 
 export const useCart = () => {
   const [items, setItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [discount, setDiscount] = useState(0);
-  const [couponCode, setCouponCode] = useState("");
-  const [couponMessage, setCouponMessage] = useState("");
+  const { showToast } = useToast();
 
-  useEffect(() => {
-    const fetchCart = async () => {
-      try {
-        const data = await getCartItems();
-        // Mặc định chọn tất cả
-        setItems(data.map((item) => ({ ...item, selected: true })));
-      } catch (err) {
-        console.error("Load cart error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCart();
-  }, []);
-
-  const increaseQty = async (id: number | string) => {
-    // Tìm item hiện tại để lấy quantity + 1
-    const currentItem = items.find((i) => i.id === id);
-    if (currentItem) {
-      const newCart = await apiUpdateQty(id, currentItem.quantity + 1);
-      setItems(newCart);
-    }
-  };
-
-  const decreaseQty = async (id: number | string) => {
-    const currentItem = items.find((i) => i.id === id);
-    if (currentItem && currentItem.quantity > 1) {
-      const newCart = await apiUpdateQty(id, currentItem.quantity - 1);
-      setItems(newCart);
-    }
-  };
-
-  const removeItem = async (id: number | string) => {
-    const newCart = await apiRemoveItem(id);
-    setItems(newCart);
-  };
-
-  const toggleSelection = async (id: number | string) => {
-    const newCart = await apiToggleSelection(id);
-    setItems(newCart);
-  };
-
-  // Cập nhật Size/Màu
-  const updateVariant = async (
-    id: number | string,
-    newSize: string,
-    newColor: CartColor
-  ) => {
-    const newCart = await apiUpdateVariant(id, newSize, newColor);
-    setItems(newCart);
-  };
-
-  const total = useMemo(
-    () =>
-      items.reduce((sum, item) => {
-        const price = item.color.price || 0;
-        return item.selected ? sum + price * item.quantity : sum;
-      }, 0),
-    [items]
-  );
-
-  const applyDiscount = async (code: string) => {
-    if (!code.trim()) {
-      return {
-        success: false,
-        discount: 0,
-        message: "Vui lòng nhập mã giảm giá",
-      };
-    }
+  // --- 1. FETCH CART ---
+  const fetchCart = async () => {
+    // Không set loading true mỗi lần fetch lại để tránh flicker màn hình khi update ngầm
+    // Chỉ set loading lúc mount lần đầu
     try {
-      const result = await applyCoupon(code, total);
-      if (result.success) {
-        setDiscount(result.discount);
-        setCouponCode(code.trim().toUpperCase());
-        setCouponMessage(result.message);
-        return result;
-      } else {
-        setDiscount(0);
-        setCouponMessage(result.message);
-        return result;
-      }
-    } catch (err) {
-      setCouponMessage("Có lỗi xảy ra khi áp dụng mã");
-      setDiscount(0);
-      return {
-        success: false,
-        discount: 0,
-        message: "Có lỗi xảy ra khi áp dụng mã",
-      };
-    }
-  };
+      const data = await getCartService();
 
-  // Hàm gỡ mã giảm giá
-  const removeDiscount = async () => {
-    try {
-      setLoading(true); // Có thể bật loading nhẹ nếu muốn
-
-      // 1. Gọi API
-      const response = await apiRemoveCoupon();
-
-      if (response.success) {
-        // 2. Reset State về ban đầu
-        setDiscount(0);
-        setCouponCode("");
-        setCouponMessage("");
-
-        // Có thể return message để UI hiện thông báo
-        return { success: true, message: response.message };
-      }
-    } catch (error) {
-      console.error("Lỗi gỡ mã:", error);
+      // Logic FE: Thêm trường selected = true mặc định khi mới load
+      // Lưu ý: Nếu BE có lưu trạng thái selected thì bỏ dòng map này đi
+      setItems((prevItems) => {
+        // Giữ lại trạng thái selected cũ nếu reload lại data (UX tốt hơn)
+        if (prevItems.length > 0) {
+          return data.map((newItem) => ({
+            ...newItem,
+            selected:
+              prevItems.find((old) => old.cartItemId === newItem.cartItemId)
+                ?.selected ?? true,
+          }));
+        }
+        return data.map((item) => ({ ...item, selected: true }));
+      });
+    } catch (err: any) {
+      console.error("Load cart error:", err);
+      showToast(err.message || "Lỗi tải giỏ hàng", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  const finalTotal = total - discount;
+  useEffect(() => {
+    setLoading(true);
+    fetchCart();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // --- 2. CALCULATE TOTAL (Logic Client Side) ---
+  const { total, finalTotal } = useMemo(() => {
+    const selectedItems = items.filter((i) => i.selected);
+    const totalAmount = selectedItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+    return { total: totalAmount, finalTotal: totalAmount };
+  }, [items]);
+
+  // --- 3. ACTIONS ---
+
+  // A. Checkbox Logic (Chỉ xử lý ở Client)
+  const toggleSelection = (id: string | number) => {
+    setItems((prev) =>
+      prev.map((item) =>
+        item.cartItemId === id ? { ...item, selected: !item.selected } : item
+      )
+    );
+  };
+
+  const toggleAll = (checked: boolean) => {
+    setItems((prev) => prev.map((item) => ({ ...item, selected: checked })));
+  };
+
+  // B. Update Quantity
+  const handleUpdateQuantity = async (
+    id: string,
+    newQty: number,
+    variantId: string
+  ) => {
+    try {
+      // Optimistic Update: Update UI ngay lập tức
+      setItems((prev) =>
+        prev.map((item) =>
+          item.cartItemId === id ? { ...item, quantity: newQty } : item
+        )
+      );
+
+      // Gọi Service (Mock hoặc Real tùy import)
+      await updateCartService(id, { quantity: newQty, variantId });
+    } catch (error: any) {
+      console.error("Update qty error", error);
+      fetchCart(); // Revert data nếu lỗi
+      showToast(error.message || "Không thể cập nhật số lượng", "error");
+    }
+  };
+
+  const increaseQty = (id: string | number) => {
+    const item = items.find((i) => i.cartItemId === id);
+    if (item)
+      handleUpdateQuantity(item.cartItemId, item.quantity + 1, item.variantId);
+  };
+
+  const decreaseQty = (id: string | number) => {
+    const item = items.find((i) => i.cartItemId === id);
+    if (item && item.quantity > 1) {
+      handleUpdateQuantity(item.cartItemId, item.quantity - 1, item.variantId);
+    }
+  };
+
+  // C. Remove Item
+  const removeItem = async (id: string | number) => {
+    // eslint-disable-next-line no-restricted-globals
+    if (!confirm("Bạn có chắc muốn xóa sản phẩm này?")) return;
+
+    try {
+      await removeCartService(id.toString());
+
+      // Update local state luôn cho nhanh
+      setItems((prev) => prev.filter((i) => i.cartItemId !== id));
+      showToast("Đã xóa sản phẩm", "success");
+    } catch (error: any) {
+      console.error("Remove error:", error);
+      showToast(error.message || "Lỗi khi xóa sản phẩm", "error");
+    }
+  };
+
+  // D. Update Variant (Đổi màu/size)
+  const updateVariant = async (
+    cartItemId: string | number,
+    newVariantId: string,
+    currentQuantity: number
+  ) => {
+    setLoading(true); // Cần loading vì đổi variant sẽ thay đổi giá/ảnh
+    try {
+      await updateCartService(cartItemId.toString(), {
+        variantId: newVariantId,
+        quantity: currentQuantity,
+      });
+
+      // Sau khi update thành công, bắt buộc phải fetch lại
+      // để lấy thông tin mới của sản phẩm (Giá mới, Ảnh mới, Tên màu mới...)
+      await fetchCart();
+      showToast("Cập nhật phân loại thành công", "success");
+    } catch (error: any) {
+      console.error("Update variant error:", error);
+      setLoading(false);
+      showToast(error.message || "Lỗi cập nhật phân loại", "error");
+    }
+  };
 
   return {
     items,
     loading,
+    total,
+    finalTotal,
     increaseQty,
     decreaseQty,
     removeItem,
     toggleSelection,
+    toggleAll,
     updateVariant,
-    total,
-    discount,
-    finalTotal,
-    couponCode,
-    setCouponCode,
-    applyDiscount,
-    couponMessage,
-    removeDiscount,
+    refreshCart: fetchCart,
   };
 };

@@ -1,388 +1,234 @@
 import type {
   CartItem,
-  Product,
-  CartColor,
-  Promotion,
+  UpdateCartPayload,
+  BackendCartVariant,
 } from "../pages/Customer/Cart/types";
-import type { BackendCategory } from "../services/productdetailsServices";
 
-// --- 1. MOCK DATA SẢN PHẨM & CART (Cấu trúc chuẩn) ---
+// --- 1. MOCK DATA (Giả lập Database) ---
+// Giả lập độ trễ mạng (500ms)
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const createCategory = (id: string, name: string): BackendCategory => ({
-  categoryId: id,
-  name,
-  slug: name.toLowerCase(),
-  parent: { categoryId: "root", name: "Root", slug: "root" },
-});
-
-const productA: Product = {
-  id: "101",
-  productId: "101",
-  title: "Giày Thể Thao Sneakers Basic",
-  description: "Giày thể thao năng động, thoáng khí.",
-  avatar:
-    "https://saigonsneaker.com/wp-content/uploads/2018/11/IMG_1022-430x430.jpg",
-  category: createCategory("cat1", "Giày Nam"),
-  stock: 100,
-  tags: ["giay-nam", "the-thao"],
-  sizes: [
-    {
-      sizeId: "s42",
-      size: "42",
-      colors: [
-        {
-          colorId: "c_white",
-          color: "White",
-          price: 1500000,
-          stock: 10,
-          avatar:
-            "https://saigonsneaker.com/wp-content/uploads/2018/11/IMG_1022-430x430.jpg",
-        },
-        {
-          colorId: "c_black",
-          color: "Black",
-          price: 1550000,
-          stock: 5,
-          avatar:
-            "https://minhsport.com/wp-content/uploads/2021/06/ao-thun-nam-co-tron-mau-den-minhsport-600x600.jpg",
-        },
-      ],
-    },
-    {
-      sizeId: "s43",
-      size: "43",
-      colors: [
-        {
-          colorId: "c_white_43",
-          color: "White",
-          price: 1500000,
-          stock: 8,
-          avatar:
-            "https://saigonsneaker.com/wp-content/uploads/2018/11/IMG_1022-430x430.jpg",
-        },
-      ],
-    },
-  ],
-};
-
-const productB: Product = {
-  id: "102",
-  productId: "102",
-  title: "Giày Thể Thao Basic",
-  description: "Chất liệu êm ái.",
-  avatar:
-    "https://pos.nvncdn.com/54f46e-27401/ps/20260105_uObBK34Lzm.jpeg?v=1767597123",
-  category: createCategory("cat2", "Basic"),
-  stock: 50,
-  tags: [],
-  sizes: [
-    {
-      sizeId: "s38",
-      size: "38",
-      colors: [
-        {
-          colorId: "c_white_38",
-          color: "White",
-          price: 250000,
-          stock: 20,
-          avatar:
-            "https://pos.nvncdn.com/54f46e-27401/ps/20260105_uObBK34Lzm.jpeg?v=1767597123",
-        },
-        {
-          colorId: "c_blue_38",
-          color: "Blue",
-          price: 260000,
-          stock: 15,
-          avatar:
-            "https://pos.nvncdn.com/54f46e-27401/ps/20260105_uObBK34Lzm.jpeg?v=1767597123",
-        },
-      ],
-    },
-  ],
-};
-
-const initialMockCart: CartItem[] = [
+// Dữ liệu mẫu ban đầu
+let MOCK_CART_DB: CartItem[] = [
   {
-    id: 1,
-    product: productA,
-    size: "42",
-    color: {
-      colorId: "c_white",
-      color: "White",
-      price: 1500000,
-      stock: 10,
-      avatar:
-        "https://saigonsneaker.com/wp-content/uploads/2018/11/IMG_1022-430x430.jpg",
-    },
-    quantity: 2,
-    selected: true,
-  },
-  {
-    id: 2,
-    product: productB,
-    size: "38",
-    color: {
-      colorId: "c_blue_38",
-      color: "Blue",
-      price: 260000,
-      stock: 15,
-      avatar:
-        "https://pos.nvncdn.com/54f46e-27401/ps/20260105_uObBK34Lzm.jpeg?v=1767597123",
-    },
+    cartItemId: "cart_item_1",
+    variantId: "var_shoe_42_white",
     quantity: 1,
-    selected: false,
+    size: "42",
+    color: "Trắng",
+    price: 1500000,
+    stock: 10,
+    avatar:
+      "https://img.freepik.com/free-photo/white-sneaker-isolated-white-background-sportswear_1339-106509.jpg",
+    isOutOfStock: false,
+    isAdjust: false,
+    product: {
+      productId: "prod_shoe_01",
+      code: "SNK001",
+      title: "Giày Sneaker Basic Thể Thao",
+      description:
+        "Giày sneaker trắng phong cách basic, phù hợp đi học đi làm.",
+      avatar:
+        "https://img.freepik.com/free-photo/white-sneaker-isolated-white-background-sportswear_1339-106509.jpg",
+      sizes: [
+        {
+          size: "42",
+          colors: [
+            {
+              variantId: "var_shoe_42_white",
+              color: "Trắng",
+              price: 1500000,
+              stock: 10,
+              avatar:
+                "https://img.freepik.com/free-photo/white-sneaker-isolated-white-background-sportswear_1339-106509.jpg",
+            },
+            {
+              variantId: "var_shoe_42_black",
+              color: "Đen",
+              price: 1550000, // Màu đen đắt hơn xíu
+              stock: 5,
+              avatar:
+                "https://img.freepik.com/free-photo/pair-trainers_144627-3800.jpg",
+            },
+          ],
+        },
+        {
+          size: "43",
+          colors: [
+            {
+              variantId: "var_shoe_43_white",
+              color: "Trắng",
+              price: 1500000,
+              stock: 0, // Hết hàng size 43 trắng
+              avatar:
+                "https://img.freepik.com/free-photo/white-sneaker-isolated-white-background-sportswear_1339-106509.jpg",
+            },
+            {
+              variantId: "var_shoe_43_black",
+              color: "Đen",
+              price: 1550000,
+              stock: 8,
+              avatar:
+                "https://img.freepik.com/free-photo/pair-trainers_144627-3800.jpg",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    cartItemId: "cart_item_2",
+    variantId: "var_shirt_m_blue",
+    quantity: 2,
+    size: "M",
+    color: "Xanh Dương",
+    price: 350000,
+    stock: 20,
+    avatar: "https://img.freepik.com/free-photo/blue-t-shirt_125540-727.jpg",
+    isOutOfStock: false,
+    isAdjust: false,
+    product: {
+      productId: "prod_shirt_02",
+      code: "TSHIRT02",
+      title: "Áo Thun Cotton Basic",
+      description: "Chất liệu 100% Cotton thoáng mát.",
+      avatar: "https://img.freepik.com/free-photo/blue-t-shirt_125540-727.jpg",
+      sizes: [
+        {
+          size: "M",
+          colors: [
+            {
+              variantId: "var_shirt_m_blue",
+              color: "Xanh Dương",
+              price: 350000,
+              stock: 20,
+              avatar:
+                "https://img.freepik.com/free-photo/blue-t-shirt_125540-727.jpg",
+            },
+            {
+              variantId: "var_shirt_m_red",
+              color: "Đỏ",
+              price: 350000,
+              stock: 15,
+              avatar:
+                "https://img.freepik.com/free-photo/red-t-shirt_125540-719.jpg",
+            },
+          ],
+        },
+        {
+          size: "L",
+          colors: [
+            {
+              variantId: "var_shirt_l_blue",
+              color: "Xanh Dương",
+              price: 360000,
+              stock: 10,
+              avatar:
+                "https://img.freepik.com/free-photo/blue-t-shirt_125540-727.jpg",
+            },
+          ],
+        },
+      ],
+    },
   },
 ];
 
-// --- 2. MOCK DATA KHUYẾN MÃI (PROMOTIONS) ---
-// Dữ liệu này mô phỏng DB bảng Promotions
-const mockPromotions: Promotion[] = [
-  {
-    id: 1,
-    code: "SUMMER2024",
-    description: "Giảm 10% cho đơn từ 500k",
-    discountType: "PERCENTAGE",
-    discountAmount: 10, // 10%
-    minOrderAmount: 500000,
-    startDate: "2024-01-01T00:00:00Z",
-    endDate: "2025-12-31T23:59:59Z",
-    totalQuantity: 100,
-    status: "ACTIVE",
-  },
-  {
-    id: 2,
-    code: "WELCOME50K",
-    description: "Giảm trực tiếp 50k (Không giới hạn đơn tối thiểu)",
-    discountType: "FIXED_AMOUNT",
-    discountAmount: 50000,
-    minOrderAmount: 0,
-    startDate: "2024-01-01T00:00:00Z",
-    endDate: "2026-01-22T23:59:59Z",
-    totalQuantity: 50,
-    status: "ACTIVE",
-  },
-  {
-    id: 3,
-    code: "VIP200",
-    description: "Giảm 200k cho đơn từ 5 triệu",
-    discountType: "FIXED_AMOUNT",
-    discountAmount: 200000,
-    minOrderAmount: 5000000,
-    startDate: "2024-01-01T00:00:00Z",
-    endDate: "2025-12-31T23:59:59Z",
-    totalQuantity: 10,
-    status: "ACTIVE",
-  },
-  {
-    id: 4,
-    code: "HETHAN", // Mã để test case hết hạn
-    description: "Mã giảm giá đã hết hạn",
-    discountType: "PERCENTAGE",
-    discountAmount: 50,
-    minOrderAmount: 0,
-    startDate: "2023-01-01T00:00:00Z",
-    endDate: "2023-12-31T23:59:59Z",
-    totalQuantity: 10,
-    status: "EXPIRED",
-  },
-];
-
-// --- 3. HELPER LOCAL STORAGE ---
-const CART_STORAGE_KEY = "shopping_cart_data";
-
-const saveToStorage = (cart: CartItem[]) => {
-  localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+// Helper: Tìm thông tin variant chi tiết trong cấu trúc lồng nhau
+const findVariantInfoInProduct = (
+  product: CartItem["product"],
+  variantId: string
+): BackendCartVariant | null => {
+  for (const sizeObj of product.sizes) {
+    const foundColor = sizeObj.colors.find((c) => c.variantId === variantId);
+    if (foundColor) return foundColor;
+  }
+  return null;
 };
 
-const getFromStorage = (): CartItem[] => {
-  const data = localStorage.getItem(CART_STORAGE_KEY);
-  return data ? JSON.parse(data) : initialMockCart;
-};
+// --- 2. IMPLEMENT API ---
 
-// --- 4. API ENDPOINTS (MOCK) ---
-
-/** [GET] Xem giỏ hàng */
+// 1. Lấy danh sách giỏ hàng
 export const getCartItems = async (): Promise<CartItem[]> => {
-  await new Promise((res) => setTimeout(res, 500));
-  return getFromStorage();
+  await delay(600); // Giả lập mạng chậm
+  // Clone data để tránh tham chiếu trực tiếp
+  return JSON.parse(JSON.stringify(MOCK_CART_DB));
 };
 
-/** [PUT] Sửa số lượng */
-export const updateCartItemQty = async (
-  id: number | string,
-  quantity: number
-): Promise<CartItem[]> => {
-  await new Promise((res) => setTimeout(res, 200));
+// 2. Cập nhật số lượng / Size / Màu (PATCH)
+export const updateCartItem = async (
+  cartItemId: string,
+  payload: UpdateCartPayload
+): Promise<any> => {
+  await delay(400);
 
-  const currentCart = getFromStorage();
-  const updatedCart = currentCart.map((item) => {
-    if (item.id === id) {
-      // Logic thực tế nên check tồn kho ở đây
-      return { ...item, quantity };
+  const itemIndex = MOCK_CART_DB.findIndex((i) => i.cartItemId === cartItemId);
+  if (itemIndex === -1) {
+    throw new Error("Không tìm thấy sản phẩm trong giỏ hàng");
+  }
+
+  const currentItem = MOCK_CART_DB[itemIndex];
+
+  // Logic cập nhật
+  // 2.1 Nếu đổi Variant (Size/Màu)
+  if (payload.variantId && payload.variantId !== currentItem.variantId) {
+    // Tìm thông tin variant mới trong product của item đó
+    const newVariantInfo = findVariantInfoInProduct(
+      currentItem.product,
+      payload.variantId
+    );
+
+    if (!newVariantInfo) {
+      throw new Error("Biến thể sản phẩm không tồn tại");
     }
-    return item;
-  });
 
-  saveToStorage(updatedCart);
-  return updatedCart;
-};
-
-/** [PUT] Sửa mẫu mã (Size/Màu) */
-export const updateCartItemVariant = async (
-  id: number | string,
-  newSize: string,
-  newColor: CartColor
-): Promise<CartItem[]> => {
-  await new Promise((res) => setTimeout(res, 300));
-
-  const currentCart = getFromStorage();
-  const updatedCart = currentCart.map((item) => {
-    if (item.id === id) {
-      return { ...item, size: newSize, color: newColor };
+    // Kiểm tra tồn kho variant mới
+    if (newVariantInfo.stock < payload.quantity) {
+      throw new Error(`Biến thể này chỉ còn ${newVariantInfo.stock} sản phẩm`);
     }
-    return item;
-  });
 
-  saveToStorage(updatedCart);
-  return updatedCart;
-};
+    // Cập nhật lại item trong DB giả
+    MOCK_CART_DB[itemIndex] = {
+      ...currentItem,
+      variantId: newVariantInfo.variantId,
+      color: newVariantInfo.color,
+      price: newVariantInfo.price,
+      avatar: newVariantInfo.avatar,
+      stock: newVariantInfo.stock,
+      quantity: payload.quantity, // Cập nhật luôn số lượng nếu có
+      // Tìm size name tương ứng (hơi ngược nhưng cần thiết để hiển thị đúng)
+      size:
+        currentItem.product.sizes.find((s) =>
+          s.colors.some((c) => c.variantId === newVariantInfo.variantId)
+        )?.size || currentItem.size,
+    };
 
-/** [DELETE] Xóa sản phẩm */
-export const removeCartItem = async (
-  id: number | string
-): Promise<CartItem[]> => {
-  await new Promise((res) => setTimeout(res, 300));
+    return { message: "Cập nhật phân loại thành công" };
+  }
 
-  const currentCart = getFromStorage();
-  const updatedCart = currentCart.filter((item) => item.id !== id);
-
-  saveToStorage(updatedCart);
-  return updatedCart;
-};
-
-/** [PATCH/PUT] Chọn/Bỏ chọn sản phẩm */
-export const toggleCartItemSelection = async (
-  id: number | string
-): Promise<CartItem[]> => {
-  await new Promise((res) => setTimeout(res, 100));
-
-  const currentCart = getFromStorage();
-  const updatedCart = currentCart.map((item) => {
-    if (item.id === id) {
-      return { ...item, selected: !item.selected };
+  // 2.2 Nếu chỉ đổi số lượng (giữ nguyên variant cũ)
+  if (payload.quantity) {
+    // Check tồn kho hiện tại
+    if (payload.quantity > currentItem.stock) {
+      throw new Error(
+        `Số lượng vượt quá tồn kho (Còn lại: ${currentItem.stock})`
+      );
     }
-    return item;
-  });
+    MOCK_CART_DB[itemIndex].quantity = payload.quantity;
+    return { message: "Cập nhật số lượng thành công" };
+  }
 
-  saveToStorage(updatedCart);
-  return updatedCart;
+  return { message: "Không có gì thay đổi" };
 };
 
-/** [POST] Áp dụng mã giảm giá (Logic Validation Đầy Đủ) */
-export const applyCoupon = async (
-  couponCode: string,
-  cartTotal: number
-): Promise<{ success: boolean; discount: number; message: string }> => {
-  await new Promise((res) => setTimeout(res, 600));
+// 3. Xóa sản phẩm (DELETE)
+export const removeCartItem = async (cartItemId: string): Promise<any> => {
+  await delay(300);
+  const initialLength = MOCK_CART_DB.length;
+  MOCK_CART_DB = MOCK_CART_DB.filter((i) => i.cartItemId !== cartItemId);
 
-  const codeInput = couponCode.trim().toUpperCase();
-
-  // 1. Tìm coupon trong danh sách mock
-  const promo = mockPromotions.find((p) => p.code.toUpperCase() === codeInput);
-
-  // 2. Validate: Tồn tại
-  if (!promo) {
-    return {
-      success: false,
-      discount: 0,
-      message: "Mã giảm giá không tồn tại!",
-    };
+  if (MOCK_CART_DB.length === initialLength) {
+    throw new Error("Xóa thất bại, sản phẩm không tồn tại");
   }
 
-  // 3. Validate: Trạng thái (Status)
-  if (promo.status !== "ACTIVE") {
-    return {
-      success: false,
-      discount: 0,
-      message:
-        promo.status === "EXPIRED"
-          ? "Mã giảm giá đã hết hạn!"
-          : "Mã giảm giá đang bị khóa!",
-    };
-  }
-
-  // 4. Validate: Thời gian (Date)
-  const now = new Date();
-  const start = new Date(promo.startDate);
-  const end = new Date(promo.endDate);
-
-  if (now < start) {
-    return {
-      success: false,
-      discount: 0,
-      message: "Mã giảm giá chưa đến đợt áp dụng!",
-    };
-  }
-  if (now > end) {
-    return {
-      success: false,
-      discount: 0,
-      message: "Mã giảm giá đã hết hạn sử dụng!",
-    };
-  }
-
-  // 5. Validate: Số lượng (Quantity)
-  if (promo.totalQuantity <= 0) {
-    return {
-      success: false,
-      discount: 0,
-      message: "Mã giảm giá đã hết lượt sử dụng!",
-    };
-  }
-
-  // 6. Validate: Đơn hàng tối thiểu (Min Order Amount)
-  if (cartTotal < promo.minOrderAmount) {
-    return {
-      success: false,
-      discount: 0,
-      message: `Đơn hàng cần tối thiểu ${promo.minOrderAmount.toLocaleString(
-        "vi-VN"
-      )}đ để dùng mã này!`,
-    };
-  }
-
-  // 7. Tính toán giá trị giảm
-  let discountValue = 0;
-
-  if (promo.discountType === "PERCENTAGE") {
-    // Tính %: (Tổng tiền * số %) / 100
-    discountValue = Math.round((cartTotal * promo.discountAmount) / 100);
-  } else if (promo.discountType === "FIXED_AMOUNT") {
-    // Trừ thẳng tiền
-    discountValue = promo.discountAmount;
-  }
-
-  // Không cho giảm quá tổng tiền đơn hàng (tránh âm tiền)
-  discountValue = Math.min(discountValue, cartTotal);
-
-  return {
-    success: true,
-    discount: discountValue,
-    message: `Áp dụng thành công: ${promo.description}`,
-  };
-};
-
-/** * [DELETE] Hủy mã giảm giá
- * Logic: Reset couponId trong DB về null và tính lại tổng tiền (Ở đây mock trả về success)
- */
-export const removeCoupon = async (): Promise<{
-  success: boolean;
-  message: string;
-}> => {
-  await new Promise((res) => setTimeout(res, 300));
-
-  return {
-    success: true,
-    message: "Đã hủy mã giảm giá thành công",
-  };
+  return { message: "Xóa sản phẩm thành công" };
 };
