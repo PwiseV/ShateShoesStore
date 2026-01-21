@@ -6,10 +6,9 @@ import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import logoImg from "../../assets/logo3.svg";
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-// import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 
-// const menuItems = ["Giới thiệu", "Tin tức", "Danh mục", "abc"];
+const menuItems = ["Giới thiệu", "Tin tức", "Danh mục", "Liên hệ"];
 
 const Header: React.FC = () => {
   return (
@@ -57,32 +56,8 @@ const Header: React.FC = () => {
           </Typography>
         </Box>
 
-        {/* MENU */}
-        {/* <Box sx={{ display: "flex", gap: "2rem", alignItems: "center" }}>
-          {menuItems.map((item, index) => (
-            <Typography
-              key={index}
-              component={Link}
-              to="/"
-              sx={{
-                textDecoration: "none",
-                color: "#567C8D",
-                fontWeight: 500,
-                fontSize: "1rem",
-                "&:hover": { color: "#486172" },
-              }}
-            >
-              {item}
-            </Typography>
-          ))}
-        </Box> */}
-
         {/* ICONS */}
-        <Box sx={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-          {/* <IconButton aria-label="Open cart" sx={{ color: "#627D98" }}>
-            <ShoppingBagIcon fontSize="small"/>
-          </IconButton> */}
-
+        <Box sx={{ display: "flex", alignItems: "center" }}>
           <IconButton
             component={Link}
             to="/signin"

@@ -26,7 +26,7 @@ export const getUserAddresses = async (userId) => {
 
 export const createUserAddress = async (
   userId,
-  { street, ward, district, city, country, isDefault }
+  { street, ward, district, city, country, isDefault },
 ) => {
   if (!street || !ward || !district || !city || !country) {
     throw new Error("MISSING_REQUIRED_FIELDS");
@@ -50,7 +50,7 @@ export const createUserAddress = async (
       await Address.updateMany(
         { userId: userId },
         { $set: { isDefault: false } },
-        { session }
+        { session },
       );
     } else {
       if (existingAddressesCount === 0) {
@@ -70,7 +70,7 @@ export const createUserAddress = async (
           isDefault: finalIsDefault,
         },
       ],
-      { session }
+      { session },
     );
 
     await session.commitTransaction();
@@ -87,7 +87,7 @@ export const createUserAddress = async (
 export const updateUserAddress = async (
   addressId,
   userId,
-  { street, ward, district, city, country, isDefault }
+  { street, ward, district, city, country, isDefault },
 ) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -96,7 +96,10 @@ export const updateUserAddress = async (
     const user = await User.findById(userId).session(session);
     if (!user) throw new Error("USER_NOT_FOUND");
 
-    const currentAddress = await Address.findOne({ _id: addressId, userId }).session(session);
+    const currentAddress = await Address.findOne({
+      _id: addressId,
+      userId,
+    }).session(session);
     if (!currentAddress) throw new Error("ADDRESS_NOT_FOUND");
 
     let finalIsDefault = isDefault === true;
@@ -105,13 +108,27 @@ export const updateUserAddress = async (
       await Address.updateMany(
         { userId: userId, _id: { $ne: addressId } },
         { $set: { isDefault: false } },
-        { session }
+        { session },
       );
-    } 
+    } else {
+      if (currentAddress.isDefault === true) {
+        const anotherAddress = await Address.findOne({
+          userId: userId,
+          _id: { $ne: addressId },
+        }).session(session);
+
+        if (anotherAddress) {
+          anotherAddress.isDefault = true;
+          await anotherAddress.save({ session });
+        } else {
+          finalIsDefault = true;
+        }
+      }
+    }
     const updatedAddress = await Address.findByIdAndUpdate(
       addressId,
       { street, ward, district, city, country, isDefault: finalIsDefault },
-      { new: true, runValidators: true, session } // Thêm session vào đây
+      { new: true, runValidators: true, session }, 
     ).lean();
 
     await session.commitTransaction();
@@ -124,7 +141,7 @@ export const updateUserAddress = async (
       city: updatedAddress.city,
       country: updatedAddress.country,
       isDefault: updatedAddress.isDefault,
-      fullAddress: `${updatedAddress.street}, ${updatedAddress.ward}, ${updatedAddress.district}, ${updatedAddress.city}`,
+      Address: `${updatedAddress.street}, ${updatedAddress.ward}, ${updatedAddress.district}, ${updatedAddress.city}`,
     };
   } catch (error) {
     await session.abortTransaction();

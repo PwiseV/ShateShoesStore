@@ -19,7 +19,7 @@ import ProductList from "./pages/Costumer/ProductList/ProductList.tsx";
 import ProductDetail from "./pages/Costumer/ProductDetail/ProductDetail.tsx";
 import Posts from "./pages/Admin/Post/Posts.tsx";
 import Orders from "./pages/Admin/Orders/Orders.tsx";
-
+import UserProfile from "./pages/Costumer/UserProfile/UserProfile.tsx";
 
 // forgot password components
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
@@ -47,7 +47,7 @@ export default function AppRoutes() {
           <Route path="/products/:slug" element={<ProductList />} />
           <Route path="/admin/orders" element={<Orders />} />
 
-
+          <Route path="/profile" element={<UserProfile />} />
           <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/admin/dashboard" element={<Dashboard />} />
             <Route path="/admin/users" element={<Users />} />
@@ -65,6 +65,7 @@ export default function AppRoutes() {
               element={<ProductDetail />}
             />
             <Route path="/products/:slug" element={<ProductList />} />
+            <Route path="/profile" element={<UserProfile />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />
