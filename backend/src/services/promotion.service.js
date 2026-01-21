@@ -160,7 +160,7 @@ export const applyPromotion = async ({ code, userId, total }) => {
   };
 };
 
-export const getPromotionsForUser = async ({ userId }) => {
+export const getPromotionsForUser = async ({ userId, total }) => {
   const now = new Date();
 
   const usedPromotions = await Order.find({
@@ -174,12 +174,16 @@ export const getPromotionsForUser = async ({ userId }) => {
   const filter = {
     active: "active",
     stock: { $gt: 0 },
+    minOrderAmount: { $lte: total },
     startedAt: { $lte: now },
     expiredAt: { $gt: now },
     _id: { $nin: usedPromotions },
   };
 
-  const promotions = await Promotion.find(filter).sort({ expiredAt: 1 }).lean();
+  const promotions = await Promotion.find(filter)
+    .sort({ minOrderAmount: 1 })
+    .limit(2)
+    .lean();
 
   const formattedPromotions = await Promise.all(
     promotions.map(async (promotion) => {
