@@ -165,74 +165,54 @@ export const updateOrderAdmin = async (id, payload) => {
 
 
 export const createOrder = async (payload) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  const { userId, name, phone, address, paymentMethod, items, note } = payload;
 
-  try {
-    const { userId, name, phone, address, paymentMethod, items, note } = payload;
-
-    if (!items || items.length === 0) {
-      throw new Error("Đơn hàng phải có ít nhất 1 sản phẩm");
-    }
-
-    let total = 0;
-    const orderItemsData = [];
-
-    // 1️ Kiểm tra variant + trừ kho + tính tiền
-    for (const item of items) {
-      const variant = await ProductVariant.findById(item.variantId).session(session);
-      if (!variant) throw new Error("Không tìm thấy product variant");
-
-      if (variant.stock < item.quantity) {
-        throw new Error(`Không đủ tồn kho cho SKU ${variant.sku}`);
-      }
-
-      const price = variant.price;
-      total += price * item.quantity;
-
-      orderItemsData.push({
-        variantId: variant._id,
-        quantity: item.quantity,
-        price,
-      });
-
-      // Trừ kho
-      variant.stock -= item.quantity;
-      await variant.save({ session });
-    }
-
-    // 2️ Tạo Order
-    const [order] = await Order.create(
-      [
-        {
-          orderNumber: `ORD-${Date.now()}`,
-          userId,
-          name,
-          phone,
-          address,
-          paymentMethod: paymentMethod || "COD",
-          total,
-          note,
-          status: "pending",
-        },
-      ],
-      { session }
-    );
-
-    // 3️ Tạo OrderItems
-    const finalItems = orderItemsData.map((item) => ({
-      ...item,
-      orderId: order._id,
-    }));
-
-    await OrderItem.insertMany(finalItems, { session });
-
-    await session.commitTransaction();
-    return order;
-  } catch (error) {
-    await session.abortTransaction();
-    throw error;
-  } finally {
-    session.endSession();
+  if (!items || items.length === 0) {
+    throw new Error("Đơn hàng phải có ít nhất 1 sản phẩm");
   }
+
+  let total = 0;
+  const orderItemsData = [];
+
+  for (const item of items) {
+    const variant = await ProductVariant.findById(item.variantId);
+    if (!variant) throw new Error("Không tìm thấy product variant");
+
+    if (variant.stock < item.quantity) {
+      throw new Error("Không đủ tồn kho");
+    }
+
+    const price = variant.price;
+    total += price * item.quantity;
+
+    orderItemsData.push({
+      variantId: variant._id,
+      quantity: item.quantity,
+      price,
+    });
+
+    variant.stock -= item.quantity;
+    await variant.save();
+  }
+
+  const order = await Order.create({
+    orderNumber: `ORD-${Date.now()}`,
+    userId,
+    name,
+    phone,
+    address,
+    paymentMethod: paymentMethod || "COD",
+    total,
+    note,
+    status: "pending",
+  });
+
+  const finalItems = orderItemsData.map((item) => ({
+    ...item,
+    orderId: order._id,
+  }));
+
+  await OrderItem.insertMany(finalItems);
+
+  return order;
 };
