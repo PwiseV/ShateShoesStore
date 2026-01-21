@@ -1,6 +1,5 @@
 import React from "react";
-import { Grid } from "@mui/material";
-// Import đúng type Product
+import { Box } from "@mui/material";
 import FavouriteCard, { type Product } from "./FavouriteCard";
 import EmptyState from "../EmptyState";
 import ProductSkeleton from "../Skeleton";
@@ -8,19 +7,30 @@ import ProductSkeleton from "../Skeleton";
 type Props = {
   products: Product[];
   loading?: boolean;
+  onRemove?: (id: string) => void;
 };
 
-const FavouriteGrid = ({ products, loading }: Props) => {
+const FavouriteGrid = ({ products, loading, onRemove }: Props) => {
+  const gridStyle = {
+    display: "grid",
+    gridTemplateColumns: {
+      xs: "1fr",
+      sm: "1fr 1fr",
+      md: "repeat(3, 1fr)",
+    },
+    gap: 3,
+    rowGap: 4,
+  };
+
   if (loading) {
     return (
-      <Grid container spacing={3}>
+      <Box sx={gridStyle}>
         {Array.from({ length: 6 }).map((_, i) => (
-          // Dùng prop 'size' giống code của bạn để tương thích Grid v2
-          <Grid key={i} size={{ xs: 12, sm: 6, md: 4 }}>
+          <Box key={i}>
             <ProductSkeleton />
-          </Grid>
+          </Box>
         ))}
-      </Grid>
+      </Box>
     );
   }
 
@@ -29,14 +39,13 @@ const FavouriteGrid = ({ products, loading }: Props) => {
   }
 
   return (
-    <Grid container spacing={3} rowSpacing={6}>
+    <Box sx={gridStyle}>
       {products.map((p) => (
-        // size={{ ... md: 4 }} nghĩa là 3 hình trên 1 hàng (12/4 = 3)
-        <Grid key={p.id} size={{ xs: 12, sm: 6, md: 4 }}>
-          <FavouriteCard product={p} />
-        </Grid>
+        <Box key={p.id}>
+          <FavouriteCard product={p} onRemove={onRemove} />
+        </Box>
       ))}
-    </Grid>
+    </Box>
   );
 };
 

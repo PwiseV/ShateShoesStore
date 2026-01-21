@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, Paper, Typography, Button, IconButton } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import StarRateIcon from "@mui/icons-material/StarRate";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 
@@ -16,25 +17,33 @@ const currencyVND = (n: number) =>
 
 type Props = {
   product?: Product;
+  onRemove?: (id: string) => void;
 };
 
-const FavouriteCard = ({ product }: Props) => {
+const FavouriteCard = ({ product, onRemove }: Props) => {
+  const navigate = useNavigate();
+
   if (!product) return null;
+
+  const handleNavigate = () => {
+    navigate(`/products/details/${product.id}`);
+  };
 
   return (
     <Paper
       elevation={0}
       sx={{
-        bgcolor: "transparent", // Nền trong suốt giống thiết kế
+        bgcolor: "transparent",
         height: "100%",
         display: "flex",
         flexDirection: "column",
         gap: 2,
-        overflow: "visible", // Để shadow khi hover không bị cắt
+        overflow: "visible",
       }}
     >
-      {/* 1. KHUNG ẢNH (Bo tròn 20px) */}
+      {/* 1. KHUNG ẢNH */}
       <Box
+        onClick={handleNavigate}
         sx={{
           position: "relative",
           borderRadius: "20px",
@@ -42,6 +51,7 @@ const FavouriteCard = ({ product }: Props) => {
           width: "100%",
           aspectRatio: "1/1",
           bgcolor: "#fff",
+          cursor: "pointer",
         }}
       >
         <Box
@@ -58,6 +68,10 @@ const FavouriteCard = ({ product }: Props) => {
         />
         {/* Icon Tim */}
         <IconButton
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove?.(product.id);
+          }}
           sx={{
             position: "absolute",
             top: 10,
@@ -83,6 +97,7 @@ const FavouriteCard = ({ product }: Props) => {
         }}
       >
         <Typography
+          onClick={handleNavigate}
           sx={{
             fontSize: "0.95rem",
             fontWeight: 600,
@@ -93,6 +108,11 @@ const FavouriteCard = ({ product }: Props) => {
             overflow: "hidden",
             textOverflow: "ellipsis",
             width: "100%",
+            cursor: "pointer",
+            "&:hover": {
+              color: "#567C8D",
+              textDecoration: "underline",
+            },
           }}
         >
           {product.name}
@@ -147,7 +167,7 @@ const FavouriteCard = ({ product }: Props) => {
             textTransform: "none",
             fontWeight: 700,
             boxShadow: "none",
-            borderRadius: "0", // Vuông vức
+            borderRadius: "10px",
             py: 1.2,
             fontFamily: '"Lexend", sans-serif',
             "&:hover": { bgcolor: "#456372", boxShadow: "none" },
@@ -164,7 +184,7 @@ const FavouriteCard = ({ product }: Props) => {
             color: "#2C3E50",
             textTransform: "none",
             fontWeight: 700,
-            borderRadius: "0", // Vuông vức
+            borderRadius: "10px",
             py: 1.2,
             fontFamily: '"Lexend", sans-serif',
             "&:hover": { borderColor: "#2C3E50", bgcolor: "transparent" },
