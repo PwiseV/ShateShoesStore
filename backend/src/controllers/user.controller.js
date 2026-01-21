@@ -59,11 +59,11 @@ export const getUser = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { email, displayName, phone, role, status } = req.body;
+    const { username, displayName, phone, role, status } = req.body;
     const users = await userService.updateUser(
       id,
       {
-        email,
+        username,
         displayName,
         phone,
         role,

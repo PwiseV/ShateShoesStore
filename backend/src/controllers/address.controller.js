@@ -2,7 +2,7 @@ import * as addressService from "../services/address.service.js";
 
 export const getUserAddresses = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.user._id;
     const addresses = await addressService.getUserAddresses(id);
 
     return res.status(200).json({
@@ -18,7 +18,7 @@ export const getUserAddresses = async (req, res) => {
 
 export const createUserAddress = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.user._id;
     const { street, ward, district, city, country, isDefault } = req.body;
     const addresses = await addressService.createUserAddress(id, {
       street,
@@ -47,7 +47,8 @@ export const createUserAddress = async (req, res) => {
 
 export const updateUserAddress = async (req, res) => {
   try {
-    const { id, addressId } = req.params;
+    const id = req.user._id;
+    const { addressId } = req.params;
     const { street, ward, district, city, country, isDefault } = req.body;
     const addresses = await addressService.updateUserAddress(addressId, id, {
       street,
@@ -81,7 +82,8 @@ export const updateUserAddress = async (req, res) => {
 
 export const deleteUserAddress = async (req, res) => {
   try {
-    const { id, addressId } = req.params;
+    const id = req.user._id;
+    const { addressId } = req.params;
     const addresses = await addressService.deleteUserAddress(addressId, id);
     return res.status(200).json({
       success: true,
