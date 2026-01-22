@@ -8,6 +8,7 @@ import {
   InputBase,
   IconButton,
   Button,
+  CircularProgress,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -20,298 +21,81 @@ import Header from "../../../components/Customer/Header";
 import Footer from "../../../components/Customer/Footer";
 import SideBar from "../../../components/Customer/SideBar";
 
-// --- 1. CẬP NHẬT TYPE DEFINITION (Dựa trên ERD và Thiết kế) ---
-export type OrderStatus = "pending" | "shipping" | "delivered" | "cancelled";
-
-export type OrderProduct = {
-  id: string;
-  name: string;
-  variant: string;
-  price: number;
-  originalPrice?: number;
-  quantity: number;
-  image: string;
-};
-
-export type Order = {
-  id: string; // ERD: order_number
-  status: OrderStatus; // ERD: status
-  statusLabel: string;
-  totalAmount: number; // ERD: total (Thành tiền cuối cùng)
-  shippingFee: number; // ERD: shipping_fee
-  paymentMethod: string; // ERD: payment_method (từ bảng Payment hoặc Order)
-  products: OrderProduct[];
-
-  // Thời gian (ERD: created_at, delivered_at...)
-  date: string; // Ngày đặt hàng
-  dates: {
-    shipped?: string; // Ngày vận chuyển
-    delivered?: string; // Ngày giao hàng thành công
-    expected?: string; // Ngày dự kiến
-  };
-  deliveryDuration?: string; // VD: "5 ngày" (Tính toán hoặc lưu trữ)
-
-  // Địa chỉ (ERD: name, phone, address)
-  shippingAddress: {
-    name: string;
-    phone: string;
-    address: string;
-  };
-};
-
-// --- 2. CẬP NHẬT MOCK DATA (5 Đơn hàng đầy đủ thông tin) ---
-export const MOCK_ORDERS: Order[] = [
-  // 1. ĐANG VẬN CHUYỂN
-  {
-    id: "CHT-913742",
-    status: "shipping",
-    statusLabel: "Đang vận chuyển",
-    totalAmount: 239000,
-    shippingFee: 30000,
-    paymentMethod: "Thanh toán khi nhận hàng (COD)",
-    date: "20/10/2025",
-    dates: {
-      shipped: "21/10/2025",
-      expected: "25/10/2025",
-    },
-    shippingAddress: {
-      name: "Tuấn Ngọc",
-      phone: "0389183498",
-      address: "123 Đường Số 1, Phường Linh Trung, Thủ Đức, TP.HCM",
-    },
-    products: [
-      {
-        id: "p1",
-        name: "NIKE AIR JORDAN 1",
-        variant: "Phân loại: Xanh trắng, 37",
-        price: 189000,
-        originalPrice: 200000,
-        quantity: 1,
-        image:
-          "https://res.cloudinary.com/dvh9n5dtf/image/upload/v1768232214/variants/jgvv3pcb1rv82ylylf6u.jpg",
-      },
-    ],
-  },
-  // 2. THÀNH CÔNG (Khớp với hình orderdetail.png)
-  {
-    id: "CHT-882211",
-    status: "delivered",
-    statusLabel: "Giao hàng thành công",
-    totalAmount: 550000,
-    shippingFee: 20000,
-    paymentMethod: "Thanh toán khi nhận hàng",
-    date: "28/9/2024",
-    deliveryDuration: "5 ngày",
-    dates: {
-      shipped: "24/09/2025",
-      delivered: "28/09/2025",
-    },
-    shippingAddress: {
-      name: "Tuấn Ngọc",
-      phone: "0389183498",
-      address:
-        "Cổng sau kí túc xá khu B, đại học quốc gia, Phường Linh Trung, Quận Thủ Đức, Hồ Chí Minh",
-    },
-    products: [
-      {
-        id: "p3",
-        name: "NIKE AIR JORDAN 1",
-        variant: "Phân loại: Xanh trắng, 42",
-        price: 550000,
-        originalPrice: 650000,
-        quantity: 1,
-        image:
-          "https://res.cloudinary.com/dvh9n5dtf/image/upload/v1768164423/variants/wz0bxhbozdv9kxae5dnv.jpg",
-      },
-    ],
-  },
-  // 3. CHỜ XÁC NHẬN
-  {
-    id: "CHT-773322",
-    status: "pending",
-    statusLabel: "Chờ xác nhận",
-    totalAmount: 1250000,
-    shippingFee: 0, // Freeship
-    paymentMethod: "Chuyển khoản ngân hàng",
-    date: "28/10/2025",
-    dates: {
-      expected: "01/11/2025",
-    },
-    shippingAddress: {
-      name: "Nguyễn Văn A",
-      phone: "0909123456",
-      address: "456 Lê Văn Việt, Quận 9, TP.HCM",
-    },
-    products: [
-      {
-        id: "p4",
-        name: "NIKE AIR JORDAN 1",
-        variant: "Phân loại: Xanh trắng, 40",
-        price: 1250000,
-        quantity: 1,
-        image:
-          "https://res.cloudinary.com/dvh9n5dtf/image/upload/v1768164423/variants/wz0bxhbozdv9kxae5dnv.jpg",
-      },
-      {
-        id: "p5",
-        name: "NIKE AIR JORDAN 1",
-        variant: "Phân loại: Đỏ, 41",
-        price: 0,
-        originalPrice: 50000,
-        quantity: 1,
-        image:
-          "https://res.cloudinary.com/dvh9n5dtf/image/upload/v1768235813/variants/fdljulagbgtmkunlvy4u.jpg",
-      },
-    ],
-  },
-  // 4. ĐÃ HỦY
-  {
-    id: "CHT-661100",
-    status: "cancelled",
-    statusLabel: "Đã hủy",
-    totalAmount: 300000,
-    shippingFee: 25000,
-    paymentMethod: "Ví MoMo",
-    date: "15/08/2025",
-    dates: {},
-    shippingAddress: {
-      name: "Trần Thị B",
-      phone: "0912345678",
-      address: "789 Nguyễn Huệ, Quận 1, TP.HCM",
-    },
-    products: [
-      {
-        id: "p6",
-        name: "NIKE AIR JORDAN 1",
-        variant: "Phân loại: Trắng xanh, 38",
-        price: 300000,
-        originalPrice: 450000,
-        quantity: 1,
-        image:
-          "https://res.cloudinary.com/dvh9n5dtf/image/upload/v1768236078/variants/riy3vfbs0k7soiidbrnq.jpg",
-      },
-    ],
-  },
-  // 5. TEST LOAD MORE
-  {
-    id: "CHT-TEST-MORE",
-    status: "delivered",
-    statusLabel: "Giao hàng thành công",
-    totalAmount: 2500000,
-    shippingFee: 50000,
-    paymentMethod: "Thanh toán khi nhận hàng",
-    date: "01/11/2025",
-    deliveryDuration: "3 ngày",
-    dates: {
-      shipped: "02/11/2025",
-      delivered: "05/11/2025",
-    },
-    shippingAddress: {
-      name: "Lê Văn C",
-      phone: "0987654321",
-      address: "101 Đường 3/2, Cần Thơ",
-    },
-    products: [
-      {
-        id: "t1",
-        name: "Giày Test 1",
-        variant: "Phân loại: Xanh, 40",
-        price: 500000,
-        quantity: 1,
-        image:
-          "https://res.cloudinary.com/dvh9n5dtf/image/upload/v1768232214/variants/jgvv3pcb1rv82ylylf6u.jpg",
-      },
-      {
-        id: "t2",
-        name: "Giày Test 2",
-        variant: "Phân loại: Xanh, 41",
-        price: 500000,
-        quantity: 1,
-        image:
-          "https://res.cloudinary.com/dvh9n5dtf/image/upload/v1768164423/variants/wz0bxhbozdv9kxae5dnv.jpg",
-      },
-      {
-        id: "t3",
-        name: "Giày Test 3",
-        variant: "Phân loại: Đỏ, 42",
-        price: 500000,
-        quantity: 1,
-        image:
-          "https://res.cloudinary.com/dvh9n5dtf/image/upload/v1768235813/variants/fdljulagbgtmkunlvy4u.jpg",
-      },
-      {
-        id: "t4",
-        name: "Giày Test 4",
-        variant: "Phân loại: Xanh, 43",
-        price: 500000,
-        quantity: 1,
-        image:
-          "https://res.cloudinary.com/dvh9n5dtf/image/upload/v1768236078/variants/riy3vfbs0k7soiidbrnq.jpg",
-      },
-      {
-        id: "t5",
-        name: "Giày Test 5",
-        variant: "Phân loại: Xanh, 44",
-        price: 500000,
-        quantity: 1,
-        image:
-          "https://res.cloudinary.com/dvh9n5dtf/image/upload/v1768164423/variants/wz0bxhbozdv9kxae5dnv.jpg",
-      },
-    ],
-  },
-];
+// [UPDATED] Import từ Service
+import type { Order, OrderStatus } from "../../../services/userHistoryServices";
+import {
+  getOrders,
+  getOrderCounts,
+} from "../../../services/fakeUserHistoryServices";
 
 const OrderHistory = () => {
   const [tabValue, setTabValue] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
 
+  // State dữ liệu
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [counts, setCounts] = useState({
+    all: 0,
+    pending: 0,
+    shipping: 0,
+    delivered: 0,
+    cancelled: 0,
+  });
+  const [loading, setLoading] = useState(false);
+
+  // Pagination Logic UI
   const PAGE_SIZE = 3;
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
+  // Reset nút xem thêm khi filter thay đổi
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
   }, [tabValue, searchTerm]);
 
-  const orderCounts = {
-    all: MOCK_ORDERS.length,
-    pending: MOCK_ORDERS.filter((order) => order.status === "pending").length,
-    shipping: MOCK_ORDERS.filter((order) => order.status === "shipping").length,
-    delivered: MOCK_ORDERS.filter((order) => order.status === "delivered")
-      .length,
-    cancelled: MOCK_ORDERS.filter((order) => order.status === "cancelled")
-      .length,
-  };
+  // Fetch Data
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const statusMap: (OrderStatus | "all")[] = [
+          "all",
+          "pending",
+          "shipping",
+          "delivered",
+          "cancelled",
+        ];
+        const currentStatus = statusMap[tabValue];
 
-  const filteredOrders = MOCK_ORDERS.filter((order) => {
-    // Filter by Tab
-    let matchTab = false;
-    if (tabValue === 0) matchTab = true;
-    else if (tabValue === 1 && order.status === "pending") matchTab = true;
-    else if (tabValue === 2 && order.status === "shipping") matchTab = true;
-    else if (tabValue === 3 && order.status === "delivered") matchTab = true;
-    else if (tabValue === 4 && order.status === "cancelled") matchTab = true;
+        // Lấy danh sách (Limit lớn để UI tự cắt bằng slice như cũ)
+        const dataRes = await getOrders({
+          status: currentStatus,
+          search: searchTerm,
+          page: 1,
+          limit: 100,
+        });
+        setOrders(dataRes.data);
 
-    // Filter by Search
-    const matchSearch =
-      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.products.some((p) =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase()),
-      );
+        // Lấy số lượng cho Tabs
+        const countRes = await getOrderCounts();
+        setCounts(countRes);
+      } catch (error) {
+        console.error("Failed to fetch orders", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [tabValue, searchTerm]);
 
-    return matchTab && matchSearch;
-  });
-
-  const displayedOrders = filteredOrders.slice(0, visibleCount);
-  const isAllShown = visibleCount >= filteredOrders.length;
-  const remainingCount = filteredOrders.length - visibleCount;
+  // Logic hiển thị
+  const displayedOrders = orders.slice(0, visibleCount);
+  const isAllShown = visibleCount >= orders.length;
+  const remainingCount = orders.length - visibleCount;
   const nextLoadCount = Math.min(PAGE_SIZE, Math.max(0, remainingCount));
 
   const handleToggleOrders = () => {
-    if (isAllShown) {
-      setVisibleCount(PAGE_SIZE);
-    } else {
-      setVisibleCount((prev) => prev + PAGE_SIZE);
-    }
+    if (isAllShown) setVisibleCount(PAGE_SIZE);
+    else setVisibleCount((prev) => prev + PAGE_SIZE);
   };
 
   return (
@@ -344,7 +128,7 @@ const OrderHistory = () => {
               <OrderTabs
                 value={tabValue}
                 onChange={setTabValue}
-                counts={orderCounts}
+                counts={counts}
               />
 
               <Paper
@@ -382,13 +166,17 @@ const OrderHistory = () => {
               </Paper>
 
               <Box>
-                {displayedOrders.length > 0 ? (
+                {loading ? (
+                  <Box sx={{ textAlign: "center", py: 4 }}>
+                    <CircularProgress sx={{ color: "#546E7A" }} />
+                  </Box>
+                ) : displayedOrders.length > 0 ? (
                   <>
                     {displayedOrders.map((order) => (
                       <OrderCard key={order.id} order={order} />
                     ))}
 
-                    {filteredOrders.length > PAGE_SIZE && (
+                    {orders.length > PAGE_SIZE && (
                       <Box sx={{ textAlign: "center", mt: 4, mb: 2 }}>
                         <Button
                           onClick={handleToggleOrders}
@@ -412,7 +200,6 @@ const OrderHistory = () => {
                             py: 1,
                             bgcolor: "transparent",
                             outline: "none !important",
-                            "&:focus": { outline: "none !important" },
                             "&:hover": {
                               bgcolor: "white",
                               borderColor: "#2C3E50",

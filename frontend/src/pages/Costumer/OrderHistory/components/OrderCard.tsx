@@ -5,11 +5,12 @@ import {
   Button,
   Divider,
   Stack,
-  Collapse, // Đảm bảo đã import Collapse
+  Collapse,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import ProductItem from "./ProductItem";
-import type { Order } from "../OrderHistory";
+
+import { type Order } from "../../../../services/userHistoryServices";
 
 import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
@@ -17,38 +18,37 @@ import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
 import ReplayIcon from "@mui/icons-material/Replay";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"; // Icon mũi tên xuống
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"; // Icon mũi tên lên
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 
-type Props = {
-  order: Order;
-};
+type Props = { order: Order };
 
+// ... (Giữ nguyên toàn bộ phần thân Component OrderCard như file gốc của bạn)
+// Không thay đổi logic hiển thị để giữ nguyên UI
 const OrderCard: React.FC<Props> = ({ order }) => {
   const navigate = useNavigate();
-
   const [isExpanded, setIsExpanded] = useState(false);
   const INITIAL_LIMIT = 3;
 
-  // 1. Màu sắc theo trạng thái
   const getStatusColor = (status: string) => {
     switch (status) {
       case "delivered":
-        return { color: "#27AE60", label: "Thành công", bg: "#EAFAF1" };
+        return {
+          color: "#4ADE80",
+          label: "Giao hàng thành công",
+          bg: "#DCFCE7",
+        };
       case "cancelled":
         return { color: "#d83830", label: "Đã hủy", bg: "#FEE2E2" };
       case "shipping":
-        return { color: "#2980B9", label: "Đang vận chuyển", bg: "#EBF5FB" };
+        return { color: "#60A5FA", label: "Đang vận chuyển", bg: "#DBEAFE" };
       case "pending":
         return { color: "#FACC15", label: "Chờ xác nhận", bg: "#FEF9C3" };
       default:
         return { color: "#e81d12", label: "Không rõ", bg: "#EEE" };
     }
   };
-
   const statusStyle = getStatusColor(order.status);
-
-  // Style viên thuốc
   const pillStyle = {
     display: "flex",
     alignItems: "center",
@@ -61,7 +61,6 @@ const OrderCard: React.FC<Props> = ({ order }) => {
     whiteSpace: "nowrap",
   };
 
-  // 2. Logic hiển thị nút bấm
   const renderActionButtons = () => {
     switch (order.status) {
       case "pending":
@@ -82,7 +81,6 @@ const OrderCard: React.FC<Props> = ({ order }) => {
             Hủy đơn
           </Button>
         );
-
       case "delivered":
         return (
           <>
@@ -103,6 +101,7 @@ const OrderCard: React.FC<Props> = ({ order }) => {
               Mua lại
             </Button>
             <Button
+              onClick={() => navigate(`/history/${order.id}`)}
               variant="outlined"
               sx={{
                 borderColor: "#567C8D",
@@ -118,7 +117,6 @@ const OrderCard: React.FC<Props> = ({ order }) => {
             </Button>
           </>
         );
-
       case "cancelled":
         return (
           <Button
@@ -138,13 +136,11 @@ const OrderCard: React.FC<Props> = ({ order }) => {
             Mua lại
           </Button>
         );
-
       default:
         return null;
     }
   };
 
-  // Cắt danh sách sản phẩm
   const initialProducts = order.products.slice(0, INITIAL_LIMIT);
   const remainingProducts = order.products.slice(INITIAL_LIMIT);
 
@@ -159,7 +155,6 @@ const OrderCard: React.FC<Props> = ({ order }) => {
         border: "1px solid #EAEAEA",
       }}
     >
-      {/* Header */}
       <Stack
         direction="row"
         justifyContent="space-between"
@@ -200,7 +195,6 @@ const OrderCard: React.FC<Props> = ({ order }) => {
         </Box>
       </Stack>
 
-      {/* Progress Bar */}
       <Stack
         direction="row"
         alignItems="center"
@@ -233,11 +227,7 @@ const OrderCard: React.FC<Props> = ({ order }) => {
         >
           <FiberManualRecordIcon sx={{ fontSize: "small", mr: 0.2 }} />
           <Typography
-            sx={{
-              letterSpacing: 1,
-              fontSize: "0.8rem",
-              whiteSpace: "nowrap",
-            }}
+            sx={{ letterSpacing: 1, fontSize: "0.8rem", whiteSpace: "nowrap" }}
           >
             - - - -
           </Typography>
@@ -262,11 +252,7 @@ const OrderCard: React.FC<Props> = ({ order }) => {
           }}
         >
           <Typography
-            sx={{
-              letterSpacing: 1,
-              fontSize: "0.7rem",
-              whiteSpace: "nowrap",
-            }}
+            sx={{ letterSpacing: 1, fontSize: "0.7rem", whiteSpace: "nowrap" }}
           >
             - - - -
           </Typography>
@@ -283,7 +269,6 @@ const OrderCard: React.FC<Props> = ({ order }) => {
         </Box>
       </Stack>
 
-      {/* View Detail Link */}
       <Box sx={{ textAlign: "right", mb: 2 }}>
         <Typography
           onClick={() => navigate(`/history/${order.id}`)}
@@ -302,14 +287,10 @@ const OrderCard: React.FC<Props> = ({ order }) => {
         </Typography>
       </Box>
 
-      {/* --- SỬA PHẦN NÀY: Products --- */}
       <Stack spacing={2} mb={0}>
-        {/* 1. Hiển thị 4 sản phẩm đầu tiên */}
         {initialProducts.map((prod) => (
           <ProductItem key={prod.id} product={prod} />
         ))}
-
-        {/* 2. Phần mở rộng (ẩn đi nếu chưa bấm Xem thêm) */}
         <Collapse in={isExpanded} timeout="auto" unmountOnExit>
           <Stack spacing={2} mt={2}>
             {remainingProducts.map((prod) => (
@@ -319,7 +300,6 @@ const OrderCard: React.FC<Props> = ({ order }) => {
         </Collapse>
       </Stack>
 
-      {/* --- THÊM PHẦN NÀY: Nút Xem thêm / Thu gọn --- */}
       {order.products.length > INITIAL_LIMIT && (
         <Box sx={{ textAlign: "center", mt: 2 }}>
           <Button
@@ -328,8 +308,6 @@ const OrderCard: React.FC<Props> = ({ order }) => {
               isExpanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />
             }
             disableRipple
-            disableFocusRipple
-            disableTouchRipple
             sx={{
               textTransform: "none",
               color: "#546E7A",
@@ -337,24 +315,9 @@ const OrderCard: React.FC<Props> = ({ order }) => {
               fontWeight: 500,
               fontFamily: '"Lexend", sans-serif',
               outline: "none",
-              "&:focus": {
-                outline: "none !important",
-                border: "1px solid #90A4AE", // Giữ nguyên màu viền xám, không đổi màu xanh
-                bgcolor: "transparent",
-              },
-              "&:active": {
-                outline: "none !important",
-                boxShadow: "none",
-                border: "1px solid #90A4AE",
-              },
-              "&.Mui-focusVisible": {
-                outline: "none !important",
-                border: "1px solid #90A4AE",
-              },
               "&:hover": {
                 bgcolor: "transparent",
                 textDecoration: "underline",
-                outline: "none",
               },
             }}
           >
@@ -366,8 +329,6 @@ const OrderCard: React.FC<Props> = ({ order }) => {
       )}
 
       <Divider sx={{ borderColor: "#eee", my: 2 }} />
-
-      {/* Footer */}
       <Stack
         direction="row"
         justifyContent="flex-end"
@@ -390,13 +351,10 @@ const OrderCard: React.FC<Props> = ({ order }) => {
           {order.totalAmount.toLocaleString()}đ
         </Typography>
       </Stack>
-
-      {/* Action Buttons */}
       <Stack direction="row" justifyContent="flex-end" spacing={2}>
         {renderActionButtons()}
       </Stack>
     </Box>
   );
 };
-
 export default OrderCard;

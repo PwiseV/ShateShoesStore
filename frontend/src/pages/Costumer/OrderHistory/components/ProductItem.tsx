@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Typography, Stack } from "@mui/material";
-// Import type từ file cha
-import type { OrderProduct } from "../OrderHistory";
+// [UPDATED] Import Type (4 levels up)
+import type { OrderProduct } from "../../../../services/userHistoryServices";
 
 const ProductItem = ({ product }: { product: OrderProduct }) => {
   return (
@@ -33,18 +33,6 @@ const ProductItem = ({ product }: { product: OrderProduct }) => {
         </Typography>
       </Box>
       <Box textAlign="right">
-        {product.originalPrice && (
-          <Typography
-            variant="body2"
-            sx={{
-              textDecoration: "line-through",
-              color: "#999",
-              fontSize: "0.9rem",
-            }}
-          >
-            {product.originalPrice.toLocaleString()}đ
-          </Typography>
-        )}
         <Typography sx={{ color: "#546E7A", fontWeight: "bold" }}>
           {product.price.toLocaleString()}đ
         </Typography>
@@ -52,5 +40,4 @@ const ProductItem = ({ product }: { product: OrderProduct }) => {
     </Stack>
   );
 };
-
 export default ProductItem;
