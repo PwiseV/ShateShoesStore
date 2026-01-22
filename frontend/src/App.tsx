@@ -21,6 +21,12 @@ import Posts from "./pages/Admin/Post/Posts.tsx";
 import Orders from "./pages/Admin/Orders/Orders.tsx";
 import UserProfile from "./pages/Costumer/UserProfile/UserProfile.tsx";
 import FAQs from "./pages/Costumer/FAQs/FAQs.tsx";
+import AboutUs from "./pages/Costumer/StaticPages/About/AboutUs.tsx";
+import PrivacyPolicy from "./pages/Costumer/StaticPages/PrivacyPolicy.tsx";
+import ReturnPolicy from "./pages/Costumer/StaticPages/ReturnPolicy.tsx";
+import ContactUs from "./pages/Costumer/Contact/ContactUs.tsx";
+import NotFound from "./pages/Costumer/StaticPages/NotFound.tsx";
+import SizeGuide from "./pages/Costumer/StaticPages/SizeGuide.tsx";
 
 // forgot password components
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
@@ -69,6 +75,12 @@ export default function AppRoutes() {
             />
             <Route path="/products/:slug" element={<ProductList />} />
             <Route path="/profile" element={<UserProfile />} />
+            <Route path="/about-us" element={<AboutUs />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/return-policy" element={<ReturnPolicy />} />
+            <Route path="/contact-us" element={<ContactUs />} />
+            <Route path="/size-guide" element={<SizeGuide />} />
+            <Route path="*" element={<NotFound />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />
