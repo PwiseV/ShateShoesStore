@@ -1,44 +1,69 @@
+// src/pages/Customer/Checkout/CheckoutView.tsx
 import { Box } from "@mui/material";
 import CheckoutForm from "./components/CheckoutForm";
 import OrderSummary from "./components/OrderSummary";
-import { useCheckout } from "./hooks/useCheckout";
-import type { CartItem } from "../Cart/types";
+import type { useCheckout } from "./hooks/useCheckout";
 
-interface Props {
-  items: CartItem[];
-  total: number;
-  discount: number;
-  finalTotal: number;
-}
+// Định nghĩa Props dựa trên kiểu dữ liệu trả về của useCheckout
+// (Mẹo: dùng ReturnType để lấy kiểu tự động)
+type Props = ReturnType<typeof useCheckout>;
 
-const CheckoutView = ({ items, total, discount, finalTotal }: Props) => {
-  const checkout = useCheckout(items, total, discount, finalTotal);
+const CheckoutView = (props: Props) => {
+  // Destructuring props để lấy data
+  const {
+    items,
+    receiverName,
+    setReceiverName,
+    phone,
+    setPhone,
+    fullAddress,
+    setFullAddress,
+    note,
+    setNote,
+    availableCoupons,
+    selectedCoupon,
+    handleApplyCouponCode,
+    handleSelectCoupon,
+    priceSummary,
+    handlePlaceOrder,
+    loading, // loading lúc ấn nút đặt hàng
+  } = props;
 
-    return (
-      <Box
+  return (
+    <Box
       sx={{
         display: "grid",
-        gridTemplateColumns: { xs: "1fr", lg: "2.5fr 1.2fr" },
-        gap: 4,
+        gridTemplateColumns: { xs: "1fr", lg: "1.8fr 1fr" },
+        gap: 5,
+        alignItems: "start",
       }}
     >
       <CheckoutForm
-        shippingInfo={checkout.shippingInfo}
-        onChange={checkout.updateField}
-        errors={checkout.errors}
+        name={receiverName}
+        setName={setReceiverName}
+        phone={phone}
+        setPhone={setPhone}
+        address={fullAddress}
+        setAddress={setFullAddress}
+        note={note}
+        setNote={setNote}
+        availableCoupons={availableCoupons}
+        onSelectCoupon={handleSelectCoupon}
+        selectedCouponId={selectedCoupon?.promotionId}
       />
 
       <OrderSummary
         items={items}
-        total={total}
-        discount={discount}
-        finalTotal={finalTotal}
-        onSubmit={checkout.submitOrder}
-        loading={checkout.loading}
+        subtotal={priceSummary.subtotal}
+        shippingFee={priceSummary.shippingFee}
+        discountAmount={priceSummary.discountAmount}
+        finalTotal={priceSummary.total}
+        onApplyCode={handleApplyCouponCode}
+        onPlaceOrder={handlePlaceOrder}
+        loading={loading}
       />
     </Box>
   );
 };
-
 
 export default CheckoutView;

@@ -1,120 +1,246 @@
-import { useState } from "react";
-import type { ShippingInfo } from "../types";
+// src/pages/Customer/Checkout/useCheckout.ts
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useToast } from "../../../../context/useToast";
+import {
+  getAvailableCoupons,
+  validateCoupon,
+  createOrder,
+  getUserAddresses,
+  createUserAddress, // Import mới
+  updateUserAddress, // Import mới
+} from "../../../../services/checkoutService";
 import type { CartItem } from "../../Cart/types";
-import { useNavigate } from "react-router-dom";
-import { createOrder } from "../../../../services/fakeOrderService";
+import type { Coupon, CreateOrderPayload, Address } from "../types";
 
-type FormErrors = Partial<Record<keyof ShippingInfo, string>> & {
-    form?: string;
-};
+export const useCheckout = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { showToast } = useToast();
 
-export const useCheckout = (
-    items: CartItem[],
-    total: number,
-    discount: number,
-    finalTotal: number
-) => {
-    const navigate = useNavigate();
+  const cartState = location.state as {
+    items: CartItem[];
+    total: number;
+    finalTotal: number;
+  } | null;
 
-    const [shippingInfo, setShippingInfo] = useState<ShippingInfo>({
-        fullName: "",
-        phone: "",
-        address: "",
-        note: "",
-    });
+  // --- STATE ---
+  const [loading, setLoading] = useState(false);
+  const [initLoading, setInitLoading] = useState(true);
 
-    const [errors, setErrors] = useState<FormErrors>({});
-    const [loading, setLoading] = useState(false);
+  // Data State
+  const [items, setItems] = useState<CartItem[]>([]);
+  // Thêm state lưu danh sách địa chỉ để hiển thị trong Modal chọn địa chỉ (nếu có)
+  const [listAddresses, setListAddresses] = useState<Address[]>([]);
+  const [availableCoupons, setAvailableCoupons] = useState<Coupon[]>([]);
+  const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
 
-    // ===== UPDATE FIELD =====
-    const updateField = (field: keyof ShippingInfo, value: string) => {
-        setShippingInfo((prev) => ({ ...prev, [field]: value }));
+  // Form State
+  const [receiverName, setReceiverName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [fullAddress, setFullAddress] = useState("");
+  const [note, setNote] = useState("");
 
-        const fieldError = validateField(field, value);
-        setErrors((prev) => ({
-            ...prev,
-            [field]: fieldError,
-            form: undefined,
-        }));
+  // --- HELPER: Hàm lấy địa chỉ (Dùng useCallback để tái sử dụng) ---
+  const fetchAddressData = useCallback(async () => {
+    try {
+      const addresses = await getUserAddresses();
+      setListAddresses(addresses); // Lưu lại list để dùng cho việc khác nếu cần
+
+      if (addresses && addresses.length > 0) {
+        // Ưu tiên lấy địa chỉ mặc định, không thì lấy cái đầu
+        const defaultAddr = addresses.find((a) => a.isDefault) || addresses[0];
+        if (defaultAddr) {
+          setFullAddress(
+            `${defaultAddr.street}, ${defaultAddr.ward}, ${defaultAddr.district}, ${defaultAddr.city}`
+          );
+          // Nếu API Address có name/phone thì set luôn ở đây
+        }
+      }
+    } catch (error) {
+      console.error("Lỗi lấy địa chỉ:", error);
+    }
+  }, []);
+
+  // --- 1. WORKFLOW KHỞI TẠO ---
+  useEffect(() => {
+    if (!cartState || !cartState.items || cartState.items.length === 0) {
+      showToast("Giỏ hàng trống hoặc truy cập không hợp lệ", "error");
+      navigate("/users/cart");
+      return;
+    }
+
+    setItems(cartState.items);
+
+    const initData = async () => {
+      setInitLoading(true);
+
+      // 1. Lấy địa chỉ
+      await fetchAddressData();
+
+      // 2. Lấy coupon
+      try {
+        const coupons = await getAvailableCoupons(cartState.total);
+        setAvailableCoupons(coupons);
+      } catch (error) {
+        console.error("Lỗi lấy coupon:", error);
+      }
+
+      setInitLoading(false);
     };
 
-    // ===== VALIDATE =====
-    const validateField = (
-        field: keyof ShippingInfo,
-        value: string
-    ): string | undefined => {
-        switch (field) {
-            case "fullName":
-                if (!value.trim()) return "Vui lòng nhập họ tên";
-                return;
-            case "phone":
-                if (!/^(0|\+84)\d{9}$/.test(value))
-                    return "Số điện thoại không hợp lệ";
-                return;
-            case "address":
-                if (!value.trim()) return "Vui lòng nhập địa chỉ";
-                return;
-            default:
-                return;
-        }
-    };
+    initData();
+  }, [cartState, navigate, showToast, fetchAddressData]);
 
-    const validateAll = (): FormErrors => {
-        const newErrors: FormErrors = {};
+  // --- 2. WORKFLOW QUẢN LÝ ĐỊA CHỈ (MỚI THÊM) ---
 
-        (["fullName", "phone", "address"] as (keyof ShippingInfo)[]).forEach(
-            (field) => {
-                const error = validateField(field, shippingInfo[field] || "");
-                if (error) newErrors[field] = error;
-            }
-        );
+  // Hàm thêm địa chỉ mới
+  const handleAddAddress = async (payload: Omit<Address, "addressId">) => {
+    setLoading(true);
+    try {
+      await createUserAddress(payload);
+      showToast("Thêm địa chỉ thành công", "success");
+      await fetchAddressData(); // Load lại danh sách địa chỉ mới nhất
+    } catch (error: any) {
+      const msg = error.response?.data?.message || "Lỗi thêm địa chỉ";
+      showToast(msg, "error");
+      throw error; // Ném lỗi để Modal biết mà không đóng (nếu cần)
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        if (items.length === 0) {
-            newErrors.form = "Không có sản phẩm nào để đặt hàng";
-        }
+  // Hàm cập nhật địa chỉ
+  const handleUpdateAddress = async (
+    id: number,
+    payload: Omit<Address, "addressId">
+  ) => {
+    setLoading(true);
+    try {
+      await updateUserAddress(id, payload);
+      showToast("Cập nhật địa chỉ thành công", "success");
+      await fetchAddressData(); // Load lại danh sách địa chỉ mới nhất
+    } catch (error: any) {
+      const msg = error.response?.data?.message || "Lỗi cập nhật địa chỉ";
+      showToast(msg, "error");
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        return newErrors;
-    };
+  // --- 3. CÁC WORKFLOW KHÁC (GIỮ NGUYÊN) ---
+  const priceSummary = useMemo(() => {
+    const subtotal = cartState?.total || 0;
+    const shippingFee = 30000;
+    let discountAmount = 0;
 
-
-    // ===== SUBMIT =====
-    const submitOrder = async () => {
-        const allErrors = validateAll();
-
-        if (Object.keys(allErrors).length > 0) {
-            setErrors(allErrors);
-            return;
-        }
-
-        try {
-            setLoading(true);
-
-            const res = await createOrder({
-                items,
-                shippingInfo,
-                total,
-                discount,
-                finalTotal,
-            });
-
-            if (res.success) {
-                navigate("/order-success", {
-                    state: { orderId: res.orderId },
-                    replace: true,
-                });
-            }
-        } catch {
-            setErrors({ form: "Có lỗi xảy ra khi đặt hàng" });
-        } finally {
-            setLoading(false);
-        }
-    };
+    if (selectedCoupon) {
+      if (selectedCoupon.discountType === "percentage") {
+        discountAmount = (subtotal * selectedCoupon.discountValue) / 100;
+      } else {
+        discountAmount = selectedCoupon.discountValue;
+      }
+    }
+    if (discountAmount > subtotal) discountAmount = subtotal;
 
     return {
-        shippingInfo,
-        updateField,
-        submitOrder,
-        loading,
-        errors,
+      subtotal,
+      shippingFee,
+      discountAmount,
+      total: subtotal + shippingFee - discountAmount,
     };
+  }, [cartState, selectedCoupon]);
+
+  const handleSelectCoupon = (coupon: Coupon) => {
+    if (cartState && cartState.total < coupon.minOrderValue) {
+      showToast(
+        `Đơn tối thiểu ${coupon.minOrderValue.toLocaleString()}đ`,
+        "warning"
+      );
+      return;
+    }
+    setSelectedCoupon((prev) =>
+      prev?.promotionId === coupon.promotionId ? null : coupon
+    );
+  };
+
+  const handleApplyCouponCode = async (code: string) => {
+    if (!code.trim()) return;
+    setLoading(true);
+    try {
+      const total = cartState?.total || 0;
+      const validCoupon = await validateCoupon(code, total);
+      setSelectedCoupon(validCoupon);
+      showToast("Áp dụng mã thành công", "success");
+    } catch (error: any) {
+      const msg = error.response?.data?.message || "Mã không hợp lệ";
+      showToast(msg, "error");
+      setSelectedCoupon(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePlaceOrder = async () => {
+    if (!receiverName || !phone || !fullAddress) {
+      showToast("Vui lòng điền đủ thông tin nhận hàng", "error");
+      return;
+    }
+    setLoading(true);
+    try {
+      const payload: CreateOrderPayload = {
+        shippingFee: priceSummary.shippingFee,
+        total: priceSummary.total,
+        name: receiverName,
+        phone: phone,
+        address: fullAddress,
+        note: note,
+        paymentMethod: "COD",
+        promotionId: selectedCoupon ? selectedCoupon.promotionId : null,
+        items: items.map((item) => ({
+          cartItemId: item.cartItemId,
+          variantId: item.variantId,
+          quantity: item.quantity,
+        })),
+      };
+      await createOrder(payload);
+      showToast("Đặt hàng thành công!", "success");
+      navigate("/order-success");
+    } catch (error: any) {
+      const msg = error.response?.data?.message || "Lỗi đặt hàng";
+      showToast(msg, "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    // Data
+    items,
+    listAddresses, // Trả về list address để component AddressPopup dùng
+    availableCoupons,
+    selectedCoupon,
+    priceSummary,
+
+    // Form State
+    receiverName,
+    setReceiverName,
+    phone,
+    setPhone,
+    fullAddress,
+    setFullAddress,
+    note,
+    setNote,
+
+    // Actions
+    handleApplyCouponCode,
+    handleSelectCoupon,
+    handlePlaceOrder,
+    handleAddAddress, // Export hàm mới
+    handleUpdateAddress, // Export hàm mới
+
+    // UI State
+    loading: loading || initLoading,
+  };
 };

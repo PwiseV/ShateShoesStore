@@ -28,7 +28,6 @@ export default function AppRoutes() {
     <Router>
       <Suspense fallback={<div>Loading...</div>}>
         <Routes>
-
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Signup />} />
           <Route path="/homepage" element={<HomePage />} />
@@ -42,7 +41,7 @@ export default function AppRoutes() {
           <Route path="/admin/orders" element={<Orders />} />
 
           <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/payment" element={<Payment/>}/>
+          <Route path="/payment" element={<Payment />} />
 
           <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/admin/dashboard" element={<Dashboard />} />
