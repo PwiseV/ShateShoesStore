@@ -7,16 +7,18 @@ import SideBar from "../../../components/Customer/SideBar";
 
 import FavouriteGrid from "./components/FavouriteProductGrid/FavouriteGrid";
 import Pagination from "./components/Pagination/Pagination";
-import { type Product } from "./components/FavouriteProductGrid/FavouriteCard";
 
+import { useToast } from "../../../context/useToast";
+
+import { type FavouriteProduct } from "../../../services/favouriteServices";
 import {
   getFavouriteList,
   removeFromFavourite,
-} from "../../../services/fakeFavouriteServices";
+} from "../../../services/favouriteServices";
 
 const Favourite = () => {
   const [loading, setLoading] = useState(true);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<FavouriteProduct[]>([]);
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -24,15 +26,17 @@ const Favourite = () => {
 
   const ITEMS_PER_PAGE = 6;
 
-  // 1. Hàm gọi API lấy danh sách
+  // [MỚI] Khởi tạo toast
+  const { showToast } = useToast();
+
   const fetchFavourites = async () => {
     setLoading(true);
     try {
       const response = await getFavouriteList(page, ITEMS_PER_PAGE);
-
       setProducts(response.data);
-      setTotalPages(response.totalPages);
-      setTotalItems(response.total);
+      setTotalItems(response.count);
+      const calculatedTotalPages = Math.ceil(response.count / ITEMS_PER_PAGE);
+      setTotalPages(calculatedTotalPages > 0 ? calculatedTotalPages : 1);
     } catch (error) {
       console.error("Failed to fetch favourites:", error);
     } finally {
@@ -44,27 +48,6 @@ const Favourite = () => {
     fetchFavourites();
   }, [page]);
 
-  // 2. Hàm xử lý Xóa sản phẩm
-  const handleRemoveProduct = async (id: string) => {
-    try {
-      await removeFromFavourite(id);
-
-      setProducts((prev) => prev.filter((product) => product.id !== id));
-
-      setTotalItems((prev) => (prev > 0 ? prev - 1 : 0));
-
-      if (products.length === 1 && page > 1) {
-        setPage((prev) => prev - 1);
-      } else {
-        // Nếu vẫn còn sản phẩm hoặc đang ở trang 1, gọi lại API để làm mới data (nếu muốn lấp đầy chỗ trống từ trang sau)
-        // fetchFavourites(); // Bỏ comment dòng này nếu muốn sản phẩm trang sau tự động nhảy lên
-      }
-    } catch (error) {
-      console.error("Remove failed:", error);
-    }
-  };
-
-  // Hàm chuyển trang
   const handlePageChange = (
     event: React.ChangeEvent<unknown>,
     value: number,
@@ -73,16 +56,40 @@ const Favourite = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // [CẬP NHẬT] Xử lý xóa và hiển thị Toast
+  const handleRemoveProduct = async (productId: string) => {
+    try {
+      // Gọi API xóa và nhận response
+      const response = await removeFromFavourite(productId);
+
+      // Hiển thị thông báo từ backend (response.message)
+      showToast(response.message, "success");
+
+      // Cập nhật UI
+      setProducts((prev) => prev.filter((p) => p.productId !== productId));
+      setTotalItems((prev) => (prev > 0 ? prev - 1 : 0));
+
+      if (products.length === 1 && page > 1) {
+        setPage((prev) => prev - 1);
+      }
+    } catch (error: any) {
+      console.error("Failed to remove product:", error);
+      // Hiển thị lỗi nếu có
+      showToast(error.message || "Xóa thất bại", "error");
+    }
+  };
+
   return (
     <Box
       sx={{
+        bgcolor: "#F5EFEB",
+        minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
-        minHeight: "100vh",
-        bgcolor: "#F5EFEB",
       }}
     >
       <Header />
+
       <Container maxWidth="xl" sx={{ py: 6, flex: 1, px: { xs: 2, md: 6 } }}>
         <Box
           sx={{
@@ -116,18 +123,15 @@ const Favourite = () => {
                 fontFamily: '"Lexend", sans-serif',
               }}
             >
-              {/* Hiển thị tổng số sản phẩm từ API */}
               Sản phẩm yêu thích ({totalItems})
             </Typography>
 
-            {/* Truyền trực tiếp products (vì API đã cắt trang sẵn rồi) */}
             <FavouriteGrid
               products={products}
               loading={loading}
               onRemove={handleRemoveProduct}
             />
 
-            {/* Chỉ hiện phân trang khi có nhiều hơn 1 trang */}
             {!loading && totalPages > 1 && (
               <Box sx={{ mt: 6 }}>
                 <Pagination
@@ -140,6 +144,7 @@ const Favourite = () => {
           </Box>
         </Box>
       </Container>
+
       <Footer />
     </Box>
   );

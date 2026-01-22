@@ -1,20 +1,49 @@
 import api from "./axios";
 
-// 1. Định nghĩa Type dựa trên Frontend cần (Mapped từ ERD)
 export interface FavouriteProduct {
-  id: string;
-  name: string;
-  priceVnd: number;
-  image: string;
+  favouriteId: string;
+  productId: string;
+  code: string;
+  title: string;
+  description: string;
+  tag: string[];
+  slug: string;
+  avatar: string;
+  category: {
+    categoryId: string;
+    name: string;
+    slug: string;
+    parent?: {
+      categoryId: string;
+      name: string;
+      slug: string;
+    };
+  };
+  stock: number;
   rating: number;
+  min_price: number;
+  sizes: Array<{
+    size: string;
+    colors: Array<{
+      variantId: string;
+      color: string;
+      price: number;
+      stock: number;
+      avatar: string | null;
+    }>;
+  }>;
 }
 
-// 2. Định nghĩa Response trả về từ Server
-export interface PaginatedFavouriteResponse {
+export interface GetFavouriteResponse {
+  message: string;
+  count: number;
   data: FavouriteProduct[];
-  total: number;
-  currentPage: number;
-  totalPages: number;
+}
+
+// [MỚI] Định nghĩa response cho hành động xóa
+export interface RemoveFavouriteResponse {
+  message: string;
+  data: any;
 }
 
 /* ============================
@@ -24,9 +53,9 @@ export interface PaginatedFavouriteResponse {
 export const getFavouriteList = async (
   page: number = 1,
   limit: number = 6,
-): Promise<PaginatedFavouriteResponse> => {
+): Promise<GetFavouriteResponse> => {
   try {
-    const response = await api.get("/user/favourites", {
+    const response = await api.get("/users/favorites", {
       params: { page, limit },
     });
     return response.data;
@@ -36,22 +65,24 @@ export const getFavouriteList = async (
   }
 };
 
-export const addToFavourite = async (
-  productId: string | number,
-): Promise<void> => {
+export const addToFavourite = async (productId: string): Promise<void> => {
   try {
-    await api.post("/user/favourites", { productId });
+    await api.post("/users/favorites", { productId });
   } catch (error) {
     console.error("Error adding to favourites:", error);
     throw error;
   }
 };
 
+// [CẬP NHẬT] Hàm xóa trả về RemoveFavouriteResponse thay vì void
 export const removeFromFavourite = async (
-  productId: string | number,
-): Promise<void> => {
+  productId: string,
+): Promise<RemoveFavouriteResponse> => {
   try {
-    await api.delete(`/user/favourites/${productId}`);
+    const response = await api.delete("/users/favorites", {
+      data: { productId },
+    });
+    return response.data; // Trả về { message: "...", data: {...} }
   } catch (error) {
     console.error("Error removing from favourites:", error);
     throw error;

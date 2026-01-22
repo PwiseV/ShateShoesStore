@@ -4,19 +4,14 @@ import { useNavigate } from "react-router-dom";
 import StarRateIcon from "@mui/icons-material/StarRate";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 
-export type Product = {
-  id: string;
-  name: string;
-  priceVnd: number;
-  image: string;
-  rating: number;
-};
+// Import Type trực tiếp từ Service để đồng bộ
+import { type FavouriteProduct } from "../../../../../services/favouriteServices";
 
 const currencyVND = (n: number) =>
   `${(Math.round(n / 1000) * 1000).toLocaleString("vi-VN")}đ`;
 
 type Props = {
-  product?: Product;
+  product?: FavouriteProduct;
   onRemove?: (id: string) => void;
 };
 
@@ -26,7 +21,8 @@ const FavouriteCard = ({ product, onRemove }: Props) => {
   if (!product) return null;
 
   const handleNavigate = () => {
-    navigate(`/products/details/${product.id}`);
+    // Dùng productId để navigate đến chi tiết
+    navigate(`/products/details/${product.productId}`);
   };
 
   return (
@@ -46,18 +42,23 @@ const FavouriteCard = ({ product, onRemove }: Props) => {
         onClick={handleNavigate}
         sx={{
           position: "relative",
-          borderRadius: "20px",
-          overflow: "hidden",
           width: "100%",
           aspectRatio: "1/1",
           bgcolor: "#fff",
+          borderRadius: "20px",
+          overflow: "hidden",
           cursor: "pointer",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
+          transition: "transform 0.3s ease",
+          "&:hover": {
+            transform: "translateY(-5px)",
+          },
         }}
       >
         <Box
           component="img"
-          src={product.image}
-          alt={product.name}
+          src={product.avatar} // [SỬA] image -> avatar
+          alt={product.title} // [SỬA] name -> title
           sx={{
             width: "100%",
             height: "100%",
@@ -66,11 +67,13 @@ const FavouriteCard = ({ product, onRemove }: Props) => {
             "&:hover": { transform: "scale(1.08)" },
           }}
         />
-        {/* Icon Tim */}
+
+        {/* Nút Xóa (Trái tim đỏ) */}
         <IconButton
           onClick={(e) => {
             e.stopPropagation();
-            onRemove?.(product.id);
+            // [SỬA] Truyền productId để xóa
+            onRemove?.(product.productId);
           }}
           sx={{
             position: "absolute",
@@ -115,7 +118,7 @@ const FavouriteCard = ({ product, onRemove }: Props) => {
             },
           }}
         >
-          {product.name}
+          {product.title} {/* [SỬA] name -> title */}
         </Typography>
 
         {/* Rating */}
@@ -146,11 +149,11 @@ const FavouriteCard = ({ product, onRemove }: Props) => {
             fontSize: "1.1rem",
             fontWeight: 800,
             color: "#2C3E50",
-            mt: 0.5,
             fontFamily: '"Lexend", sans-serif',
+            mt: 0.5,
           }}
         >
-          {currencyVND(product.priceVnd)}
+          {currencyVND(product.min_price)} {/* [SỬA] priceVnd -> min_price */}
         </Typography>
       </Box>
     </Paper>
