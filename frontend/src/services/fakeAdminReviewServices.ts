@@ -1,6 +1,10 @@
-// src/services/fakeReviewService.ts
-import type { ReviewData, ReviewQueryParams, ReviewResponse } from "../pages/Admin/Reviews/types";
+import type {
+  ReviewData,
+  ReviewQueryParams,
+  ReviewResponse,
+} from "../pages/Admin/Reviews/types";
 
+// Mock Data
 let mockReviews: ReviewData[] = [
   {
     id: "1",
@@ -11,7 +15,8 @@ let mockReviews: ReviewData[] = [
     username: "Nguyễn Thị A",
     rating: 5,
     title: "Tuyệt vời!",
-    content: "Giày rất đẹp và thoải mái khi mang. Rất hài lòng với sản phẩm này.",
+    content:
+      "Giày rất đẹp và thoải mái khi mang. Rất hài lòng với sản phẩm này.",
     order_item_id: 101,
     status: "approved",
     created_at: new Date("2025-01-10"),
@@ -169,12 +174,11 @@ let mockReviews: ReviewData[] = [
     order_item_id: 112,
     status: "pending",
     created_at: new Date("2025-12-05"),
-  }
+  },
 ];
 
-const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
-// Đổi tên hàm nếu cần để giống: getAdminReviewsMock
 export const getReviews = (
   params: ReviewQueryParams
 ): Promise<ReviewResponse> => {
@@ -182,45 +186,50 @@ export const getReviews = (
     setTimeout(() => {
       let filtered = [...mockReviews];
 
-      // 1. Filter search (keyword)
+      // 1. Filter search
       if (params.search) {
-        const kw = params.search.toLowerCase();
+        const kw = params.search.toLowerCase().trim();
         filtered = filtered.filter(
           (r) =>
-            r.review_id.toString().includes(kw) ||                    // thay reviewCode → review_id
-            r.product_name.toLowerCase().includes(kw) ||              // productName → product_name
-            r.username.toLowerCase().includes(kw)                         // customerName → user
+            r.review_id.toString().includes(kw) ||
+            r.product_name.toLowerCase().includes(kw) ||
+            r.username.toLowerCase().includes(kw)
         );
       }
 
-      // 2. Filter status (single hoặc multiple tùy hook)
+      // 2. Filter status
       if (params.status && params.status.length > 0) {
         filtered = filtered.filter((r) => params.status!.includes(r.status));
       }
 
-      // 3. Filter stars
-      if (params.rating && params.rating.length > 0) {
-        filtered = filtered.filter((r) => params.rating!.includes(r.rating));  // rating thay vì stars
+      // 3. Filter Rating (An toàn tối đa)
+      // Chấp nhận cả params.rating hoặc params.stars (phòng hờ)
+      const ratingParam = params.rating || (params as any).stars;
+
+      if (ratingParam && ratingParam.length > 0) {
+        // QUAN TRỌNG: Ép kiểu về Number để đảm bảo so sánh đúng
+        const ratingValues = ratingParam.map((v: any) => Number(v));
+        filtered = filtered.filter((r) => ratingValues.includes(r.rating));
       }
 
       // Pagination
       const page = params.page || 1;
-      const limit = params.pageSize || 10; // dùng pageSize để giống limit trong Orders
+      const limit = params.pageSize || 10;
       const total = filtered.length;
       const totalPages = Math.ceil(total / limit);
       const start = (page - 1) * limit;
       const data = filtered.slice(start, start + limit);
 
       resolve({
-        data,                          // danh sách reviews đã phân trang
+        data,
         pagination: {
-          total,                       // tổng số record sau filter
-          page,                        // trang hiện tại
-          limit,                       // số item/trang
-          totalPages,                  // tổng số trang
+          total,
+          page,
+          limit,
+          totalPages,
         },
       });
-    }, 600); // delay giống Orders
+    }, 600);
   });
 };
 
@@ -229,18 +238,20 @@ export const updateReviewStatus = async (
   status: "pending" | "approved" | "rejected"
 ): Promise<ReviewData> => {
   await delay(400);
-  const review = mockReviews.find(r => r.id === id);
+  const review = mockReviews.find((r) => r.id === id);
   if (!review) throw new Error("Review not found");
-  
+
   review.status = status;
   return { ...review };
 };
 
-export const deleteReview = async (id: string): Promise<{ message: string }> => {
+export const deleteReview = async (
+  id: string
+): Promise<{ message: string }> => {
   await delay(400);
-  const index = mockReviews.findIndex(r => r.id === id);
+  const index = mockReviews.findIndex((r) => r.id === id);
   if (index === -1) throw new Error("Review not found");
-  
+
   mockReviews.splice(index, 1);
   return { message: "Xóa thành công" };
 };
