@@ -41,7 +41,7 @@ export default function AppRoutes() {
           <Route path="/products" element={<ProductList />} />
           <Route path="/products/:slug" element={<ProductList />} />
           <Route path="/admin/orders" element={<Orders />} />
-          <Route path="/review/:productid" element={<ReviewProduct />} />
+          <Route path="/review/:orderItemId" element={<ReviewProduct />} />
 
           <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/admin/dashboard" element={<Dashboard />} />
@@ -60,7 +60,7 @@ export default function AppRoutes() {
               element={<ProductDetail />}
             />
             <Route path="/products/:slug" element={<ProductList />} />
-            <Route path="/review/:productid" element={<ReviewProduct />} />
+            <Route path="/review/:orderItemId" element={<ReviewProduct />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />

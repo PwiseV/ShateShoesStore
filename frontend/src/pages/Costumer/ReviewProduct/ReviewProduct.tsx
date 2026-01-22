@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Container, CircularProgress } from "@mui/material";
+import { Box, Container, CircularProgress, Typography } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 
 // Components
@@ -7,72 +7,75 @@ import Header from "../../../components/Customer/Header";
 import Footer from "../../../components/Customer/Footer";
 import ProductPreview from "./components/ProductPreview";
 import ReviewForm from "./components/ReviewForm";
-
 import { useToast } from "../../../context/useToast";
 
-// import {
-//   getProductById,
-//   submitReview,
-// } from "../../../services/reviewProductServices";
+// [QUAN TRỌNG] Đổi import sang Fake để test trước, sau này đổi về Real
 import {
-  getProductById,
+  getProductForReview,
   submitReview,
 } from "../../../services/fakeReviewProductServices";
+import type { ReviewProductInfo } from "../../../services/reviewProductServices";
+//import {
+//  getProductForReview,
+//  submitReview,
+//} from "../../../services/reviewProductServices";
 
 const ReviewProduct = () => {
-  const { productId } = useParams(); // Lấy ID từ URL
+  // 1. URL bây giờ sẽ là /review/:orderItemId
+  const { orderItemId } = useParams();
   const { showToast } = useToast();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
-  const [productImage, setProductImage] = useState<string>(""); // State lưu ảnh
-  const [initializing, setInitializing] = useState(true); // State load trang
+  const [initializing, setInitializing] = useState(true);
 
-  // 1. Load thông tin sản phẩm khi vào trang
+  // State lưu thông tin trả về từ API GET
+  const [reviewInfo, setReviewInfo] = useState<ReviewProductInfo | null>(null);
+
   useEffect(() => {
-    const fetchProductInfo = async () => {
-      if (!productId) return;
+    const fetchInfo = async () => {
+      if (!orderItemId) {
+        return;
+      }
       try {
-        const product = await getProductById(productId);
-        // Nếu API trả về ảnh, set vào state. Nếu không có ảnh, dùng ảnh placeholder
-        setProductImage(product.image || "https://via.placeholder.com/500");
+        const data = await getProductForReview(orderItemId);
+        setReviewInfo(data);
       } catch (error) {
-        console.error("Lỗi tải sản phẩm:", error);
-        showToast("Không tìm thấy sản phẩm", "error");
+        console.error("Lỗi:", error);
+        showToast("Không tìm thấy thông tin đơn hàng", "error");
       } finally {
         setInitializing(false);
       }
     };
 
     window.scrollTo(0, 0);
-    fetchProductInfo();
-  }, [productId, showToast]);
+    fetchInfo();
+  }, [orderItemId, showToast]);
 
-  // 2. Xử lý gửi đánh giá
-  const handleSubmitReview = async (data: {
+  const handleSubmitReview = async (formData: {
     rating: number;
     comment: string;
   }) => {
-    if (!productId) return;
-    if (!data.rating) {
+    if (!reviewInfo) return;
+    if (!formData.rating) {
       showToast("Vui lòng chọn số sao đánh giá!", "warning");
       return;
     }
 
     setLoading(true);
     try {
+      // 2. Mapping đúng field theo yêu cầu Backend (comment -> content)
       await submitReview({
-        productId: productId,
-        rating: data.rating,
-        comment: data.comment,
+        orderItemId: reviewInfo.orderItemId,
+        productId: reviewInfo.productId,
+        rating: formData.rating,
+        content: formData.comment, // Map comment từ form vào content của API
+        color: reviewInfo.color,
+        size: reviewInfo.size,
       });
 
       showToast("Gửi đánh giá thành công!", "success");
-
-      // Đợi 1s rồi chuyển trang (ví dụ về trang chi tiết sản phẩm hoặc lịch sử)
-      setTimeout(() => {
-        navigate("/history"); // Hoặc navigate(-1) để quay lại
-      }, 1000);
+      setTimeout(() => navigate("/history"), 1500); // Quay về lịch sử mua hàng
     } catch (error: any) {
       const msg = error.response?.data?.message || "Gửi đánh giá thất bại";
       showToast(msg, "error");
@@ -81,7 +84,6 @@ const ReviewProduct = () => {
     }
   };
 
-  // Hiển thị loading khi đang tải thông tin sản phẩm
   if (initializing) {
     return (
       <Box
@@ -125,13 +127,12 @@ const ReviewProduct = () => {
             width: "100%",
             maxWidth: "1000px",
             bgcolor: "white",
-            borderRadius: { xs: "20px", md: "0px" },
-            overflow: "hidden",
+            // borderRadius: { xs: "20px", md: "0px" },
             boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
             minHeight: "550px",
           }}
         >
-          {/* CỘT TRÁI: ẢNH SẢN PHẨM (Dùng ảnh từ API) */}
+          {/* CỘT TRÁI: ẢNH & THÔNG TIN SẢN PHẨM */}
           <Box
             sx={{
               flex: 1,
@@ -139,7 +140,30 @@ const ReviewProduct = () => {
               minHeight: { xs: "300px", md: "auto" },
             }}
           >
-            <ProductPreview image={productImage} />
+            <ProductPreview image={reviewInfo?.productImage || ""} />
+
+            {/* [MỚI] Hiển thị Tên, Size, Màu đè lên ảnh hoặc góc ảnh (Tùy chọn) */}
+            <Box
+              sx={{
+                position: "absolute",
+                bottom: 20,
+                left: 20,
+                right: 20,
+                bgcolor: "rgba(255,255,255,0.9)",
+                p: 2,
+                borderRadius: 2,
+              }}
+            >
+              <Typography
+                variant="h6"
+                sx={{ fontWeight: 700, color: "#2C3E50" }}
+              >
+                {reviewInfo?.productTitle}
+              </Typography>
+              <Typography variant="body2" sx={{ color: "#567C8D" }}>
+                Phân loại: {reviewInfo?.color} - Size {reviewInfo?.size}
+              </Typography>
+            </Box>
           </Box>
 
           {/* CỘT PHẢI: FORM */}
