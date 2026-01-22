@@ -1,4 +1,3 @@
-// src/pages/Customer/Checkout/useCheckout.ts
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useToast } from "../../../../context/useToast";
@@ -7,8 +6,8 @@ import {
   validateCoupon,
   createOrder,
   getUserAddresses,
-  createUserAddress, // Import mới
-  updateUserAddress, // Import mới
+  createUserAddress,
+  updateUserAddress,
 } from "../../../../services/checkoutService";
 import type { CartItem } from "../../Cart/types";
 import type { Coupon, CreateOrderPayload, Address } from "../types";
@@ -30,7 +29,6 @@ export const useCheckout = () => {
 
   // Data State
   const [items, setItems] = useState<CartItem[]>([]);
-  // Thêm state lưu danh sách địa chỉ để hiển thị trong Modal chọn địa chỉ (nếu có)
   const [listAddresses, setListAddresses] = useState<Address[]>([]);
   const [availableCoupons, setAvailableCoupons] = useState<Coupon[]>([]);
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
@@ -41,20 +39,18 @@ export const useCheckout = () => {
   const [fullAddress, setFullAddress] = useState("");
   const [note, setNote] = useState("");
 
-  // --- HELPER: Hàm lấy địa chỉ (Dùng useCallback để tái sử dụng) ---
+  // --- HELPER: Hàm lấy địa chỉ ---
   const fetchAddressData = useCallback(async () => {
     try {
       const addresses = await getUserAddresses();
-      setListAddresses(addresses); // Lưu lại list để dùng cho việc khác nếu cần
+      setListAddresses(addresses);
 
       if (addresses && addresses.length > 0) {
-        // Ưu tiên lấy địa chỉ mặc định, không thì lấy cái đầu
         const defaultAddr = addresses.find((a) => a.isDefault) || addresses[0];
         if (defaultAddr) {
           setFullAddress(
             `${defaultAddr.street}, ${defaultAddr.ward}, ${defaultAddr.district}, ${defaultAddr.city}`
           );
-          // Nếu API Address có name/phone thì set luôn ở đây
         }
       }
     } catch (error) {
@@ -92,25 +88,22 @@ export const useCheckout = () => {
     initData();
   }, [cartState, navigate, showToast, fetchAddressData]);
 
-  // --- 2. WORKFLOW QUẢN LÝ ĐỊA CHỈ (MỚI THÊM) ---
-
-  // Hàm thêm địa chỉ mới
+  // --- 2. WORKFLOW QUẢN LÝ ĐỊA CHỈ ---
   const handleAddAddress = async (payload: Omit<Address, "addressId">) => {
     setLoading(true);
     try {
       await createUserAddress(payload);
       showToast("Thêm địa chỉ thành công", "success");
-      await fetchAddressData(); // Load lại danh sách địa chỉ mới nhất
+      await fetchAddressData();
     } catch (error: any) {
       const msg = error.response?.data?.message || "Lỗi thêm địa chỉ";
       showToast(msg, "error");
-      throw error; // Ném lỗi để Modal biết mà không đóng (nếu cần)
+      throw error;
     } finally {
       setLoading(false);
     }
   };
 
-  // Hàm cập nhật địa chỉ
   const handleUpdateAddress = async (
     id: number,
     payload: Omit<Address, "addressId">
@@ -119,7 +112,7 @@ export const useCheckout = () => {
     try {
       await updateUserAddress(id, payload);
       showToast("Cập nhật địa chỉ thành công", "success");
-      await fetchAddressData(); // Load lại danh sách địa chỉ mới nhất
+      await fetchAddressData();
     } catch (error: any) {
       const msg = error.response?.data?.message || "Lỗi cập nhật địa chỉ";
       showToast(msg, "error");
@@ -129,7 +122,7 @@ export const useCheckout = () => {
     }
   };
 
-  // --- 3. CÁC WORKFLOW KHÁC (GIỮ NGUYÊN) ---
+  // --- 3. WORKFLOW XỬ LÝ COUPON (CÓ SỬA ĐỔI QUAN TRỌNG) ---
   const priceSummary = useMemo(() => {
     const subtotal = cartState?.total || 0;
     const shippingFee = 30000;
@@ -153,6 +146,8 @@ export const useCheckout = () => {
   }, [cartState, selectedCoupon]);
 
   const handleSelectCoupon = (coupon: Coupon) => {
+    // Logic kiểm tra min order khi click chọn từ list
+    // (Lưu ý: Logic này chỉ kiểm tra sơ bộ, logic chính vẫn nằm ở validateCoupon khi user nhập tay)
     if (cartState && cartState.total < coupon.minOrderValue) {
       showToast(
         `Đơn tối thiểu ${coupon.minOrderValue.toLocaleString()}đ`,
@@ -165,23 +160,32 @@ export const useCheckout = () => {
     );
   };
 
+  // --- ĐÂY LÀ CHỖ CẦN SỬA ---
   const handleApplyCouponCode = async (code: string) => {
     if (!code.trim()) return;
     setLoading(true);
     try {
       const total = cartState?.total || 0;
+      // Gọi hàm validateCoupon (hàm này giờ đã có logic check status, date, stock...)
       const validCoupon = await validateCoupon(code, total);
+
       setSelectedCoupon(validCoupon);
       showToast("Áp dụng mã thành công", "success");
     } catch (error: any) {
-      const msg = error.response?.data?.message || "Mã không hợp lệ";
+      // SỬA LẠI: Ưu tiên lấy error.message (từ new Error bên service)
+      // Nếu không có thì mới tìm trong error.response (từ Axios)
+      const msg =
+        error.message || error.response?.data?.message || "Mã không hợp lệ";
+
       showToast(msg, "error");
       setSelectedCoupon(null);
     } finally {
       setLoading(false);
     }
   };
+  // -------------------------
 
+  // --- 4. WORKFLOW ĐẶT HÀNG ---
   const handlePlaceOrder = async () => {
     if (!receiverName || !phone || !fullAddress) {
       showToast("Vui lòng điền đủ thông tin nhận hàng", "error");
@@ -216,14 +220,11 @@ export const useCheckout = () => {
   };
 
   return {
-    // Data
     items,
-    listAddresses, // Trả về list address để component AddressPopup dùng
+    listAddresses,
     availableCoupons,
     selectedCoupon,
     priceSummary,
-
-    // Form State
     receiverName,
     setReceiverName,
     phone,
@@ -232,15 +233,11 @@ export const useCheckout = () => {
     setFullAddress,
     note,
     setNote,
-
-    // Actions
     handleApplyCouponCode,
     handleSelectCoupon,
     handlePlaceOrder,
-    handleAddAddress, // Export hàm mới
-    handleUpdateAddress, // Export hàm mới
-
-    // UI State
+    handleAddAddress,
+    handleUpdateAddress,
     loading: loading || initLoading,
   };
 };
