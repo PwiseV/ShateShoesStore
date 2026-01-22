@@ -1,5 +1,4 @@
-// src/pages/Customer/Payment/Payment.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
@@ -13,64 +12,103 @@ import {
   Button,
   Stack,
   CircularProgress,
+  Divider
 } from "@mui/material";
 
-// Import Icon
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
-
-// Import PayOS
 import { usePayOS } from "@payos/payos-checkout";
 
-// Import Components & Services
 import Header from "../../../components/Customer/Header";
 import Footer from "../../../components/Customer/Footer";
 import { createPaymentLink } from "../../../services/paymentServices";
 import { useToast } from "../../../context/useToast";
+import { createOrder } from "../../../services/checkoutService";
+import type { CreateOrderPayload } from "../Checkout/types";
 
 const PaymentPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { showToast } = useToast();
 
-  // Lấy dữ liệu đơn hàng từ trang Checkout
   const orderState = location.state as {
-    orderId: string;
-    orderCode: number;
+    shippingFee: number;
     total: number;
+    name: string;
+    phone: string;
+    address: string;
+    note: string;
+    paymentMethod: string;
+    promotionId: string;
     items: any[];
   } | null;
 
   const [paymentMethod, setPaymentMethod] = useState("payos");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // Loading khi tạo link PayOS
+  const [isProcessingOrder, setIsProcessingOrder] = useState(false); // Loading khi đang tạo đơn hàng vào DB
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
 
-  // --- 1. CẤU HÌNH PAYOS ---
+  // --- HÀM TẠO ĐƠN HÀNG DÙNG CHUNG ---
+  const handleFinalizeOrder = useCallback(
+    async (method: "COD" | "Banking") => {
+      if (!orderState) return;
+
+      setIsProcessingOrder(true);
+      try {
+        const payload: CreateOrderPayload = {
+          shippingFee: orderState.shippingFee,
+          total: orderState.total,
+          name: orderState.name,
+          phone: orderState.phone,
+          address: orderState.address,
+          note: orderState.note,
+          paymentMethod: method,
+          promotionId: orderState.promotionId,
+          items: orderState.items.map((item) => ({
+            cartItemId: item.cartItemId,
+            variantId: item.variantId,
+            quantity: item.quantity,
+          })),
+          // status: method === "Banking" ? "paid" : "pending" // Tùy logic BE của bạn
+        };
+
+        await createOrder(payload);
+        navigate("/order-success");
+      } catch (error: any) {
+        console.error("Lỗi tạo đơn hàng:", error);
+        showToast(
+          error.response?.data?.message || "Lỗi khi lưu đơn hàng vào hệ thống",
+          "error",
+        );
+      } finally {
+        setIsProcessingOrder(false);
+      }
+    },
+    [orderState, navigate, showToast],
+  );
+
+  // --- CẤU HÌNH PAYOS ---
   const payOSConfig = {
-    RETURN_URL: window.location.origin + "/order-success", // Trang đích sau khi thanh toán xong
-    ELEMENT_ID: "embedded-payment-container", // ID của thẻ div chứa iframe
-    CHECKOUT_URL: checkoutUrl || "", // Fallback chuỗi rỗng để tránh lỗi TypeScript
-    embedded: true, // Chế độ nhúng iframe
-    onSuccess: (event: any) => {
-      console.log("Thanh toán thành công:", event);
-      navigate("/order-success");
+    RETURN_URL: window.location.origin + "/order-success",
+    ELEMENT_ID: "embedded-payment-container",
+    CHECKOUT_URL: checkoutUrl || "",
+    embedded: true,
+    onSuccess: async (event: any) => {
+      console.log("PayOS Success:", event);
+      await handleFinalizeOrder("Banking");
     },
     onCancel: (event: any) => {
-      console.log("Hủy thanh toán:", event);
       setCheckoutUrl(null);
+      showToast("Bạn đã hủy thanh toán", "info");
     },
   };
 
   const { open, exit } = usePayOS(payOSConfig);
 
-  // --- 2. QUAN TRỌNG: Trigger mở iframe khi có link ---
   useEffect(() => {
-    if (checkoutUrl) {
-      open();
-    }
+    if (checkoutUrl) open();
   }, [checkoutUrl, open]);
 
-  // Kiểm tra dữ liệu đầu vào
   useEffect(() => {
     if (!orderState) {
       showToast("Không tìm thấy thông tin đơn hàng", "error");
@@ -78,41 +116,29 @@ const PaymentPage = () => {
     }
   }, [orderState, navigate, showToast]);
 
-  // Xử lý tạo link thanh toán
-  const handlePayment = async () => {
+  const handlePaymentClick = async () => {
     if (!orderState) return;
 
-    // Trường hợp COD
     if (paymentMethod === "cod") {
-      showToast("Đặt hàng thành công! (Thanh toán khi nhận hàng)", "success");
-      navigate("/order-success");
-      return;
-    }
-
-    // Trường hợp PayOS
-    if (paymentMethod === "payos") {
+      await handleFinalizeOrder("COD");
+    } else {
       setLoading(true);
       try {
         const payload = {
           amount: orderState.total,
-          description: `Thanh toan don ${orderState.orderCode}`,
+          description: `Thanh toan don hang`,
           items: orderState.items.map((i) => ({
             name: i.product?.title || "Sản phẩm",
             quantity: i.quantity,
             price: i.price,
           })),
         };
-
         const res = await createPaymentLink(payload);
-
-        if (res && res.data && res.data.checkoutUrl) {
+        if (res?.data?.checkoutUrl) {
           setCheckoutUrl(res.data.checkoutUrl);
-        } else {
-          showToast("Không tạo được link thanh toán", "error");
         }
-      } catch (error: any) {
-        console.error(error);
-        showToast("Lỗi khởi tạo thanh toán", "error");
+      } catch (error) {
+        showToast("Lỗi khởi tạo cổng thanh toán", "error");
       } finally {
         setLoading(false);
       }
@@ -126,22 +152,17 @@ const PaymentPage = () => {
       <Header />
       <Container sx={{ py: 4, maxWidth: "800px !important" }}>
         <Typography
-          variant="h4"
-          fontWeight={800}
-          color="#2F4156"
-          mb={3}
-          textAlign="center"
-        >
-          Thanh toán đơn hàng
-        </Typography>
-
+            variant="h4"
+            fontWeight={800}
+            color="#2F4156"
+            sx={{ fontFamily: "'Lexend', sans-serif" }}
+          >
+            Thanh toán đơn hàng
+          </Typography>
+        <Divider sx={{ borderColor: "#000000", mt: 2, mb: 4 }} />
         <Paper sx={{ p: 4, borderRadius: 3 }}>
-          {/* Thông tin đơn hàng */}
           <Box sx={{ mb: 3, p: 2, bgcolor: "#f5f5f5", borderRadius: 2 }}>
-            <Typography variant="h6" color="#2F4156">
-              Mã đơn hàng: <b>#{orderState.orderCode}</b>
-            </Typography>
-            <Typography variant="h5" color="#d32f2f" fontWeight={700} mt={1}>
+            <Typography variant="h5" color="#d32f2f" fontWeight={700}>
               Tổng tiền: {orderState.total.toLocaleString("vi-VN")}đ
             </Typography>
           </Box>
@@ -151,11 +172,11 @@ const PaymentPage = () => {
               value={paymentMethod}
               onChange={(e) => {
                 setPaymentMethod(e.target.value);
-                setCheckoutUrl(null); // Reset nếu đổi phương thức
-                // exit(); // Có thể bỏ comment nếu muốn tắt hẳn iframe cũ
+                setCheckoutUrl(null);
+                exit();
               }}
             >
-              {/* --- OPTION 1: PAYOS --- */}
+              {/* Option PayOS */}
               <Paper
                 elevation={0}
                 sx={{
@@ -177,7 +198,6 @@ const PaymentPage = () => {
                       alignItems="center"
                       spacing={2}
                       py={2}
-                      width="100%"
                     >
                       <AccountBalanceIcon color="primary" fontSize="large" />
                       <Box>
@@ -193,42 +213,19 @@ const PaymentPage = () => {
                   sx={{ width: "100%", m: 0 }}
                 />
 
-                {/* --- KHU VỰC HIỂN THỊ IFRAME (ĐÃ FIX) --- */}
-                {/* Chỉ render khu vực này khi chọn PayOS */}
-                {paymentMethod === "payos" && (
+                {paymentMethod === "payos" && checkoutUrl && (
                   <Box
-                    sx={{
-                      // Logic hiển thị:
-                      // Nếu có checkoutUrl -> display: block
-                      // Nếu chưa có -> display: none (nhưng thẻ DIV vẫn tồn tại trong DOM)
-                      display: checkoutUrl ? "block" : "none",
-
-                      mt: 2,
-                      p: 1,
-                      bgcolor: "#fff",
-                      borderTop: "1px solid #eee",
-
-                      // Hiệu ứng mở mượt mà
-                      transition: "all 0.3s ease",
-
-                      // Viền tạm thời để debug: Giúp bạn thấy khung kể cả khi iframe trắng
-                      border: "1px dashed #2C4A5C",
-                    }}
+                    sx={{ p: 1, bgcolor: "#fff", borderTop: "1px solid #eee" }}
                   >
-                    {/* Thẻ DIV này là nơi PayOS nhúng iframe vào */}
                     <div
                       id="embedded-payment-container"
-                      style={{
-                        height: "350px", // Chiều cao cố định bắt buộc
-                        width: "100%",
-                      }}
+                      style={{ height: "350px", width: "100%" }}
                     ></div>
                   </Box>
                 )}
-                {/* ----------------------------------------- */}
               </Paper>
 
-              {/* --- OPTION 2: COD --- */}
+              {/* Option COD */}
               <Paper
                 elevation={0}
                 sx={{
@@ -266,41 +263,34 @@ const PaymentPage = () => {
             </RadioGroup>
           </FormControl>
 
-          {/* --- NÚT BẤM HÀNH ĐỘNG --- */}
           <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-            {/* Trường hợp 1: Chưa có link thanh toán -> Hiện nút "THANH TOÁN" */}
-            {!checkoutUrl && (
+            {!checkoutUrl ? (
               <Button
                 variant="contained"
-                disabled={loading}
-                onClick={handlePayment}
+                disabled={loading || isProcessingOrder}
+                onClick={handlePaymentClick}
                 sx={{
                   bgcolor: "#2C4A5C",
                   px: 6,
                   py: 1.5,
                   borderRadius: "50px",
                   fontWeight: 800,
-                  fontSize: "1rem",
                   "&:hover": { bgcolor: "#1A2E3A" },
                 }}
               >
                 {loading ? (
                   <CircularProgress size={24} color="inherit" />
                 ) : (
-                  `THANH TOÁN ${orderState.total.toLocaleString("vi-VN")}đ`
+                  `XÁC NHẬN THANH TOÁN`
                 )}
               </Button>
-            )}
-
-            {/* Trường hợp 2: Đã có link -> Hiện nút "HỦY/CHỌN LẠI" */}
-            {checkoutUrl && (
+            ) : (
               <Button
                 color="error"
                 onClick={() => {
                   setCheckoutUrl(null);
                   exit();
                 }}
-                sx={{ mt: 2 }}
               >
                 Chọn phương thức khác
               </Button>

@@ -102,12 +102,12 @@ export const applyPromotion = async ({ codeString, userId, total }) => {
 
   const now = new Date();
   const promotion = await Promotion.findOne({ code: codeString });
+  console.log("code: ", promotion._id);
 
   if (!promotion) {
     throw new Error("PROMOTION_NOT_FOUND");
   }
 
-  // 1. Đồng bộ trạng thái Active dựa trên thời gian
   let currentActiveStatus = promotion.active;
   if (promotion.expiredAt < now && promotion.active !== "expired") {
     currentActiveStatus = "expired";
@@ -137,6 +137,7 @@ export const applyPromotion = async ({ codeString, userId, total }) => {
     promotionId: promotion._id,
     status: { $ne: "cancelled" },
   });
+  console.log("existiingOderWithPromo: ", existingOrderWithPromo);
 
   if (existingOrderWithPromo) {
     throw new Error("PROMOTION_ALREADY_USED_BY_USER");

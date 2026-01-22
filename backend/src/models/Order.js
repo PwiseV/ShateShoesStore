@@ -95,6 +95,7 @@ orderSchema.index(
     unique: true,
     partialFilterExpression: {
       promotionId: { $type: "objectId" }, 
+      status: { $in: ["pending", "paid", "processing", "shipped", "delivered"] }
     },
   }
 );

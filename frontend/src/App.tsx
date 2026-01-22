@@ -22,6 +22,7 @@ import CartPage from "./pages/Customer/Cart/CartPage.tsx";
 import CheckoutPage from "./pages/Customer/Checkout/CheckoutPage.tsx";
 import Orders from "./pages/Admin/Orders/Orders.tsx";
 import Payment from "./pages/Customer/Payment/Payment.tsx";
+import OrderSuccess from "./pages/Customer/Payment/SuccessOrder.tsx";
 
 export default function AppRoutes() {
   return (
@@ -42,6 +43,7 @@ export default function AppRoutes() {
 
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/payment" element={<Payment />} />
+          <Route path="/order-success" element={<OrderSuccess />} />
 
           <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/admin/dashboard" element={<Dashboard />} />
@@ -61,6 +63,9 @@ export default function AppRoutes() {
             />
             <Route path="/products/:slug" element={<ProductList />} />
             <Route path="/cart" element={<CartPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/payment" element={<Payment />} />
+            <Route path="/order-success" element={<OrderSuccess />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />
