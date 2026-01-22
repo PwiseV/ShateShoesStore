@@ -83,14 +83,13 @@ export default function AppRoutes() {
             <Route path="/return-policy" element={<ReturnPolicy />} />
             <Route path="/contact-us" element={<ContactUs />} />
             <Route path="/size-guide" element={<SizeGuide />} />
-            <Route path="*" element={<NotFound />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/payment" element={<Payment />} />
             <Route path="/order-success" element={<OrderSuccess />} />
           </Route>
 
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
     </Router>
