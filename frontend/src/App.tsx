@@ -24,6 +24,7 @@ import UserProfile from "./pages/Costumer/UserProfile/UserProfile.tsx";
 // forgot password components
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword/ResetPassword";
+
 export default function AppRoutes() {
   return (
     <Router>

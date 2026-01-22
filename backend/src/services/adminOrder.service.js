@@ -67,6 +67,36 @@ export const getAllOrders = async (query) => {
   };
 };
 
+
+export const getMyOrders = async (userId, query) => {
+  const {
+    status
+  } = query;
+
+  const filter = {};
+
+  if (status) filter.status = status;
+  if (paymentMethod) filter.paymentMethod = paymentMethod;
+
+  if (minTotal || maxTotal) {
+    filter.total = {};
+    if (minTotal) filter.total.$gte = Number(minTotal);
+    if (maxTotal) filter.total.$lte = Number(maxTotal);
+  }
+
+  const totalItems = await Order.countDocuments(filter);
+
+  const orders = await Order.find(filter)
+    .sort({ createdAt: -1 })
+    .skip((page - 1) * limit)
+    .limit(Number(limit))
+    .select("orderNumber name phone total paymentMethod status createdAt");
+
+  return {
+    data: orders
+  };
+};
+
 /**
  * GET /admin/orders/:id
  * Chi tiết đơn hàng
