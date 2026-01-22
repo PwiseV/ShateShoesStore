@@ -20,6 +20,7 @@ import ProductDetail from "./pages/Costumer/ProductDetail/ProductDetail.tsx";
 import Posts from "./pages/Admin/Post/Posts.tsx";
 import Orders from "./pages/Admin/Orders/Orders.tsx";
 import UserProfile from "./pages/Costumer/UserProfile/UserProfile.tsx";
+import FAQs from "./pages/Costumer/FAQs/FAQs.tsx";
 
 // forgot password components
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
@@ -48,6 +49,8 @@ export default function AppRoutes() {
           <Route path="/admin/orders" element={<Orders />} />
 
           <Route path="/profile" element={<UserProfile />} />
+          <Route path="/faqs" element={<FAQs />} />
+
           <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/admin/dashboard" element={<Dashboard />} />
             <Route path="/admin/users" element={<Users />} />
