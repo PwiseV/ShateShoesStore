@@ -101,10 +101,10 @@ export const getPromotions = async (req, res) => {
 export const applyPromotion = async (req, res) => {
   try {
     const userId = req.user._id; 
-    const { code, total } = req.body;
+    const { codeString, total } = req.body;
 
     const promotion = await promotionService.applyPromotion({
-      code,
+      codeString,
       userId,
       total,
     });

@@ -95,13 +95,13 @@ export const getPromotions = async ({
   return { promotions, total };
 };
 
-export const applyPromotion = async ({ code, userId, total }) => {
-  if (!code) {
+export const applyPromotion = async ({ codeString, userId, total }) => {
+  if (!codeString) {
     throw new Error("PROMOTION_CODE_REQUIRED");
   }
 
   const now = new Date();
-  const promotion = await Promotion.findOne({ code: code });
+  const promotion = await Promotion.findOne({ code: codeString });
 
   if (!promotion) {
     throw new Error("PROMOTION_NOT_FOUND");
@@ -127,7 +127,7 @@ export const applyPromotion = async ({ code, userId, total }) => {
   if (promotion.active === "expired") throw new Error("PROMOTION_EXPIRED");
   if (promotion.active === "upcoming") throw new Error("PROMOTION_NOT_STARTED");
   if (promotion.active === "inactive") throw new Error("PROMOTION_NOT_VALID");
-
+  console.log("promotion stock: ", promotion.stock);
   if (promotion.stock === 0) {
     throw new Error("PROMOTION_LIMIT_REACHED");
   }

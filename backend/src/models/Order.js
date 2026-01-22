@@ -94,7 +94,7 @@ orderSchema.index(
   {
     unique: true,
     partialFilterExpression: {
-      promotionId: { $exists: true },
+      promotionId: { $type: "objectId" }, 
     },
   }
 );
