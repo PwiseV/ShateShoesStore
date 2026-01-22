@@ -99,7 +99,7 @@ const FavouriteCard = ({ product, onRemove }: Props) => {
         <Typography
           onClick={handleNavigate}
           sx={{
-            fontSize: "0.95rem",
+            fontSize: "1rem",
             fontWeight: 600,
             textTransform: "uppercase",
             color: "#4A4A4A",
@@ -152,46 +152,6 @@ const FavouriteCard = ({ product, onRemove }: Props) => {
         >
           {currencyVND(product.priceVnd)}
         </Typography>
-      </Box>
-
-      {/* 3. NÚT BẤM (Đẩy xuống đáy - mt: auto) */}
-      <Box
-        sx={{ mt: "auto", display: "flex", flexDirection: "column", gap: 1.5 }}
-      >
-        <Button
-          variant="contained"
-          fullWidth
-          sx={{
-            bgcolor: "#567C8D",
-            color: "white",
-            textTransform: "none",
-            fontWeight: 700,
-            boxShadow: "none",
-            borderRadius: "10px",
-            py: 1.2,
-            fontFamily: '"Lexend", sans-serif',
-            "&:hover": { bgcolor: "#456372", boxShadow: "none" },
-          }}
-        >
-          Mua ngay
-        </Button>
-
-        <Button
-          variant="outlined"
-          fullWidth
-          sx={{
-            borderColor: "#8898aa",
-            color: "#2C3E50",
-            textTransform: "none",
-            fontWeight: 700,
-            borderRadius: "10px",
-            py: 1.2,
-            fontFamily: '"Lexend", sans-serif',
-            "&:hover": { borderColor: "#2C3E50", bgcolor: "transparent" },
-          }}
-        >
-          Thêm vào giỏ hàng
-        </Button>
       </Box>
     </Paper>
   );

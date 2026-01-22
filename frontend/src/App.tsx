@@ -33,6 +33,7 @@ export default function AppRoutes() {
 
           <Route element={<ProtectedRoute role="customer" />}>
             <Route path="/homepage" element={<HomePage />} />
+            <Route path="/favourite" element={<Favourite />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />
