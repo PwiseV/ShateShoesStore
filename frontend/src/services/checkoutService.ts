@@ -48,7 +48,7 @@ export const getAvailableCoupons = async (total: number): Promise<Coupon[]> => {
   }));
 };
 
-// --- PHẦN QUAN TRỌNG: LOGIC VALIDATE TẠI FRONTEND ---
+// --- UPDATE HÀM VALIDATE ---
 export const validateCoupon = async (
   code: string,
   total: number
@@ -60,7 +60,10 @@ export const validateCoupon = async (
       total: total,
     });
 
-    const data = res.data;
+    // SỬA LẠI CHỖ NÀY: Truy cập vào res.data.data
+    // res.data là toàn bộ response body ({ success: true, data: {...} })
+    // res.data.data mới là object chứa thông tin coupon
+    const data = res.data.data;
 
     // Nếu API trả về thành công nhưng data rỗng -> Coi như không tồn tại
     if (!data) {
@@ -72,15 +75,16 @@ export const validateCoupon = async (
     const startDate = new Date(data.startedAt);
     const endDate = new Date(data.expiredAt);
     const minOrderAmount = data.minOrderAmount || data.minOrderValue || 0;
-    const stock = data.stock || 0;
-    const status = data.active; // active | inactive | expired | upcoming
+    const stock = data.stock; // Không cần || 0 ở đây vội để debug, nhưng API trả về 10 là ok
+    const status = data.active;
 
     // 3. --- BẮT ĐẦU KIỂM TRA LOGIC (Frontend Validation) ---
 
-    // 3.1 Kiểm tra Status từ Enum BE
+    // 3.1 Kiểm tra Status
     if (status === "inactive") {
       throw new Error("Mã giảm giá đang bị khóa!");
     }
+    // Một số API trả về status expired luôn thay vì check ngày
     if (status === "expired") {
       throw new Error("Mã giảm giá đã hết hạn!");
     }
@@ -90,19 +94,19 @@ export const validateCoupon = async (
       throw new Error("Mã giảm giá chưa đến đợt áp dụng!");
     }
 
-    // 3.3 Kiểm tra Ngày hết hạn (End Date) - Kiểm tra lại cho chắc dù status có thể chưa cập nhật
+    // 3.3 Kiểm tra Ngày hết hạn (End Date)
     if (now > endDate) {
       throw new Error("Mã giảm giá đã hết hạn sử dụng!");
     }
 
     // 3.4 Kiểm tra Số lượng (Stock)
-    if (stock <= 0) {
+    // Lưu ý: data.stock = 10, check 10 <= 0 -> False (Hợp lệ)
+    if (stock !== undefined && stock <= 0) {
       throw new Error("Mã giảm giá đã hết lượt sử dụng!");
     }
 
     // 3.5 Kiểm tra Giá trị đơn hàng tối thiểu
     if (total < minOrderAmount) {
-      // Format tiền tệ cho đẹp: 500000 -> 500.000
       const formattedMin = minOrderAmount.toLocaleString("vi-VN");
       throw new Error(
         `Đơn hàng cần tối thiểu ${formattedMin}đ để dùng mã này!`
@@ -111,29 +115,24 @@ export const validateCoupon = async (
 
     // --- KẾT THÚC KIỂM TRA ---
 
-    // 4. Nếu thỏa mãn tất cả, trả về đối tượng Coupon chuẩn
+    // 4. Trả về kết quả
     return {
       promotionId: data.promotionId,
       code: data.code,
       description: data.description,
       discountType: data.discountType,
-      // Map đúng tên field FE cần
       discountValue: data.discountAmount || data.discountValue || 0,
       minOrderValue: minOrderAmount,
-      stock: stock,
+      stock: stock || 0,
       startDate: data.startedAt,
       endDate: data.expiredAt,
       status: status,
     };
   } catch (error: any) {
-    // Nếu là lỗi do mình throw ở trên (Error), lấy message ra
-    // Nếu là lỗi từ API (AxiosError), lấy response message
     const errorMessage =
       error.response?.data?.message ||
       error.message ||
       "Lỗi kiểm tra mã giảm giá";
-
-    // Ném lỗi tiếp ra ngoài để useCheckout bắt được và showToast
     throw new Error(errorMessage);
   }
 };
