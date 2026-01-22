@@ -193,6 +193,7 @@ export const useCheckout = () => {
     }
     setLoading(true);
     try {
+      // 1. Chuẩn bị payload tạo đơn
       const payload: CreateOrderPayload = {
         shippingFee: priceSummary.shippingFee,
         total: priceSummary.total,
@@ -200,7 +201,7 @@ export const useCheckout = () => {
         phone: phone,
         address: fullAddress,
         note: note,
-        paymentMethod: "COD",
+        paymentMethod: "COD", // Mặc định tạo đơn là COD trước, sau đó qua trang Payment đổi sau nếu muốn
         promotionId: selectedCoupon ? selectedCoupon.promotionId : null,
         items: items.map((item) => ({
           cartItemId: item.cartItemId,
@@ -208,11 +209,29 @@ export const useCheckout = () => {
           quantity: item.quantity,
         })),
       };
-      await createOrder(payload);
-      showToast("Đặt hàng thành công!", "success");
-      navigate("/order-success");
+
+      // 2. Gọi API tạo đơn hàng
+      const res = await createOrder(payload);
+
+      // Giả sử API trả về data nằm trong res.data hoặc res
+      // Bạn kiểm tra lại response thực tế nhé. Thường sẽ trả về { _id, orderCode, ... }
+      const createdOrder = res.data || res;
+
+      showToast("Đơn hàng đã được tạo, vui lòng thanh toán!", "info");
+
+      // 3. --- QUAN TRỌNG: Chuyển sang trang Payment ---
+      // Mang theo thông tin orderId và số tiền cần thanh toán
+      navigate("/payment", {
+        state: {
+          orderId: createdOrder._id || createdOrder.id, // ID database
+          orderCode: createdOrder.orderCode, // Mã đơn hàng (thường dùng cho PayOS - phải là số)
+          total: priceSummary.total,
+          items: items, // Mang theo items để hiển thị description nếu cần
+        },
+      });
     } catch (error: any) {
-      const msg = error.response?.data?.message || "Lỗi đặt hàng";
+      console.error("Order error", error);
+      const msg = error.response?.data?.message || "Có lỗi xảy ra khi đặt hàng";
       showToast(msg, "error");
     } finally {
       setLoading(false);

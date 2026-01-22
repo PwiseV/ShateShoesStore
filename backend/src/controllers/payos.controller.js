@@ -5,14 +5,19 @@ export const createLink = async (req, res) => {
     const { amount, items } = req.body;
     const orderCode = Date.now();
 
+    // --- SỬA ĐOẠN NÀY ---
+    // Nếu chưa cấu hình env thì lấy mặc định localhost:5173
+    const domain = process.env.FRONTEND_URL || "http://localhost:5173";
+
     const orderData = {
       orderCode,
       amount,
       description: `Thanh toan don #${orderCode}`,
       items,
-      returnUrl: `${process.env.FRONTEND_URL}/payment-success`,
-      cancelUrl: `${process.env.FRONTEND_URL}/payment-failed`,
+      returnUrl: `${domain}/order-success`, // Đảm bảo khớp với route ở Frontend
+      cancelUrl: `${domain}/payment-failed`, // Hoặc quay lại trang cart
     };
+    // --------------------
 
     const result = await payosService.createPaymentLink(orderData);
 
