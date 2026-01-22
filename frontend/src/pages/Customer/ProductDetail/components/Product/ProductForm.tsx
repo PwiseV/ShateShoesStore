@@ -13,7 +13,7 @@ import { type BreadcrumbItem } from "./ProductInfo";
 import {
   type BackendSizeVariant,
   type Promotion, // Import Promotion từ đây luôn
-} from "../../../../../services/productDetailsServices";
+} from "../../../../../services/productdetailsServices";
 
 export type ProductFormProps = {
   name: string;

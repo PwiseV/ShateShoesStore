@@ -51,7 +51,7 @@ export const updateOrderAdmin = async (req, res) => {
  */
 export const createOrder = async (req, res) => {
   try {
-    const result = await adminOrderService.createOrder(req.body);
+    const result = await adminOrderService.createOrder(req.user._id, req.body);
     res.status(201).json({
       message: "Tạo đơn hàng thành công",
       data: result,

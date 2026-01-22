@@ -1,18 +1,14 @@
 import Order from "../models/Order.js";
 import OrderItem from "../models/OrderItem.js";
 import ProductVariant from "../models/ProductVariant.js";
+import CartItem from "../models/CartItem.js";
+import Promotion from "../models/Promotion.js";
 import mongoose from "mongoose";
 
 /**
  * Thứ tự hợp lệ của status (chỉ được tiến)
  */
-const STATUS_FLOW = [
-  "pending",
-  "paid",
-  "processing",
-  "shipped",
-  "delivered",
-];
+const STATUS_FLOW = ["pending", "paid", "processing", "shipped", "delivered"];
 
 /**
  * Validate status transition
@@ -142,7 +138,7 @@ export const updateOrderAdmin = async (id, payload) => {
           await ProductVariant.findByIdAndUpdate(
             item.variantId,
             { $inc: { stock: item.quantity } },
-            { session }
+            { session },
           );
         }
       }
@@ -163,37 +159,45 @@ export const updateOrderAdmin = async (id, payload) => {
   }
 };
 
-
-export const createOrder = async (payload) => {
+export const createOrder = async (userId, payload) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const { userId, name, phone, address, paymentMethod, items, note } = payload;
+    const {
+      name,
+      phone,
+      address,
+      paymentMethod,
+      items,
+      note,
+      total,
+      promotionId,
+      shippingFee,
+    } = payload;
 
     if (!items || items.length === 0) {
       throw new Error("Đơn hàng phải có ít nhất 1 sản phẩm");
     }
 
-    let total = 0;
     const orderItemsData = [];
 
-    // 1️ Kiểm tra variant + trừ kho + tính tiền
+    // 1. Kiểm tra tồn kho và chuẩn bị dữ liệu sản phẩm
     for (const item of items) {
-      const variant = await ProductVariant.findById(item.variantId).session(session);
-      if (!variant) throw new Error("Không tìm thấy product variant");
+      const variant = await ProductVariant.findById(item.variantId).session(
+        session,
+      );
+      if (!variant)
+        throw new Error(`Không tìm thấy biến thể sản phẩm: ${item.variantId}`);
 
       if (variant.stock < item.quantity) {
         throw new Error(`Không đủ tồn kho cho SKU ${variant.sku}`);
       }
 
-      const price = variant.price;
-      total += price * item.quantity;
-
       orderItemsData.push({
         variantId: variant._id,
         quantity: item.quantity,
-        price,
+        price: variant.price, 
       });
 
       // Trừ kho
@@ -201,7 +205,7 @@ export const createOrder = async (payload) => {
       await variant.save({ session });
     }
 
-    // 2️ Tạo Order
+    // 2. Tạo Order
     const [order] = await Order.create(
       [
         {
@@ -214,18 +218,46 @@ export const createOrder = async (payload) => {
           total,
           note,
           status: "pending",
+          promotionId: promotionId || null,
+          shippingFee: shippingFee || 0,
         },
       ],
-      { session }
+      { session },
     );
 
-    // 3️ Tạo OrderItems
+    // 3. Tạo OrderItems
     const finalItems = orderItemsData.map((item) => ({
       ...item,
       orderId: order._id,
     }));
-
     await OrderItem.insertMany(finalItems, { session });
+
+    const cartItemIdsToDelete = items
+      .filter((item) => item.cartItemId)
+      .map((item) => item.cartItemId);
+
+    if (cartItemIdsToDelete.length > 0) {
+      await CartItem.deleteMany(
+        { _id: { $in: cartItemIdsToDelete }, userId },
+        { session },
+      );
+    }
+
+    if (promotionId) {
+      const existingOrderWithPromo = await Order.findOne({
+        userId: userId,
+        promotionId: promotionId,
+      });
+      if (existingOrderWithPromo)
+        throw new Error("Đã sử dụng mã khuyến mãi này");
+      else {
+        await Promotion.findByIdAndUpdate(
+          promotionId,
+          { $inc: { stock: -1 } },
+          { session },
+        );
+      }
+    }
 
     await session.commitTransaction();
     return order;

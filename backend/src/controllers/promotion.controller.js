@@ -2,8 +2,25 @@ import * as promotionService from "../services/promotion.service.js";
 
 export const createPromotion = async (req, res) => {
   try {
-    const { code, description, discountType, discountAmount, totalQuantity, minOrderAmount, endDate, startDate } = req.body;
-    if (!code || !description || !discountType || !discountAmount || !totalQuantity || !minOrderAmount || !endDate) {
+    const {
+      code,
+      description,
+      discountType,
+      discountAmount,
+      totalQuantity,
+      minOrderAmount,
+      endDate,
+      startDate,
+    } = req.body;
+    if (
+      !code ||
+      !description ||
+      !discountType ||
+      !discountAmount ||
+      !totalQuantity ||
+      !minOrderAmount ||
+      !endDate
+    ) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -15,7 +32,7 @@ export const createPromotion = async (req, res) => {
       stock: totalQuantity,
       minOrderAmount,
       expiredAt: endDate,
-      startedAt: startDate
+      startedAt: startDate,
     });
 
     return res.status(201).json({
@@ -26,13 +43,21 @@ export const createPromotion = async (req, res) => {
       return res.status(409).json({ message: "Promotion Code already exists" });
     }
     if (error.message === "EXPIRED_DATE_INVALID") {
-      return res.status(400).json({ message: "End date must be in the future" });
+      return res
+        .status(400)
+        .json({ message: "End date must be in the future" });
     }
     if (error.message === "STARTED_DATE_INVALID") {
-      return res.status(400).json({ message: "Start date must be in the future" });
+      return res
+        .status(400)
+        .json({ message: "Start date must be in the future" });
     }
     if (error.message === "INVALID_DATE_RANGE") {
-      return res.status(400).json({ message: "Invalid date range: start date must be before end date" });
+      return res
+        .status(400)
+        .json({
+          message: "Invalid date range: start date must be before end date",
+        });
     }
     console.error("Controller Error:", error);
     return res.status(500).json({ message: "Server error" });
@@ -44,13 +69,7 @@ export const getPromotions = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 6;
 
-    const { 
-      keyword, 
-      discountType, 
-      status, 
-      startDate, 
-      endDate 
-    } = req.query;
+    const { keyword, discountType, status, startDate, endDate } = req.query;
 
     const { promotions, total } = await promotionService.getPromotions({
       page,
@@ -79,20 +98,98 @@ export const getPromotions = async (req, res) => {
   }
 };
 
+export const applyPromotion = async (req, res) => {
+  try {
+    const userId = req.user._id; 
+    const { codeString, total } = req.body;
+
+    const promotion = await promotionService.applyPromotion({
+      codeString,
+      userId,
+      total,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Promotion applied successfully",
+      data: promotion,
+    });
+  } catch (error) {
+    const errorMap = {
+      PROMOTION_CODE_REQUIRED: { status: 404, msg: "Invalid promotion code" },
+      PROMOTION_NOT_FOUND: { status: 404, msg: "Invalid promotion code" },
+      PROMOTION_EXPIRED: { status: 400, msg: "This promotion has expired" },
+      PROMOTION_NOT_STARTED: {
+        status: 400,
+        msg: "This promotion is not active yet",
+      },
+      PROMOTION_NOT_VALID: {
+        status: 400,
+        msg: "This promotion is no longer valid",
+      },
+      PROMOTION_LIMIT_REACHED: {
+        status: 400,
+        msg: "This promotion is out of stock",
+      },
+      PROMOTION_ALREADY_USED_BY_USER: {
+        status: 409,
+        msg: "You have already used this code",
+      },
+      MIN_ORDER_VALUE_NOT_MET: {
+        status: 400,
+        msg: "Order total doesn't meet the minimum requirement",
+      },
+    };
+
+    const errorDetail = errorMap[error.message];
+
+    if (errorDetail) {
+      return res.status(errorDetail.status).json({
+        success: false,
+        message: errorDetail.msg,
+      });
+    }
+    return res.status(500).json({
+      success: false,
+      message: "An internal server error occurred",
+    });
+  }
+};
+
+export const getUserAvailablePromotions = async (req, res) => {
+  try {
+    const userId = req.user._id; 
+    const { total } = req.query;
+    const  promotions  = await promotionService.getPromotionsForUser({
+      userId,
+      total
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Fetch user promotions success",
+      data: promotions
+    });
+  } catch (error) {
+    console.error("Get user promotions controller error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
 export const updatePromotion = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { 
-      code, 
-      description, 
-      discountType, 
-      discountAmount, 
-      totalQuantity, 
-      minOrderAmount, 
-      endDate, 
-      startDate, 
-      status 
+    const {
+      code,
+      description,
+      discountType,
+      discountAmount,
+      totalQuantity,
+      minOrderAmount,
+      endDate,
+      startDate,
+      status,
     } = req.body;
 
     const updatedPromotion = await promotionService.updatePromotion(id, {
@@ -104,23 +201,41 @@ export const updatePromotion = async (req, res) => {
       minOrderAmount,
       expiredAt: endDate,
       startedAt: startDate,
-      active: status 
+      active: status,
     });
 
     return res.status(200).json({
-      message: "Update promotion success"
+      message: "Update promotion success",
     });
-
   } catch (error) {
     const errorMap = {
-      "PROMOTION_NOT_FOUND": { status: 404, message: "Promotion not found" },
-      "PROMOTION_CODE_ALREADY_EXISTS": { status: 400, message: "Promotion code already exists" },
-      "INVALID_DATE_RANGE": { status: 400, message: "Start date must be before expired date" },
-      "CANNOT_SET_ACTIVE_BEFORE_START_DATE": { status: 400, message: "Cannot activate before the start date" },
-      "CANNOT_SET_ACTIVE_AFTER_EXPIRED_DATE": { status: 400, message: "Cannot activate after the expired date" },
-      "CANNOT_SET_UPCOMING_AFTER_START_DATE": { status: 400, message: "Current time is already past start date, cannot set to upcoming" },
-      "CANNOT_SET_EXPIRED_BEFORE_END_DATE": { status: 400, message: "Promotion has not ended yet, cannot set to expired" },
-      "INVALID_STATUS_VALUE": { status: 400, message: "Invalid status value" }
+      PROMOTION_NOT_FOUND: { status: 404, message: "Promotion not found" },
+      PROMOTION_CODE_ALREADY_EXISTS: {
+        status: 400,
+        message: "Promotion code already exists",
+      },
+      INVALID_DATE_RANGE: {
+        status: 400,
+        message: "Start date must be before expired date",
+      },
+      CANNOT_SET_ACTIVE_BEFORE_START_DATE: {
+        status: 400,
+        message: "Cannot activate before the start date",
+      },
+      CANNOT_SET_ACTIVE_AFTER_EXPIRED_DATE: {
+        status: 400,
+        message: "Cannot activate after the expired date",
+      },
+      CANNOT_SET_UPCOMING_AFTER_START_DATE: {
+        status: 400,
+        message:
+          "Current time is already past start date, cannot set to upcoming",
+      },
+      CANNOT_SET_EXPIRED_BEFORE_END_DATE: {
+        status: 400,
+        message: "Promotion has not ended yet, cannot set to expired",
+      },
+      INVALID_STATUS_VALUE: { status: 400, message: "Invalid status value" },
     };
 
     if (errorMap[error.message]) {
@@ -141,7 +256,6 @@ export const deletePromotion = async (req, res) => {
     return res.status(200).json({
       message: "Promotion deleted successfully",
     });
-
   } catch (error) {
     if (error.message === "PROMOTION_NOT_FOUND") {
       return res.status(404).json({

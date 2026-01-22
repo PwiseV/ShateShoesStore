@@ -9,15 +9,17 @@ import "./App.css";
 
 import ProtectedRoute from "./routes/protectedRoutes.tsx";
 import Dashboard from "./pages/Admin/Dashboard/Dashboard.tsx";
-import HomePage from "./pages/Costumer/Homepage/Homepage.tsx";
+import HomePage from "./pages/Customer/Homepage/Homepage.tsx";
 import Login from "./pages/Signin/SigninForm.tsx";
 import Signup from "./pages/Signup/SignupForm";
 import Users from "./pages/Admin/Users/Users.tsx";
 import Products from "./pages/Admin/Products/Products.tsx";
 import Promotions from "./pages/Admin/Promotions/Promotions.tsx";
-import ProductList from "./pages/Costumer/ProductList/ProductList.tsx";
-import ProductDetail from "./pages/Costumer/ProductDetail/ProductDetail.tsx";
+import ProductList from "./pages/Customer/ProductList/ProductList.tsx";
+import ProductDetail from "./pages/Customer/ProductDetail/ProductDetail.tsx";
 import Posts from "./pages/Admin/Post/Posts.tsx";
+import CartPage from "./pages/Customer/Cart/CartPage.tsx";
+import CheckoutPage from "./pages/Customer/Checkout/CheckoutPage.tsx";
 import Orders from "./pages/Admin/Orders/Orders.tsx";
 import UserProfile from "./pages/Costumer/UserProfile/UserProfile.tsx";
 import FAQs from "./pages/Costumer/FAQs/FAQs.tsx";
@@ -27,6 +29,8 @@ import ReturnPolicy from "./pages/Costumer/StaticPages/ReturnPolicy.tsx";
 import ContactUs from "./pages/Costumer/Contact/ContactUs.tsx";
 import NotFound from "./pages/Costumer/StaticPages/NotFound.tsx";
 import SizeGuide from "./pages/Costumer/StaticPages/SizeGuide.tsx";
+import Payment from "./pages/Customer/Payment/Payment.tsx";
+import OrderSuccess from "./pages/Customer/Payment/SuccessOrder.tsx";
 
 // forgot password components
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
@@ -36,26 +40,25 @@ export default function AppRoutes() {
     <Router>
       <Suspense fallback={<div>Loading...</div>}>
         <Routes>
-          {/* --- PUBLIC ROUTES (Ai cũng vào được) --- */}
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/register" element={<Signup />} />
           <Route path="/homepage" element={<HomePage />} />
-          <Route path="/admin/products" element={<Products />} />
-          <Route path="/admin/promotions" element={<Promotions />} />
           <Route
             path="/products/details/:productid"
             element={<ProductDetail />}
           />
-          <Route path="/admin/dashboard" element={<Dashboard />} />
-          <Route path="/admin/users" element={<Users />} />
+          <Route path="/users/cart" element={<CartPage />} />
           <Route path="/products" element={<ProductList />} />
           <Route path="/products/:slug" element={<ProductList />} />
           <Route path="/admin/orders" element={<Orders />} />
 
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/faqs" element={<FAQs />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/payment" element={<Payment />} />
+          <Route path="/order-success" element={<OrderSuccess />} />
 
           <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/admin/dashboard" element={<Dashboard />} />
@@ -81,6 +84,10 @@ export default function AppRoutes() {
             <Route path="/contact-us" element={<ContactUs />} />
             <Route path="/size-guide" element={<SizeGuide />} />
             <Route path="*" element={<NotFound />} />
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/payment" element={<Payment />} />
+            <Route path="/order-success" element={<OrderSuccess />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />
