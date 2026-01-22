@@ -159,7 +159,7 @@ export const applyPromotion = async (req, res) => {
 export const getUserAvailablePromotions = async (req, res) => {
   try {
     const userId = req.user._id; 
-    const { total } = req.body;
+    const { total } = req.query;
     const  promotions  = await promotionService.getPromotionsForUser({
       userId,
       total

@@ -169,7 +169,6 @@ export const getPromotionsForUser = async ({ userId, total }) => {
     status: { $ne: "cancelled" },
   }).distinct("promotionId");
 
-  console.log("usedPromotion: ", usedPromotions);
 
   const filter = {
     active: "active",

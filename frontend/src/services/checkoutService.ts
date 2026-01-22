@@ -38,7 +38,6 @@ export const updateUserAddress = async (
 
 // 1.1 Lấy danh sách coupon khả dụng (GET)
 export const getAvailableCoupons = async (total: number): Promise<Coupon[]> => {
-  // Khi dùng params, axios sẽ gửi request dạng: /users/promotions/coupon?total=500000
   const res = await api.get("/users/promotions/coupon", {
     params: {
       total: total,

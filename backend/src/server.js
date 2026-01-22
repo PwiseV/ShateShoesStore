@@ -43,7 +43,7 @@ app.use(express.json());
 app.use("/api/auth", authRoute);
 
 // private user routes (CẦN đăng nhập)
-app.use("/api/users", userRoute, productRoute, favouriteRoute, addressRoute, cartRoute, promotionRoute, adminOrderRoute, payosRoute);
+app.use("/api/users", protectedRoute, userRoute, productRoute, favouriteRoute, addressRoute, cartRoute, promotionRoute, adminOrderRoute, payosRoute);
 
 // admin routes (CẦN đăng nhập + quyền admin)
 app.use("/api/admin", protectedRoute, adminOnly, adminRoute, productRoute, promotionRoute, userRoute, postRoute, adminOrderRoute);
