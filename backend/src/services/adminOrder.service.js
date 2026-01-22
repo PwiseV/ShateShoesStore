@@ -6,13 +6,7 @@ import mongoose from "mongoose";
 /**
  * Thứ tự hợp lệ của status (chỉ được tiến)
  */
-const STATUS_FLOW = [
-  "pending",
-  "paid",
-  "processing",
-  "shipped",
-  "delivered",
-];
+const STATUS_FLOW = ["pending", "paid", "processing", "shipped", "delivered"];
 
 /**
  * Validate status transition
@@ -67,33 +61,126 @@ export const getAllOrders = async (query) => {
   };
 };
 
-
 export const getMyOrders = async (userId, query) => {
-  const {
-    status
-  } = query;
+  const { status } = query;
+  const filter = { userId };
 
-  const filter = {};
-
-  if (status) filter.status = status;
-  if (paymentMethod) filter.paymentMethod = paymentMethod;
-
-  if (minTotal || maxTotal) {
-    filter.total = {};
-    if (minTotal) filter.total.$gte = Number(minTotal);
-    if (maxTotal) filter.total.$lte = Number(maxTotal);
+  if (status && status !== "all") {
+    filter.status = status;
   }
-
-  const totalItems = await Order.countDocuments(filter);
 
   const orders = await Order.find(filter)
     .sort({ createdAt: -1 })
-    .skip((page - 1) * limit)
-    .limit(Number(limit))
-    .select("orderNumber name phone total paymentMethod status createdAt");
+    .select(
+      "orderNumber name phone address total shippingFee paymentMethod status createdAt",
+    )
+    .lean();
+
+  const formattedOrders = await Promise.all(
+    orders.map(async (order) => {
+      const items = await OrderItem.find({ orderId: order._id })
+        .populate({
+          path: "variantId",
+          model: "ProductVariant",
+          select: "size color price productVariantImageId productId",
+          populate: {
+            path: "productId",
+            model: "Product",
+            select: "title code avatar",
+          },
+        })
+        .lean();
+      const deliveryDate = new Date(order.createdAt);
+      deliveryDate.setDate(deliveryDate.getDate() + 5);
+
+      return {
+        orderId: order._id,
+        orderNumber: order.orderNumber,
+        status: order.status,
+        total: order.total,
+        name: order.name,
+        phone: order.phone,
+        address: order.address,
+        shippingFee: order.shippingFee,
+        shippingDuration: 5,
+        fromAddress: "77 Võ Văn Kiệt, Bình Tân, TP Hồ Chí Minh, Việt Nam",
+        paymentMethod: order.paymentMethod,
+        createdAt: order.createdAt,
+        arrivedAt: deliveryDate,
+        items: items.map((item) => ({
+          orderItemId: item._id,
+          quantity: item.quantity,
+          price: item.price,
+          variantId: item.variantId?._id,
+          size: item.variantId?.size,
+          color: item.variantId?.color,
+          productId: item.variantId?.productId?._id,
+          title: item.variantId?.productId?.title,
+          code: item.variantId?.productId?.code,
+          avatar: item.variantId?.productId?.avatar?.url,
+        })),
+      };
+    }),
+  );
 
   return {
-    data: orders
+    data: formattedOrders,
+  };
+};
+
+export const getMyOrderDetail = async (userId, orderId) => {
+
+  const order = await Order.findOne({ _id: orderId, userId })
+    .select(
+      "orderNumber name phone address total shippingFee paymentMethod status createdAt"
+    )
+    .lean();
+
+  if (!order) {
+    throw new Error("ORDER_NOT_FOUND");
+  }
+
+  const items = await OrderItem.find({ orderId: order._id })
+    .populate({
+      path: "variantId",
+      model: "ProductVariant",
+      select: "size color price productVariantImageId productId",
+      populate: {
+        path: "productId",
+        model: "Product",
+        select: "title code avatar",
+      },
+    })
+    .lean();
+  const deliveryDate = new Date(order.createdAt);
+  deliveryDate.setDate(deliveryDate.getDate() + 5);
+
+  return {
+    orderId: order._id,
+    orderNumber: order.orderNumber,
+    status: order.status,
+    total: order.total,
+    name: order.name,
+    phone: order.phone,
+    address: order.address,
+    shippingFee: order.shippingFee,
+    shippingDuration: 5,
+    fromAddress: "77 Võ Văn Kiệt, Bình Tân, TP Hồ Chí Minh, Việt Nam",
+    paymentMethod: order.paymentMethod,
+    createdAt: order.createdAt,
+    arrivedAt: deliveryDate,
+    items: items.map((item) => ({
+      orderItemId: item._id,
+      quantity: item.quantity,
+      price: item.price,
+      variantId: item.variantId?._id,
+      size: item.variantId?.size,
+      color: item.variantId?.color,
+      productId: item.variantId?.productId?._id,
+      title: item.variantId?.productId?.title,
+      code: item.variantId?.productId?.code,
+      avatar: item.variantId?.productId?.avatar?.url,
+    })),
   };
 };
 
@@ -172,7 +259,7 @@ export const updateOrderAdmin = async (id, payload) => {
           await ProductVariant.findByIdAndUpdate(
             item.variantId,
             { $inc: { stock: item.quantity } },
-            { session }
+            { session },
           );
         }
       }
@@ -193,13 +280,13 @@ export const updateOrderAdmin = async (id, payload) => {
   }
 };
 
-
 export const createOrder = async (payload) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const { userId, name, phone, address, paymentMethod, items, note } = payload;
+    const { userId, name, phone, address, paymentMethod, items, note } =
+      payload;
 
     if (!items || items.length === 0) {
       throw new Error("Đơn hàng phải có ít nhất 1 sản phẩm");
@@ -210,7 +297,9 @@ export const createOrder = async (payload) => {
 
     // 1️ Kiểm tra variant + trừ kho + tính tiền
     for (const item of items) {
-      const variant = await ProductVariant.findById(item.variantId).session(session);
+      const variant = await ProductVariant.findById(item.variantId).session(
+        session,
+      );
       if (!variant) throw new Error("Không tìm thấy product variant");
 
       if (variant.stock < item.quantity) {
@@ -246,7 +335,7 @@ export const createOrder = async (payload) => {
           status: "pending",
         },
       ],
-      { session }
+      { session },
     );
 
     // 3️ Tạo OrderItems

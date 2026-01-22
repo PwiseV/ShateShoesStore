@@ -16,7 +16,18 @@ export const getAllOrders = async (req, res) => {
 export const getMyOrders = async (req, res) => {
   const userId = req.user._id;
   try {
-    const result = await adminOrderService.getAllOrders(userId, req.query);
+    const result = await adminOrderService.getMyOrders(userId, req.query);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getMyOrderDetail = async (req, res) => {
+  const userId = req.user._id;
+  const { orderId } = req.params;
+  try {
+    const result = await adminOrderService.getMyOrderDetail(userId, orderId);
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ message: error.message });
