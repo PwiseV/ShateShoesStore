@@ -9,6 +9,12 @@ import ProductForm from "./components/Product/ProductForm";
 import ReviewList from "./components/Review/ReviewList";
 import Recomendation from "./components/Recomendation/Recomendation";
 
+import {
+  COLOR_OPTIONS,
+  COLOR_MAP,
+  COLOR_DISPLAY_MAP,
+} from "../../Admin/Products/constants";
+
 // Services & Types
 import {
   type Product,
@@ -17,7 +23,7 @@ import {
   getProductDetails,
   addToWishlist,
   removeFromWishlist,
-  addToCart
+  addToCart,
 } from "../../../services/productDetailsServices";
 import { useToast } from "../../../context/useToast";
 
@@ -31,13 +37,6 @@ import {
 type BreadcrumbItem = {
   name: string;
   slug: string;
-};
-
-const COLOR_MAP: Record<string, string> = {
-  white: "#ffffff",
-  black: "#000000",
-  red: "#ff0000",
-  blue: "#0000ff",
 };
 
 const ProductDetail: React.FC = () => {
@@ -94,7 +93,7 @@ const ProductDetail: React.FC = () => {
         const res = await removeFromWishlist(id);
         if (!res) {
           setIsLiked(previousLiked);
-          
+
           showToast(res.message || "Lỗi", "error");
         } else {
           setLikeState(previousLiked);
@@ -105,7 +104,7 @@ const ProductDetail: React.FC = () => {
         const res = await addToWishlist(id);
         if (!res) {
           setIsLiked(previousLiked);
-          
+
           showToast(res.message || "Lỗi", "error");
         } else {
           setLikeState(previousLiked);
@@ -131,7 +130,6 @@ const ProductDetail: React.FC = () => {
       });
       if (response.success) {
         showToast(response.message, "success");
-        
       } else {
         showToast(response.message, "error");
       }
@@ -142,6 +140,26 @@ const ProductDetail: React.FC = () => {
   };
 
   if (!product) return <Box sx={{ p: 4 }}>Không tìm thấy sản phẩm</Box>;
+
+  const getHexColor = (colorName: string) => {
+    if (!colorName) return "#cccccc";
+
+    const name = colorName;
+    const lowerName = colorName.toLowerCase();
+
+    if (COLOR_DISPLAY_MAP[name]) return COLOR_DISPLAY_MAP[name];
+    if (COLOR_DISPLAY_MAP[lowerName]) return COLOR_DISPLAY_MAP[lowerName];
+
+    const engName = COLOR_MAP[name];
+    if (engName) {
+      if (COLOR_DISPLAY_MAP[engName]) return COLOR_DISPLAY_MAP[engName];
+      if (COLOR_DISPLAY_MAP[engName.toLowerCase()])
+        return COLOR_DISPLAY_MAP[engName.toLowerCase()];
+    }
+
+    // Fallback: Nếu không tìm thấy thì trả về xám
+    return "#cccccc";
+  };
 
   // 1. Breadcrumbs
   const breadcrumbs: BreadcrumbItem[] = [];
@@ -220,13 +238,13 @@ const ProductDetail: React.FC = () => {
   const uniqueColorsMap = new Map();
   product.sizes.forEach((s) =>
     s.colors.forEach((c) => {
-      // Dùng toLowerCase để tránh việc "Black" và "black" bị tính là 2 màu khác nhau
-      const colorKey = c.color.toLowerCase();
-      if (!uniqueColorsMap.has(colorKey)) {
-        uniqueColorsMap.set(colorKey, {
-          id: c.color, // Giữ ID gốc
+      const colorLabel = c.color;
+      const uniqueKey = colorLabel.toLowerCase();
+      if (!uniqueColorsMap.has(uniqueKey)) {
+        uniqueColorsMap.set(uniqueKey, {
+          id: c.color,
           label: c.color,
-          swatch: COLOR_MAP[colorKey] || "#cccccc",
+          swatch: getHexColor(c.color),
         });
       }
     }),

@@ -111,8 +111,8 @@ const ProductOptions: React.FC<ProductOptionsProps> = ({
                     bgcolor: isSelected
                       ? "#1a252f"
                       : s.disabled
-                      ? "#D9D9D9"
-                      : "#f5f5f5",
+                        ? "#D9D9D9"
+                        : "#f5f5f5",
                     borderColor: borderColor,
                     boxShadow: "none",
                   },
@@ -147,9 +147,8 @@ const ProductOptions: React.FC<ProductOptionsProps> = ({
         <Stack direction="row" spacing={2}>
           {colors.map((c) => {
             const isSelected = selectedColor === c.id;
-            const isWhite =
-              c.swatch?.toLowerCase() === "#ffffff" ||
-              c.swatch?.toLowerCase() === "#fff";
+            const swatchLower = c.swatch?.toLowerCase();
+            const isWhite = swatchLower === "#ffffff" || swatchLower === "#fff";
 
             return (
               <Box
@@ -164,8 +163,8 @@ const ProductOptions: React.FC<ProductOptionsProps> = ({
                   boxShadow: isSelected
                     ? `0 0 0 2px #fff, 0 0 0 4px ${isWhite ? "#ccc" : c.swatch}`
                     : isWhite
-                    ? "inset 0 0 0 1px rgba(0,0,0,0.15)"
-                    : "none",
+                      ? "inset 0 0 0 1px rgba(0,0,0,0.15)"
+                      : "none",
                   transition: "all 0.2s",
                 }}
               />
