@@ -1,15 +1,16 @@
 import React from "react";
 import { Box, Typography, Stack } from "@mui/material";
-// [UPDATED] Import Type (4 levels up)
-import type { OrderProduct } from "../../../../services/userHistoryServices";
+// [UPDATED] Import Type
+import type { OrderItem } from "../../../../services/userHistoryServices";
 
-const ProductItem = ({ product }: { product: OrderProduct }) => {
+// Đổi props từ 'product' thành 'item' cho chuẩn ngữ nghĩa mới, hoặc giữ nguyên tên prop nhưng đổi type
+const ProductItem = ({ product }: { product: OrderItem }) => {
   return (
     <Stack direction="row" spacing={2} alignItems="center">
       <Box
         component="img"
-        src={product.image}
-        alt={product.name}
+        src={product.avatar} // [SỬA] image -> avatar
+        alt={product.title} // [SỬA] name -> title
         sx={{
           width: 80,
           height: 80,
@@ -23,13 +24,14 @@ const ProductItem = ({ product }: { product: OrderProduct }) => {
           fontWeight="bold"
           sx={{ color: "#2C3E50", fontFamily: '"Lexend", sans-serif' }}
         >
-          {product.name}
+          {product.title} {/* [SỬA] name -> title */}
         </Typography>
         <Typography variant="body2" color="#567C8D" sx={{ mt: 0.5 }}>
           x{product.quantity}
         </Typography>
         <Typography variant="body2" color="#567C8D">
-          {product.variant}
+          {product.color}, Size: {product.size}{" "}
+          {/* [SỬA] variant -> color, size */}
         </Typography>
       </Box>
       <Box textAlign="right">
@@ -40,4 +42,5 @@ const ProductItem = ({ product }: { product: OrderProduct }) => {
     </Stack>
   );
 };
+
 export default ProductItem;

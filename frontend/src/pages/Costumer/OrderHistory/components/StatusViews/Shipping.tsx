@@ -71,7 +71,7 @@ const Shipping: React.FC<Props> = ({ order }) => {
               Ngày đặt hàng:
             </Typography>
             <Typography fontWeight={700} color="#2C3E50">
-              {order.date}
+              {new Date(order.createdAt).toLocaleDateString("vi-VN")}
             </Typography>
           </Box>
         </Paper>
@@ -92,7 +92,9 @@ const Shipping: React.FC<Props> = ({ order }) => {
               Dự kiến giao:
             </Typography>
             <Typography fontWeight={700} color="#2C3E50">
-              {order.dates.expected || "Đang cập nhật"}
+              {order.arrivedAt
+                ? new Date(order.arrivedAt).toLocaleDateString("vi-VN")
+                : "Đang cập nhật"}
             </Typography>
           </Box>
         </Paper>
@@ -104,9 +106,9 @@ const Shipping: React.FC<Props> = ({ order }) => {
         Sản phẩm
       </Typography>
       <Stack spacing={2}>
-        {order.products.map((prod) => (
+        {order.items.map((item) => (
           <Paper
-            key={prod.id}
+            key={item.orderItemId}
             elevation={0}
             sx={{
               p: 2,
@@ -120,7 +122,7 @@ const Shipping: React.FC<Props> = ({ order }) => {
           >
             <Box
               component="img"
-              src={prod.image}
+              src={item.avatar}
               sx={{
                 width: 60,
                 height: 60,
@@ -130,17 +132,17 @@ const Shipping: React.FC<Props> = ({ order }) => {
             />
             <Box flex={1}>
               <Typography sx={{ fontWeight: 700, color: "#2C3E50" }}>
-                {prod.name}
+                {item.title}
               </Typography>
               <Typography sx={{ color: "#78909C", fontSize: "0.85rem" }}>
-                x{prod.quantity}
+                x{item.quantity}
               </Typography>
               <Typography sx={{ color: "#567C8D", fontSize: "0.9rem" }}>
-                {prod.variant}
+                {item.color} - Size: {item.size}
               </Typography>
             </Box>
             <Typography sx={{ fontWeight: 600, color: "#567C8D" }}>
-              {prod.price.toLocaleString()}đ
+              {item.price.toLocaleString()}đ
             </Typography>
           </Paper>
         ))}

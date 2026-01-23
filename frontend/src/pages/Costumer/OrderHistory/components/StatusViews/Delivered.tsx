@@ -18,14 +18,13 @@ const Delivered: React.FC<Props> = ({ order }) => {
   const navigate = useNavigate();
   const handleReOrder = async () => {
     try {
-      await reOrder(order.id);
+      await reOrder(order.orderId);
       alert("Đã thêm vào giỏ!");
     } catch (e) {
       console.error(e);
     }
   };
 
-  // [FIX]: Cấu hình wrap text mạnh mẽ
   const forceWrapStyle = {
     whiteSpace: "normal",
     wordBreak: "break-word", // Ngắt từ nếu cần
@@ -133,7 +132,9 @@ const Delivered: React.FC<Props> = ({ order }) => {
             variant="h6"
             sx={{ fontWeight: 700, color: "#2C3E50", ...forceWrapStyle }}
           >
-            {order.dates.delivered || "28/09/25"}
+            {order.arrivedAt
+              ? new Date(order.arrivedAt).toLocaleDateString("vi-VN")
+              : "Chưa cập nhật"}
           </Typography>
         </Paper>
 
@@ -171,7 +172,9 @@ const Delivered: React.FC<Props> = ({ order }) => {
             variant="h6"
             sx={{ fontWeight: 700, color: "#2C3E50", ...forceWrapStyle }}
           >
-            {order.deliveryDuration || "3 ngày"}
+            {order.shippingDuration
+              ? `${order.shippingDuration} ngày`
+              : "Chưa cập nhật"}
           </Typography>
         </Paper>
       </Box>
@@ -201,7 +204,10 @@ const Delivered: React.FC<Props> = ({ order }) => {
             Chi tiết
           </Typography>
           <Typography sx={{ color: "#2C3E50", fontSize: "0.95rem", mb: 1 }}>
-            Ngày đặt: <strong>{order.date}</strong>
+            Ngày đặt:{" "}
+            <strong>
+              {new Date(order.createdAt).toLocaleDateString("vi-VN")}
+            </strong>
           </Typography>
           <Typography sx={{ color: "#2C3E50", fontSize: "0.95rem" }}>
             Thanh toán: {order.paymentMethod}
@@ -233,7 +239,7 @@ const Delivered: React.FC<Props> = ({ order }) => {
               ...forceWrapStyle,
             }}
           >
-            Họ tên: {order.shippingAddress.name}
+            Họ tên: {order.name}
           </Typography>
           <Typography
             sx={{
@@ -243,7 +249,7 @@ const Delivered: React.FC<Props> = ({ order }) => {
               ...forceWrapStyle,
             }}
           >
-            Điện thoại: {order.shippingAddress.phone}
+            Điện thoại: {order.phone}
           </Typography>
           <Typography
             sx={{
@@ -252,7 +258,7 @@ const Delivered: React.FC<Props> = ({ order }) => {
               ...forceWrapStyle, // Đảm bảo địa chỉ dài sẽ tự xuống hàng
             }}
           >
-            Địa chỉ: {order.shippingAddress.address}
+            Địa chỉ: {order.address}
           </Typography>
         </Paper>
       </Box>
@@ -265,9 +271,9 @@ const Delivered: React.FC<Props> = ({ order }) => {
           Sản phẩm
         </Typography>
         <Stack spacing={2}>
-          {order.products.map((prod) => (
+          {order.items.map((item) => (
             <Paper
-              key={prod.id}
+              key={item.orderItemId}
               elevation={0}
               sx={{
                 p: 2,
@@ -278,7 +284,7 @@ const Delivered: React.FC<Props> = ({ order }) => {
                 justifyContent: "space-between",
                 gap: 2,
                 flexWrap: "wrap",
-                minWidth: 0, // [FIX]
+                minWidth: 0,
               }}
             >
               <Stack
@@ -289,7 +295,7 @@ const Delivered: React.FC<Props> = ({ order }) => {
               >
                 <Box
                   component="img"
-                  src={prod.image}
+                  src={item.avatar}
                   sx={{
                     width: 80,
                     height: 80,
@@ -306,24 +312,24 @@ const Delivered: React.FC<Props> = ({ order }) => {
                       ...forceWrapStyle,
                     }}
                   >
-                    {prod.name}
+                    {item.title}
                   </Typography>
                   <Typography sx={{ color: "#78909C", fontSize: "0.85rem" }}>
-                    x{prod.quantity}
+                    x{item.quantity}
                   </Typography>
                   <Typography sx={{ color: "#567C8D", fontSize: "0.9rem" }}>
-                    {prod.variant}
+                    {item.color} - Size: {item.size}
                   </Typography>
                 </Box>
               </Stack>
               <Box sx={{ textAlign: "right", flexShrink: 0 }}>
                 <Typography sx={{ fontWeight: 600, color: "#567C8D", mb: 1 }}>
-                  {prod.price.toLocaleString()}đ
+                  {item.price.toLocaleString()}đ
                 </Typography>
                 <Button
                   variant="outlined"
                   size="small"
-                  onClick={() => navigate(`/review/${prod.id}`)}
+                  onClick={() => navigate(`/review/${item.productId}`)}
                   sx={{
                     color: "#2C3E50",
                     borderColor: "#838e93",
@@ -344,7 +350,7 @@ const Delivered: React.FC<Props> = ({ order }) => {
         <Typography variant="h6" sx={{ fontWeight: 700, color: "#2C3E50" }}>
           Thành tiền:{" "}
           <Box component="span" sx={{ color: "#5D5A88", fontSize: "1.3rem" }}>
-            {order.totalAmount.toLocaleString()}đ
+            {order.total.toLocaleString()}đ
           </Box>
         </Typography>
       </Box>

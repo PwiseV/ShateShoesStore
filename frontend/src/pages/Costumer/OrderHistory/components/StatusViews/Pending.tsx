@@ -5,7 +5,7 @@ import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
 import {
   type Order,
   cancelOrder,
-} from "../../../../../services/userHistoryServices"; // [UPDATED]
+} from "../../../../../services/userHistoryServices";
 
 interface Props {
   order: Order;
@@ -15,7 +15,7 @@ const Pending: React.FC<Props> = ({ order }) => {
   const handleCancelOrder = async () => {
     if (window.confirm("Bạn có chắc chắn muốn hủy đơn hàng?")) {
       try {
-        await cancelOrder(order.id, "User cancelled");
+        await cancelOrder(order.orderId, "User cancelled");
         alert("Hủy đơn thành công!");
         window.location.reload();
       } catch (e) {
@@ -85,13 +85,13 @@ const Pending: React.FC<Props> = ({ order }) => {
             Thông tin nhận hàng
           </Typography>
           <Typography sx={{ color: "#2C3E50", mb: 0.5 }}>
-            Họ tên: {order.shippingAddress.name}
+            Họ tên: {order.name}
           </Typography>
           <Typography sx={{ color: "#2C3E50", mb: 0.5 }}>
-            Điện thoại: {order.shippingAddress.phone}
+            Điện thoại: {order.phone}
           </Typography>
           <Typography sx={{ color: "#555" }}>
-            Địa chỉ: {order.shippingAddress.address}
+            Địa chỉ: {order.address}
           </Typography>
         </Paper>
         <Paper
@@ -133,9 +133,9 @@ const Pending: React.FC<Props> = ({ order }) => {
         Sản phẩm
       </Typography>
       <Stack spacing={2}>
-        {order.products.map((prod) => (
+        {order.items.map((item) => (
           <Paper
-            key={prod.id}
+            key={item.orderItemId}
             elevation={0}
             sx={{
               p: 2,
@@ -149,7 +149,7 @@ const Pending: React.FC<Props> = ({ order }) => {
           >
             <Box
               component="img"
-              src={prod.image}
+              src={item.avatar}
               sx={{
                 width: 60,
                 height: 60,
@@ -159,17 +159,17 @@ const Pending: React.FC<Props> = ({ order }) => {
             />
             <Box flex={1}>
               <Typography sx={{ fontWeight: 700, color: "#2C3E50" }}>
-                {prod.name}
+                {item.title}
               </Typography>
               <Typography sx={{ color: "#78909C", fontSize: "0.85rem" }}>
-                x{prod.quantity}
+                x{item.quantity}
               </Typography>
               <Typography sx={{ color: "#567C8D", fontSize: "0.9rem" }}>
-                {prod.variant}
+                {item.color} - Size: {item.size}
               </Typography>
             </Box>
             <Typography sx={{ fontWeight: 600, color: "#567C8D" }}>
-              {prod.price.toLocaleString()}đ
+              {item.price.toLocaleString()}đ
             </Typography>
           </Paper>
         ))}
@@ -178,7 +178,7 @@ const Pending: React.FC<Props> = ({ order }) => {
         <Typography variant="h6" sx={{ fontWeight: 700, color: "#2C3E50" }}>
           Thành tiền:{" "}
           <Box component="span" sx={{ color: "#5D5A88" }}>
-            {order.totalAmount.toLocaleString()}đ
+            {order.total.toLocaleString()}đ
           </Box>
         </Typography>
       </Box>

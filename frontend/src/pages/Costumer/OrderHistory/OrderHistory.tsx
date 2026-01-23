@@ -22,7 +22,7 @@ import Footer from "../../../components/Customer/Footer";
 import SideBar from "../../../components/Customer/SideBar";
 
 // [UPDATED] Import từ Service
-import type { Order, OrderStatus } from "../../../services/userHistoryServices";
+import type { Order } from "../../../services/userHistoryServices";
 import {
   getOrders,
   getOrderCounts,
@@ -57,21 +57,22 @@ const OrderHistory = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const statusMap: (OrderStatus | "all")[] = [
+        const statusMap = [
           "all",
           "pending",
-          "shipping",
+          "shipped",
           "delivered",
           "cancelled",
         ];
-        const currentStatus = statusMap[tabValue];
+
+        let currentStatus = statusMap[tabValue];
+
+        if (tabValue === 2) currentStatus = "shipping"; // Map lại shipping
 
         // Lấy danh sách (Limit lớn để UI tự cắt bằng slice như cũ)
         const dataRes = await getOrders({
           status: currentStatus,
           search: searchTerm,
-          page: 1,
-          limit: 100,
         });
         setOrders(dataRes.data);
 
@@ -109,7 +110,7 @@ const OrderHistory = () => {
     >
       <Header />
       <Container sx={{ maxWidth: "lg", flex: 1, py: 8 }}>
-        <Grid container spacing={3} alignItems="flex-start">
+        <Grid container spacing={3}>
           <Grid item xs={12} md={3}>
             <Box sx={{ position: "sticky", top: "100px" }}>
               <SideBar selectedMenu="History" />
@@ -173,7 +174,7 @@ const OrderHistory = () => {
                 ) : displayedOrders.length > 0 ? (
                   <>
                     {displayedOrders.map((order) => (
-                      <OrderCard key={order.id} order={order} />
+                      <OrderCard key={order.orderId} order={order} />
                     ))}
 
                     {orders.length > PAGE_SIZE && (

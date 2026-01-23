@@ -9,7 +9,6 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import ProductItem from "./ProductItem";
-
 import { type Order } from "../../../../services/userHistoryServices";
 
 import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
@@ -21,10 +20,10 @@ import ReplayIcon from "@mui/icons-material/Replay";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 
-type Props = { order: Order };
+type Props = {
+  order: Order;
+};
 
-// ... (Giữ nguyên toàn bộ phần thân Component OrderCard như file gốc của bạn)
-// Không thay đổi logic hiển thị để giữ nguyên UI
 const OrderCard: React.FC<Props> = ({ order }) => {
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -40,10 +39,14 @@ const OrderCard: React.FC<Props> = ({ order }) => {
         };
       case "cancelled":
         return { color: "#d83830", label: "Đã hủy", bg: "#FEE2E2" };
-      case "shipping":
+      case "shipped":
         return { color: "#60A5FA", label: "Đang vận chuyển", bg: "#DBEAFE" };
       case "pending":
         return { color: "#FACC15", label: "Chờ xác nhận", bg: "#FEF9C3" };
+      case "paid":
+        return { color: "#FACC15", label: "Đã thanh toán", bg: "#FEF9C3" };
+      case "processing":
+        return { color: "#FACC15", label: "Đang xử lý", bg: "#FEF9C3" };
       default:
         return { color: "#e81d12", label: "Không rõ", bg: "#EEE" };
     }
@@ -62,87 +65,27 @@ const OrderCard: React.FC<Props> = ({ order }) => {
   };
 
   const renderActionButtons = () => {
-    switch (order.status) {
-      case "pending":
-        return (
-          <Button
-            variant="outlined"
-            color="error"
-            sx={{
-              borderColor: "#E74C3C",
-              color: "#DC2626",
-              textTransform: "none",
-              fontWeight: 600,
-              borderRadius: "8px",
-              px: 4,
-              "&:hover": { bgcolor: "#F5EFEB", borderColor: "#C0392B" },
-            }}
-          >
-            Hủy đơn
-          </Button>
-        );
-      case "delivered":
-        return (
-          <>
-            <Button
-              variant="contained"
-              startIcon={<ReplayIcon fontSize="small" />}
-              sx={{
-                bgcolor: "#567C8D",
-                color: "#fff",
-                textTransform: "none",
-                fontWeight: 400,
-                px: 3,
-                borderRadius: "8px",
-                boxShadow: "none",
-                "&:hover": { bgcolor: "#455A64", boxShadow: "none" },
-              }}
-            >
-              Mua lại
-            </Button>
-            <Button
-              onClick={() => navigate(`/history/${order.id}`)}
-              variant="outlined"
-              sx={{
-                borderColor: "#567C8D",
-                color: "#567C8D",
-                textTransform: "none",
-                fontWeight: 400,
-                px: 3,
-                borderRadius: "8px",
-                "&:hover": { bgcolor: "#f5f5f5", borderColor: "#bbb" },
-              }}
-            >
-              Đánh giá
-            </Button>
-          </>
-        );
-      case "cancelled":
-        return (
-          <Button
-            variant="contained"
-            startIcon={<ReplayIcon fontSize="small" />}
-            sx={{
-              bgcolor: "#546E7A",
-              color: "#fff",
-              textTransform: "none",
-              fontWeight: 400,
-              px: 3,
-              borderRadius: "8px",
-              boxShadow: "none",
-              "&:hover": { bgcolor: "#455A64", boxShadow: "none" },
-            }}
-          >
-            Mua lại
-          </Button>
-        );
-      default:
-        return null;
+    // Logic nút bấm dựa trên status
+    if (["pending", "paid", "processing"].includes(order.status)) {
+      // Có thể thêm nút Hủy nếu cần
+      return null;
     }
+    if (order.status === "delivered" || order.status === "cancelled") {
+      return (
+        <Button
+          variant="contained"
+          startIcon={<ReplayIcon fontSize="small" />}
+          sx={{ bgcolor: "#567C8D", color: "#fff", textTransform: "none" }}
+        >
+          Mua lại
+        </Button>
+      );
+    }
+    return null;
   };
 
-  const initialProducts = order.products.slice(0, INITIAL_LIMIT);
-  const remainingProducts = order.products.slice(INITIAL_LIMIT);
+  const initialItems = order.items.slice(0, INITIAL_LIMIT);
+  const remainingItems = order.items.slice(INITIAL_LIMIT);
 
   return (
     <Box
@@ -163,6 +106,7 @@ const OrderCard: React.FC<Props> = ({ order }) => {
       >
         <Stack direction="row" spacing={1} alignItems="center">
           <StorefrontOutlinedIcon sx={{ color: "#555", fontSize: 20 }} />
+          {/* [SỬA] Hiển thị orderNumber */}
           <Typography
             fontWeight="400"
             sx={{
@@ -171,7 +115,7 @@ const OrderCard: React.FC<Props> = ({ order }) => {
               fontSize: "1.25rem",
             }}
           >
-            Mã đơn hàng: {order.id}
+            Mã đơn hàng: {order.orderNumber}
           </Typography>
         </Stack>
         <Box
@@ -195,6 +139,7 @@ const OrderCard: React.FC<Props> = ({ order }) => {
         </Box>
       </Stack>
 
+      {/* Thông tin vận chuyển (Hardcode hoặc lấy từ order nếu có logic cụ thể) */}
       <Stack
         direction="row"
         alignItems="center"
@@ -211,52 +156,94 @@ const OrderCard: React.FC<Props> = ({ order }) => {
             variant="body2"
             sx={{ color: "#2C3E50", fontWeight: 500, fontSize: "0.7rem" }}
           >
-            Thủ Đức, Tp Hồ Chí Minh
+            {order.fromAddress.split(",").slice(-2).join(", ")}
           </Typography>
         </Box>
+        {/* 1. Đường nối bên trái (Chấm tròn + gạch) */}
+        {/* --- [SỬA] LOGIC HIỂN THỊ TRẠNG THÁI VẬN CHUYỂN --- */}
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
-            color: "#546E7A",
-            opacity: 0.6,
-            flex: 0.5,
             justifyContent: "center",
-            overflow: "hidden",
-          }}
-        >
-          <FiberManualRecordIcon sx={{ fontSize: "small", mr: 0.2 }} />
-          <Typography
-            sx={{ letterSpacing: 1, fontSize: "0.8rem", whiteSpace: "nowrap" }}
-          >
-            - - - -
-          </Typography>
-        </Box>
-        <Box sx={{ ...pillStyle, bgcolor: "#F8F9FA", border: "none" }}>
-          <Typography
-            variant="body2"
-            sx={{ color: "#546E7A", fontWeight: 500, fontSize: "0.7rem" }}
-          >
-            Giao hàng dự kiến: 28/09/25
-          </Typography>
-        </Box>
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            color: "#546E7A",
-            opacity: 0.6,
             flex: 1,
-            justifyContent: "center",
-            overflow: "hidden",
+            px: 1,
+            color: "#90A4AE", // Màu xám cho nét đứt
           }}
         >
-          <Typography
-            sx={{ letterSpacing: 1, fontSize: "0.7rem", whiteSpace: "nowrap" }}
-          >
-            - - - -
-          </Typography>
-          <ArrowRightAltIcon sx={{ fontSize: "small", ml: 0.2 }} />
+          {order.status === "shipping" ? (
+            // === TRƯỜNG HỢP 1: ĐANG VẬN CHUYỂN (Hiện 3 phần: Nét đứt - Ngày - Nét đứt) ===
+            <>
+              {/* 1. Nét đứt bên trái */}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  mr: 1,
+                  opacity: 0.6,
+                }}
+              >
+                <FiberManualRecordIcon
+                  sx={{ fontSize: "8px", mr: 0.5, color: "#546E7A" }}
+                />
+                <Typography sx={{ letterSpacing: 2, fontSize: "0.7rem" }}>
+                  - - - -
+                </Typography>
+              </Box>
+
+              {/* 2. Ngày Dự Kiến (Hiển thị nổi bật) */}
+              <Typography
+                sx={{
+                  fontSize: "0.75rem",
+                  fontWeight: 700,
+                  color: "#546E7A",
+                  whiteSpace: "nowrap",
+                  pb: 0.2, // Căn chỉnh nhẹ
+                }}
+              >
+                {/* Logic lấy ngày: Ưu tiên dates.expected cho đơn đang vận chuyển */}
+                Dự kiến: {order.dates?.expected || "Đang cập nhật"}
+              </Typography>
+
+              {/* 3. Nét đứt bên phải + Mũi tên */}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  ml: 1,
+                  opacity: 0.6,
+                }}
+              >
+                <Typography sx={{ letterSpacing: 2, fontSize: "0.7rem" }}>
+                  - - - -
+                </Typography>
+                <ArrowRightAltIcon sx={{ fontSize: "1.1rem", ml: -0.5 }} />
+              </Box>
+            </>
+          ) : (
+            // === TRƯỜNG HỢP 2: CÁC TRẠNG THÁI KHÁC (Chỉ hiện đường nối dài) ===
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                opacity: 0.5,
+                width: "100%",
+                justifyContent: "center",
+              }}
+            >
+              <FiberManualRecordIcon
+                sx={{ fontSize: "8px", mr: 1, color: "#546E7A" }}
+              />
+              <Typography
+                sx={{ letterSpacing: 4, fontSize: "0.7rem", color: "#546E7A" }}
+              >
+                - - - - - - - - - -
+              </Typography>
+              <ArrowRightAltIcon
+                sx={{ fontSize: "1.1rem", ml: 0.5, color: "#546E7A" }}
+              />
+            </Box>
+          )}
         </Box>
         <Box sx={pillStyle}>
           <LocationOnOutlinedIcon fontSize="small" sx={{ color: "#546E7A" }} />
@@ -264,14 +251,15 @@ const OrderCard: React.FC<Props> = ({ order }) => {
             variant="body2"
             sx={{ color: "#2C3E50", fontWeight: 500, fontSize: "0.7rem" }}
           >
-            Bình Sơn, Quãng Ngãi
+            {order.address.split(",").slice(-2).join(", ")}
           </Typography>
         </Box>
       </Stack>
 
       <Box sx={{ textAlign: "right", mb: 2 }}>
+        {/* [SỬA] Navigate dùng orderId */}
         <Typography
-          onClick={() => navigate(`/history/${order.id}`)}
+          onClick={() => navigate(`/history/${order.orderId}`)}
           sx={{
             display: "inline-block",
             color: "#2C3E50",
@@ -287,20 +275,21 @@ const OrderCard: React.FC<Props> = ({ order }) => {
         </Typography>
       </Box>
 
+      {/* [SỬA] Duyệt qua items */}
       <Stack spacing={2} mb={0}>
-        {initialProducts.map((prod) => (
-          <ProductItem key={prod.id} product={prod} />
+        {initialItems.map((item) => (
+          <ProductItem key={item.orderItemId} product={item} />
         ))}
         <Collapse in={isExpanded} timeout="auto" unmountOnExit>
           <Stack spacing={2} mt={2}>
-            {remainingProducts.map((prod) => (
-              <ProductItem key={prod.id} product={prod} />
+            {remainingItems.map((item) => (
+              <ProductItem key={item.orderItemId} product={item} />
             ))}
           </Stack>
         </Collapse>
       </Stack>
 
-      {order.products.length > INITIAL_LIMIT && (
+      {order.items.length > INITIAL_LIMIT && (
         <Box sx={{ textAlign: "center", mt: 2 }}>
           <Button
             onClick={() => setIsExpanded(!isExpanded)}
@@ -313,17 +302,12 @@ const OrderCard: React.FC<Props> = ({ order }) => {
               color: "#546E7A",
               fontSize: "0.85rem",
               fontWeight: 500,
-              fontFamily: '"Lexend", sans-serif',
               outline: "none",
-              "&:hover": {
-                bgcolor: "transparent",
-                textDecoration: "underline",
-              },
             }}
           >
             {isExpanded
               ? "Thu gọn"
-              : `Xem thêm ${order.products.length - INITIAL_LIMIT} sản phẩm`}
+              : `Xem thêm ${order.items.length - INITIAL_LIMIT} sản phẩm`}
           </Button>
         </Box>
       )}
@@ -339,6 +323,7 @@ const OrderCard: React.FC<Props> = ({ order }) => {
         <Typography sx={{ color: "#2F4156", fontSize: "1rem" }}>
           Thành tiền:
         </Typography>
+        {/* [SỬA] total */}
         <Typography
           variant="h6"
           sx={{
@@ -348,7 +333,7 @@ const OrderCard: React.FC<Props> = ({ order }) => {
             fontFamily: '"Lexend", sans-serif',
           }}
         >
-          {order.totalAmount.toLocaleString()}đ
+          {order.total.toLocaleString()}đ
         </Typography>
       </Stack>
       <Stack direction="row" justifyContent="flex-end" spacing={2}>

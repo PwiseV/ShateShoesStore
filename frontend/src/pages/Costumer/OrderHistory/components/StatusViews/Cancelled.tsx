@@ -5,7 +5,7 @@ import ReplayIcon from "@mui/icons-material/Replay";
 import {
   type Order,
   reOrder,
-} from "../../../../../services/userHistoryServices"; // [UPDATED]
+} from "../../../../../services/userHistoryServices";
 
 interface Props {
   order: Order;
@@ -14,7 +14,7 @@ interface Props {
 const Cancelled: React.FC<Props> = ({ order }) => {
   const handleReOrder = async () => {
     try {
-      await reOrder(order.id);
+      await reOrder(order.orderId);
       alert("Đã thêm sản phẩm vào giỏ hàng!");
     } catch (error) {
       console.error(error);
@@ -51,7 +51,7 @@ const Cancelled: React.FC<Props> = ({ order }) => {
               variant="body2"
               sx={{ color: "#E53935", textAlign: "left" }}
             >
-              Vào ngày: {order.date}
+              Vào ngày: {new Date(order.createdAt).toLocaleDateString("vi-VN")}
             </Typography>
           </Box>
         </Box>
@@ -78,9 +78,9 @@ const Cancelled: React.FC<Props> = ({ order }) => {
           Sản phẩm đã chọn
         </Typography>
         <Stack spacing={2}>
-          {order.products.map((prod) => (
+          {order.items.map((item) => (
             <Paper
-              key={prod.id}
+              key={item.orderItemId}
               elevation={0}
               sx={{
                 p: 2,
@@ -94,7 +94,7 @@ const Cancelled: React.FC<Props> = ({ order }) => {
             >
               <Box
                 component="img"
-                src={prod.image}
+                src={item.avatar}
                 sx={{
                   width: 60,
                   height: 60,
@@ -104,7 +104,7 @@ const Cancelled: React.FC<Props> = ({ order }) => {
               />
               <Box flex={1}>
                 <Typography sx={{ fontWeight: 700, color: "#546E7A" }}>
-                  {prod.name}
+                  {item.title}
                 </Typography>
                 <Typography
                   sx={{
@@ -113,14 +113,14 @@ const Cancelled: React.FC<Props> = ({ order }) => {
                     textAlign: "left",
                   }}
                 >
-                  x{prod.quantity}
+                  x{item.quantity}
                 </Typography>
                 <Typography sx={{ color: "#78909C", fontSize: "0.9rem" }}>
-                  {prod.variant}
+                  {item.color} - Size: {item.size}
                 </Typography>
               </Box>
               <Typography sx={{ fontWeight: 600, color: "#78909C" }}>
-                {prod.price.toLocaleString()}đ
+                {item.price.toLocaleString()}đ
               </Typography>
             </Paper>
           ))}
