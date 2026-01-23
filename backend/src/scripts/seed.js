@@ -2,8 +2,6 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
-import path from "path";
-import { fileURLToPath } from "url";
 import slugify from "slugify";
 
 // Load env vars
@@ -16,6 +14,8 @@ import Product from "../models/Product.js";
 import ProductVariant from "../models/ProductVariant.js";
 import ProductVariantImage from "../models/ProductVariantImage.js";
 import Promotion from "../models/Promotion.js";
+import Order from "../models/Order.js";
+import OrderItem from "../models/OrderItem.js";
 
 // DB Connection
 const connectDB = async () => {
@@ -59,8 +59,9 @@ const seedUsers = async () => {
         },
     ];
 
-    await User.insertMany(users);
+    const createdUsers = await User.insertMany(users);
     console.log("Users Seeded");
+    return createdUsers;
 };
 
 const seedCategories = async () => {
@@ -196,7 +197,7 @@ const seedPromotions = async () => {
     await Promotion.deleteMany({});
 
     // Active promotion
-    await Promotion.create({
+    const promo = await Promotion.create({
         code: "SALE50",
         description: "Giảm giá 50k cho đơn từ 200k",
         discountType: "fixed",
@@ -209,16 +210,106 @@ const seedPromotions = async () => {
     });
 
     console.log("Promotions Seeded");
+    return promo;
+}
+
+const seedOrders = async (users, variants, promotion) => {
+    console.log("Seeding Orders...");
+    await Order.deleteMany({});
+    await OrderItem.deleteMany({});
+
+    const customer = users.find(u => u.role === "customer");
+    const variantArray = await ProductVariant.find().limit(3);
+
+    if (!customer || variantArray.length === 0) {
+        console.log("No customer or variants found, skipping orders");
+        return;
+    }
+
+    // Order 1: Delivered
+    const order1 = await Order.create({
+        orderNumber: "ORD-2025-001",
+        userId: customer._id,
+        status: "delivered",
+        name: customer.displayName,
+        phone: "0901234567",
+        address: "123 Nguyen Hue, Q1, TPHCM",
+        shippingFee: 30000,
+        total: 680000,
+        paymentMethod: "COD",
+        paidAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+        deliveredAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+    });
+
+    await OrderItem.create({
+        orderId: order1._id,
+        variantId: variantArray[0]._id,
+        quantity: 1,
+        price: variantArray[0].price,
+    });
+
+    // Order 2: Processing with promotion
+    const order2 = await Order.create({
+        orderNumber: "ORD-2025-002",
+        userId: customer._id,
+        status: "processing",
+        name: customer.displayName,
+        phone: "0901234567",
+        address: "456 Le Loi, Q3, TPHCM",
+        shippingFee: 30000,
+        total: 1350000,
+        paymentMethod: "Banking",
+        promotionId: promotion._id,
+        paidAt: new Date(),
+    });
+
+    await OrderItem.insertMany([
+        {
+            orderId: order2._id,
+            variantId: variantArray[0]._id,
+            quantity: 1,
+            price: variantArray[0].price,
+        },
+        {
+            orderId: order2._id,
+            variantId: variantArray[1]._id,
+            quantity: 1,
+            price: variantArray[1].price,
+        },
+    ]);
+
+    // Order 3: Pending
+    const order3 = await Order.create({
+        orderNumber: "ORD-2025-003",
+        userId: customer._id,
+        status: "pending",
+        name: customer.displayName,
+        phone: "0901234567",
+        address: "789 Tran Hung Dao, Q5, TPHCM",
+        shippingFee: 30000,
+        total: 750000,
+        paymentMethod: "COD",
+    });
+
+    await OrderItem.create({
+        orderId: order3._id,
+        variantId: variantArray[2]._id,
+        quantity: 1,
+        price: variantArray[2].price,
+    });
+
+    console.log("Orders Seeded");
 }
 
 const runSeed = async () => {
     await connectDB();
 
     try {
-        await seedUsers();
+        const users = await seedUsers();
         const categories = await seedCategories();
         await seedProducts(categories);
-        await seedPromotions();
+        const promotion = await seedPromotions();
+        await seedOrders(users, null, promotion);
 
         console.log("DATA SEEDING COMPLETED SUCCESSFULL! 🚀");
         process.exit(0);
