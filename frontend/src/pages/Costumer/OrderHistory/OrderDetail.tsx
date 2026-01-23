@@ -14,15 +14,18 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
+import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 
 import Header from "../../../components/Customer/Header";
 import Footer from "../../../components/Customer/Footer";
 import SideBar from "../../../components/Customer/SideBar";
 
 import { type Order } from "../../../services/userHistoryServices";
-import { getOrderById } from "../../../services/fakeUserHistoryServices"; // Hoặc service thật
+// import { getOrderById } from "../../../services/fakeUserHistoryServices"; // Hoặc service thật
+import { getOrderById } from "../../../services/userHistoryServices"; // Hoặc service thật
 
-// Views - Giữ nguyên, chỉ cần update prop type trong các file view đó nếu cần
+// Views
 import Delivered from "./components/StatusViews/Delivered";
 import Shipping from "./components/StatusViews/Shipping";
 import Pending from "./components/StatusViews/Pending";
@@ -71,7 +74,7 @@ const OrderDetail = () => {
       case "delivered":
         return <Delivered order={order} />;
       case "shipped":
-        return <Shipping order={order} />; // Backend: shipped
+        return <Shipping order={order} />;
       case "cancelled":
         return <Cancelled order={order} />;
       case "pending":
@@ -148,6 +151,7 @@ const OrderDetail = () => {
                   width: "100%",
                 }}
               >
+                {/* Header Card: Mã đơn hàng & Trạng thái */}
                 <Stack
                   direction="row"
                   justifyContent="space-between"
@@ -162,7 +166,6 @@ const OrderDetail = () => {
                     >
                       Mã đơn hàng
                     </Typography>
-                    {/* [SỬA] orderNumber */}
                     <Typography
                       variant="h6"
                       sx={{ fontWeight: 700, color: "#2C3E50" }}
@@ -180,6 +183,7 @@ const OrderDetail = () => {
                   />
                 </Stack>
 
+                {/* Thanh Địa chỉ & Tiến trình (Đã sửa lỗi thiết kế) */}
                 <Stack
                   direction={{ xs: "column", md: "row" }}
                   alignItems="center"
@@ -187,6 +191,7 @@ const OrderDetail = () => {
                   spacing={2}
                   sx={{ mb: 4 }}
                 >
+                  {/* Địa điểm Gửi */}
                   <Box
                     sx={{
                       bgcolor: "white",
@@ -196,24 +201,176 @@ const OrderDetail = () => {
                       display: "flex",
                       alignItems: "center",
                       gap: 1.5,
+                      boxShadow: "0 2px 4px rgba(0,0,0,0.02)",
                     }}
                   >
                     <LocalShippingOutlinedIcon sx={{ color: "#546E7A" }} />
-                    {/* [SỬA] fromAddress */}
                     <Typography
                       variant="body2"
                       fontWeight={600}
                       color="#37474F"
                     >
-                      {order.fromAddress.split(",")[0] || "Kho hàng"}
+                      {order.fromAddress
+                        ? order.fromAddress.split(",").slice(-2).join(", ")
+                        : "Kho hàng"}{" "}
                     </Typography>
                   </Box>
-                  <ArrowRightAltIcon
+
+                  {/* === PHẦN GIỮA: DÙNG BORDER THAY VÌ TEXT === */}
+                  {/* === KHU VỰC GIỮA: THANH TIẾN TRÌNH (ĐÃ SỬA LẠI HOÀN CHỈNH) === */}
+                  <Box
                     sx={{
-                      color: "#546E7A",
-                      transform: { xs: "rotate(90deg)", md: "none" },
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flex: 1, // Tự động co giãn để lấp đầy khoảng trống
+                      px: 2,
+                      minWidth: "100px",
                     }}
-                  />
+                  >
+                    {order.status === "shipped" ? (
+                      // === TRƯỜNG HỢP: ĐANG VẬN CHUYỂN ===
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          width: "100%",
+                          gap: 1,
+                        }}
+                      >
+                        {/* 1. Đường kẻ trái */}
+                        <Box
+                          sx={{
+                            position: "relative",
+                            flex: 1,
+                            height: "2px",
+                            display: "flex",
+                            alignItems: "center",
+                          }}
+                        >
+                          {/* Dấu chấm tròn ở đầu */}
+                          <FiberManualRecordIcon
+                            sx={{
+                              fontSize: "10px",
+                              color: "#546E7A",
+                              position: "absolute",
+                              left: -4,
+                              zIndex: 1,
+                            }}
+                          />
+                          {/* Dùng Border thay vì Text để không bị lệch */}
+                          <Box
+                            sx={{
+                              width: "100%",
+                              borderTop: "2px dashed #90A4AE",
+                              opacity: 0.6,
+                            }}
+                          />
+                        </Box>
+
+                        {/* 2. BOX NGÀY DỰ KIẾN (Pill Shape) */}
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.8,
+                            border: "1px solid #CFD8DC", // Viền nhạt giống OrderCard
+                            borderRadius: "30px",
+                            px: 2,
+                            py: 0.6,
+                            bgcolor: "white",
+                            whiteSpace: "nowrap",
+                            zIndex: 2,
+                          }}
+                        >
+                          <AccessTimeIcon
+                            sx={{ color: "#546E7A", fontSize: "16px" }}
+                          />
+                          <Typography
+                            sx={{
+                              fontSize: "0.75rem",
+                              fontWeight: 700,
+                              color: "#455A64",
+                              fontFamily: '"Lexend", sans-serif',
+                            }}
+                          >
+                            Dự kiến:{" "}
+                            {order.arrivedAt
+                              ? new Date(order.arrivedAt).toLocaleDateString(
+                                  "vi-VN",
+                                )
+                              : "Đang cập nhật"}
+                          </Typography>
+                        </Box>
+
+                        {/* 3. Đường kẻ phải */}
+                        <Box
+                          sx={{
+                            position: "relative",
+                            flex: 1,
+                            height: "2px",
+                            display: "flex",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: "100%",
+                              borderTop: "2px dashed #90A4AE",
+                              opacity: 0.6,
+                            }}
+                          />
+                          {/* Mũi tên ở cuối */}
+                          <ArrowRightAltIcon
+                            sx={{
+                              fontSize: "1.5rem",
+                              color: "#546E7A",
+                              position: "absolute",
+                              right: -6,
+                              zIndex: 1,
+                            }}
+                          />
+                        </Box>
+                      </Box>
+                    ) : (
+                      // === CÁC TRƯỜNG HỢP KHÁC (Chỉ hiện mũi tên dài) ===
+                      <Box
+                        sx={{
+                          position: "relative",
+                          width: "100%",
+                          display: "flex",
+                          alignItems: "center",
+                          opacity: 0.5,
+                        }}
+                      >
+                        <FiberManualRecordIcon
+                          sx={{
+                            fontSize: "10px",
+                            color: "#546E7A",
+                            position: "absolute",
+                            left: 0,
+                          }}
+                        />
+                        <Box
+                          sx={{
+                            width: "100%",
+                            borderTop: "2px dashed #90A4AE",
+                            mx: 1,
+                          }}
+                        />
+                        <ArrowRightAltIcon
+                          sx={{
+                            fontSize: "1.5rem",
+                            color: "#546E7A",
+                            position: "absolute",
+                            right: 0,
+                          }}
+                        />
+                      </Box>
+                    )}
+                  </Box>
+
+                  {/* Địa điểm Nhận */}
                   <Box
                     sx={{
                       bgcolor: "white",
@@ -223,10 +380,10 @@ const OrderDetail = () => {
                       display: "flex",
                       alignItems: "center",
                       gap: 1.5,
+                      boxShadow: "0 2px 4px rgba(0,0,0,0.02)",
                     }}
                   >
                     <LocationOnOutlinedIcon sx={{ color: "#546E7A" }} />
-                    {/* [SỬA] address */}
                     <Typography
                       variant="body2"
                       fontWeight={600}
