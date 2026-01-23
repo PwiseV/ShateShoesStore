@@ -1,6 +1,6 @@
-// src/pages/Admin/Reviews/hooks/useReviewsLogic.ts
 import { useState, useEffect } from "react";
 import type { ReviewData } from "../types";
+import { useToast } from "../../../../context/useToast.ts"; // Thêm toast như bạn muốn
 import {
   getReviews,
   updateReviewStatus,
@@ -8,6 +8,7 @@ import {
 } from "../../../../services/adminReviewServices";
 
 export const useReviewsLogic = () => {
+  const { showToast } = useToast();
   const [reviews, setReviews] = useState<ReviewData[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -17,77 +18,71 @@ export const useReviewsLogic = () => {
   const itemsPerPage = 10;
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState<string[]>([]);
-  const [filterStars, setFilterStars] = useState<number[]>([]);
+  // Cần định nghĩa type rõ ràng và giá trị mặc định là null
+  const [filterStatus, setFilterStatus] = useState<string | null>(null);
+  const [filterStars, setFilterStars] = useState<number | null>(null);
 
-  // Fetch Reviews
   const fetchReviews = async () => {
     setLoading(true);
     try {
       const params = {
         page: currentPage,
-        pageSize: itemsPerPage,
-        search: searchTerm.trim() || undefined,
-        status: filterStatus.length > 0 ? filterStatus : undefined,
-        stars: filterStars.length > 0 ? filterStars : undefined,
+        limit: itemsPerPage, // Đổi pageSize thành limit cho khớp với Backend của bạn
+        keyword: searchTerm.trim() || undefined, // Đổi search thành keyword cho khớp Backend
+        status: filterStatus || undefined,
+        rating: filterStars || undefined, // Đổi stars thành rating cho khớp Backend
       };
 
       const response = await getReviews(params);
 
-      setReviews(response.data);
-      setTotalPages(response.pagination.totalPages);
-    } catch (error) {
-      console.error("Error fetching reviews:", error);
+      // Lưu ý: khớp key data/formattedReviews tùy theo cách bạn trả về từ BE
+      setReviews(response.data || response.formattedReviews);
+      setTotalPages(response.pagination?.totalPages || Math.ceil((response.total || 0) / itemsPerPage));
+    } catch (error: any) {
+      const msg = error.response?.data?.message || "Không thể tải danh sách đánh giá";
+      showToast(msg, "error");
       setReviews([]);
-      setTotalPages(1);
     } finally {
       setLoading(false);
     }
   };
 
-  // Re-fetch khi dependencies thay đổi
+  // Re-fetch dữ liệu
   useEffect(() => {
     fetchReviews();
   }, [currentPage, searchTerm, filterStatus, filterStars]);
 
-  // Handle Filters
-  const handleApplyFilters = (status: string[], stars: number[]) => {
+  // Nhận giá trị đơn lẻ từ hook useReviewFilters đã sửa ở bước trước
+  const handleApplyFilters = (status: string | null, stars: number | null) => {
     setFilterStatus(status);
     setFilterStars(stars);
     setCurrentPage(1);
   };
 
-  // Handle Delete
   const handleDeleteReview = async (id: string) => {
     try {
       await deleteReview(id);
-      await fetchReviews();
-    } catch (error) {
-      console.error("Error deleting review:", error);
+      showToast("Xóa đánh giá thành công", "success");
+      fetchReviews();
+    } catch (error: any) {
+      showToast(error.response?.data?.message || "Xóa thất bại", "error");
     }
   };
 
-  // Handle Update Status
-  const handleUpdateReviewStatus = async (
-    id: string,
-    status: "active" | "hidden"
-  ) => {
+  const handleUpdateReviewStatus = async (id: string, status: string) => {
     try {
       await updateReviewStatus(id, status);
       setReviews((prev) =>
-        prev.map((review) =>
-          review.reviewId === id ? { ...review, status } : review
-        )
+        prev.map((r) => (r.reviewId === id ? { ...r, status } : r))
       );
-    } catch (error) {
-      console.error("Error updating review status:", error);
+      showToast("Cập nhật trạng thái thành công", "success");
+    } catch (error: any) {
+      showToast(error.response?.data?.message || "Cập nhật thất bại", "error");
     }
   };
 
-  // Handle Page Change
-  const handlePageChange = (_event: unknown, value: number) => {
+  const handlePageChange = (_: unknown, value: number) => {
     setCurrentPage(value);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return {

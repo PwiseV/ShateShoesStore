@@ -17,7 +17,7 @@ interface Props {
   totalPages: number;
   onApplyFilters: (status: string[], stars: number[]) => void;
   onDelete: (id: string) => void;
-  onUpdateStatus: (id: string, status: "pending" | "approved" | "rejected") => void;
+  onUpdateStatus: (id: string, status: "active" | "hidden") => void;
 }
 
 const MainContent: React.FC<Props> = ({
@@ -31,11 +31,8 @@ const MainContent: React.FC<Props> = ({
   onApplyFilters,
   onUpdateStatus,
 }) => {
-  // Extract filter logic
   const { selectedStatus, selectedStar, handleStatusChange, handleStarsChange } =
     useReviewFilters(onApplyFilters);
-
-  // Extract detail modal logic
   const {
     selectedReview,
     detailModalOpen,
@@ -45,7 +42,7 @@ const MainContent: React.FC<Props> = ({
   } = useReviewDetail();
 
   const handleUpdateStatusWrapper = (
-    status: "pending" | "approved" | "rejected"
+    status: "active" | "hidden"
   ) => {
     handleDetailUpdateStatus(onUpdateStatus, status);
   };

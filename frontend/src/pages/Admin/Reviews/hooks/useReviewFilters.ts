@@ -8,7 +8,8 @@ interface UseReviewFiltersReturn {
 }
 
 export const useReviewFilters = (
-  onApplyFilters: (status: string[], rating: number[]) => void
+  // 1. Sửa kiểu dữ liệu ở tham số hàm callback: từ string[] -> string | null
+  onApplyFilters: (status: string | null, rating: number | null) => void
 ): UseReviewFiltersReturn => {
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [selectedStar, setSelectedStar] = useState<number | null>(null);
@@ -17,10 +18,8 @@ export const useReviewFilters = (
     (value: string) => {
       const newStatus = value === "all" ? null : value;
       setSelectedStatus(newStatus);
-      onApplyFilters(
-        newStatus ? [newStatus] : [],
-        selectedStar ? [selectedStar] : []
-      );
+      // 2. Truyền trực tiếp giá trị, không bọc trong dấu []
+      onApplyFilters(newStatus, selectedStar);
     },
     [selectedStar, onApplyFilters]
   );
@@ -29,10 +28,8 @@ export const useReviewFilters = (
     (value: string) => {
       const numValue = value === "all" ? null : Number(value);
       setSelectedStar(numValue);
-      onApplyFilters(
-        selectedStatus ? [selectedStatus] : [],
-        numValue ? [numValue] : []
-      );
+      // 3. Truyền trực tiếp giá trị, không bọc trong dấu []
+      onApplyFilters(selectedStatus, numValue);
     },
     [selectedStatus, onApplyFilters]
   );

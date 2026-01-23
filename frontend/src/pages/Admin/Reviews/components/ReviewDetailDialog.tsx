@@ -8,7 +8,11 @@ import {
   Box,
   Typography,
   Rating,
+  Divider,
+  Stack,
+  IconButton,
 } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 import type { ReviewData } from "../types";
 import { statusConfig } from "../constants";
 
@@ -43,102 +47,153 @@ const ReviewDetailDialog: React.FC<Props> = ({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ fontWeight: 700, fontSize: "18px" }}>
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="sm" 
+      fullWidth
+      PaperProps={{
+        sx: { borderRadius: "16px", p: 1 }
+      }}
+    >
+      <DialogTitle sx={{ 
+        fontWeight: 700, 
+        fontSize: "1.25rem", 
+        color: "#2C3E50",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center"
+      }}>
         Chi tiết đánh giá
+        <IconButton onClick={onClose} size="small">
+          <CloseIcon />
+        </IconButton>
       </DialogTitle>
-      <DialogContent sx={{ pt: 2 }}>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {/* Review Code */}
-          <Box>
-            <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#999" }}>
-              Mã đánh giá
-            </Typography>
-            <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
-              {review.reviewId}
-            </Typography>
+
+      <DialogContent>
+        <Stack spacing={3} sx={{ mt: 1 }}>
+          {/* Thông tin sản phẩm & Khách hàng */}
+          <Box sx={{ 
+            display: "grid", 
+            gridTemplateColumns: "1fr 1fr", 
+            gap: 2,
+            bgcolor: "#F8F9FD",
+            p: 2,
+            borderRadius: "12px"
+          }}>
+            <Box>
+              <Typography variant="caption" fontWeight={600} color="#7F8C8D" textTransform="uppercase">
+                Khách hàng
+              </Typography>
+              <Typography variant="body2" fontWeight={600} color="#2C3E50">
+                {review.username || "Khách ẩn danh"}
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="caption" fontWeight={600} color="#7F8C8D" textTransform="uppercase">
+                Ngày tạo
+              </Typography>
+              <Typography variant="body2" fontWeight={600} color="#2C3E50">
+                {new Date(review.createdAt).toLocaleDateString("vi-VN")}
+              </Typography>
+            </Box>
           </Box>
 
-          {/* Product Name */}
           <Box>
-            <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#999" }}>
-              Tên sản phẩm
+            <Typography variant="caption" fontWeight={600} color="#7F8C8D" textTransform="uppercase">
+              Sản phẩm
             </Typography>
-            <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
+            <Typography variant="body1" fontWeight={600} color="#567C8D">
               {review.title}
             </Typography>
           </Box>
 
-          {/* Customer Name */}
           <Box>
-            <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#999" }}>
-              Tên khách hàng
+            <Typography variant="caption" fontWeight={600} color="#7F8C8D" textTransform="uppercase" sx={{ mb: 0.5, display: "block" }}>
+              Mức độ hài lòng
             </Typography>
-            <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
-              {review.username}
+            <Rating value={review.rating} readOnly size="medium" />
+          </Box>
+
+          <Box>
+            <Typography variant="caption" fontWeight={600} color="#7F8C8D" textTransform="uppercase" sx={{ mb: 0.5, display: "block" }}>
+              Nội dung phản hồi
+            </Typography>
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                p: 2, 
+                bgcolor: "#fff", 
+                border: "1px solid #E0E4EC", 
+                borderRadius: "12px",
+                fontStyle: "italic",
+                lineHeight: 1.6
+              }}
+            >
+              "{review.content}"
             </Typography>
           </Box>
 
-          {/* Stars */}
           <Box>
-            <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#999" }}>
-              Số sao
+            <Typography variant="caption" fontWeight={600} color="#7F8C8D" textTransform="uppercase" sx={{ mb: 1.5, display: "block" }}>
+              Cập nhật trạng thái hiển thị
             </Typography>
-            <Rating value={review.rating} readOnly />
-          </Box>
-
-          {/* Review Content */}
-          <Box>
-            <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#999" }}>
-              Nội dung đánh giá
-            </Typography>
-            <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
-              {review.content}
-            </Typography>
-          </Box>
-
-          {/* Status */}
-          <Box>
-            <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#999", mb: 1 }}>
-              Trạng thái
-            </Typography>
-            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-              {Object.entries(statusConfig).map(([key, value]) => (
-                <Button
-                  key={key}
-                  variant={selectedStatus === key ? "contained" : "outlined"}
-                  size="small"
-                  onClick={() => setSelectedStatus(key as "pending" | "active" | "hidden")}
-                  sx={{
-                    textTransform: "none",
-                    borderColor: value.color === "warning" ? "#FBC02D" : value.color === "success" ? "#4CAF50" : "#F44336",
-                    color: selectedStatus === key ? "#fff" : value.color === "warning" ? "#FBC02D" : value.color === "success" ? "#4CAF50" : "#F44336",
-                    backgroundColor: selectedStatus === key ? (value.color === "warning" ? "#FBC02D" : value.color === "success" ? "#4CAF50" : "#F44336") : "transparent",
-                  }}
-                >
-                  {value.label}
-                </Button>
-              ))}
+            <Box sx={{ display: "flex", gap: 1.5 }}>
+              {Object.entries(statusConfig).map(([key, value]) => {
+                const isActive = selectedStatus === key;
+                const baseColor = value.color === "warning" ? "#FBC02D" : value.color === "success" ? "#4CAF50" : "#F44336";
+                
+                return (
+                  <Button
+                    key={key}
+                    variant={isActive ? "contained" : "outlined"}
+                    size="small"
+                    onClick={() => setSelectedStatus(key as any)}
+                    sx={{
+                      flex: 1,
+                      textTransform: "none",
+                      borderRadius: "10px",
+                      fontWeight: 600,
+                      borderColor: isActive ? "transparent" : baseColor,
+                      color: isActive ? "#fff" : baseColor,
+                      backgroundColor: isActive ? baseColor : "transparent",
+                      "&:hover": {
+                        backgroundColor: isActive ? baseColor : `${baseColor}10`,
+                        borderColor: baseColor,
+                      },
+                    }}
+                  >
+                    {value.label}
+                  </Button>
+                );
+              })}
             </Box>
           </Box>
-
-          {/* Created Date */}
-          <Box>
-            <Typography sx={{ fontSize: "12px", fontWeight: 600, color: "#999" }}>
-              Ngày tạo
-            </Typography>
-            <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
-              {new Date(review.createdAt).toLocaleDateString("vi-VN")}
-            </Typography>
-          </Box>
-        </Box>
+        </Stack>
       </DialogContent>
-      <DialogActions sx={{ p: 2 }}>
-        <Button onClick={onClose} variant="outlined">
-          Hủy
+
+      <Divider sx={{ borderStyle: "dashed", my: 1 }} />
+
+      <DialogActions sx={{ p: 2, gap: 1 }}>
+        <Button 
+          onClick={onClose} 
+          sx={{ color: "#7F8C8D", textTransform: "none", fontWeight: 600 }}
+        >
+          Đóng
         </Button>
-        <Button onClick={handleSave} variant="contained">
-          Lưu
+        <Button 
+          onClick={handleSave} 
+          variant="contained"
+          sx={{ 
+            bgcolor: "#567C8D", 
+            px: 4, 
+            borderRadius: "10px",
+            textTransform: "none",
+            fontWeight: 600,
+            "&:hover": { bgcolor: "#456371" }
+          }}
+        >
+          Lưu thay đổi
         </Button>
       </DialogActions>
     </Dialog>

@@ -4,6 +4,7 @@ import Footer from "../../../components/Admin/Footer";
 import SideBar from "../../../components/Admin/SideBar";
 import MainContent from "./components/MainContent";
 import { useReviewsLogic } from "./hooks/useReviewsLogic";
+import { Typography, Box } from "@mui/material";
 
 const selectedMenu = "Quản lý đánh giá";
 
@@ -30,8 +31,9 @@ const Reviews = () => {
     <div
       style={{
         background: "#F5EFEB",
-        borderRadius: "40px",
         minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       <Header />
@@ -48,14 +50,26 @@ const Reviews = () => {
         }}
       >
         <SideBar selectedMenu={selectedMenu} />
-        <main
-          style={{
-            backgroundColor: "#C8D9E6",
-            borderRadius: "20px",
-            padding: "2rem",
-            minHeight: "600px",
+        <Box
+          sx={{
+            backgroundColor: "#D3E2E9",
+            borderRadius: "24px",
+            p: 3,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
           }}
         >
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 2,
+            }}
+          >
+            <Typography variant="h5" sx={{ fontWeight: 700, color: "#2C3E50" }}>
+              Quản lý sản phẩm
+            </Typography>
+          </Box>
           <MainContent
             reviews={reviews}
             loading={loading}
@@ -67,11 +81,12 @@ const Reviews = () => {
             onApplyFilters={handleApplyFilters}
             onDelete={handleDeleteReview}
             onUpdateStatus={handleUpdateReviewStatus}
-          />
-        </main>
+          ></MainContent>
+        </Box>
       </div>
       <Footer />
     </div>
+    
   );
 };
 
