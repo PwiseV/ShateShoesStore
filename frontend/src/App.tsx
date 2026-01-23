@@ -41,6 +41,7 @@ export default function AppRoutes() {
     <Router>
       <Suspense fallback={<div>Loading...</div>}>
         <Routes>
+          <Route path="/" element={<Navigate to="/homepage" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />

@@ -2,19 +2,21 @@ import * as authService from "../services/auth.service.js";
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
+import { handleServiceError } from "../utils/errorHandler.js";
+import { getErrorMessage } from "../constants/errorMessages.js";
 
-const REFRESH_TOKEN_TTL = 14 * 24 * 60 * 60 * 1000; // 14 ngày
+const REFRESH_TOKEN_TTL = 14 * 24 * 60 * 60 * 1000; // 14 days
 
 export const signUp = async (req, res) => {
   try {
     const { name, email, password } = req.body;
     if (!name || !email || !password)
-      return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
+      return res.status(400).json({ message: getErrorMessage("MISSING_REQUIRED_FIELDS") });
 
     await authService.register({ name, email, password });
     return res.status(201).json({ message: "Đăng ký thành công" });
   } catch (error) {
-    return res.status(400).json({ message: error.message });
+    return handleServiceError(error, res);
   }
 };
 
@@ -22,7 +24,7 @@ export const signIn = async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password)
-      return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
+      return res.status(400).json({ message: getErrorMessage("MISSING_REQUIRED_FIELDS") });
 
     const { user, accessToken, refreshToken } = await authService.authenticate({
       email,
@@ -33,7 +35,7 @@ export const signIn = async (req, res) => {
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: false, // true nếu dùng https
+      secure: false, // true if using https
       sameSite: "lax",
       maxAge: REFRESH_TOKEN_TTL,
     });
@@ -49,7 +51,7 @@ export const signIn = async (req, res) => {
       },
     });
   } catch (error) {
-    return res.status(401).json({ message: error.message });
+    return handleServiceError(error, res);
   }
 };
 
@@ -73,37 +75,31 @@ export const refreshAccessToken = async (req, res) => {
       },
     });
   } catch (error) {
-    return res.status(403).json({ message: error.message });
+    return handleServiceError(error, res);
   }
 };
 
-// =================== Oauth google, facebook , linkedin =======================
+// =================== OAuth Google =======================
 console.log("=== ENV CHECK ===");
 console.log("GOOGLE_CLIENT_ID =", process.env.GOOGLE_CLIENT_ID);
 console.log("GOOGLE_REDIRECT_URI =", process.env.GOOGLE_REDIRECT_URI);
 
-// Khởi tạo OAuth2Client
 const oauthClient = new OAuth2Client({
   clientId: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
   redirectUri: process.env.GOOGLE_REDIRECT_URI,
 });
 
-// Đây là chỗ FE click nút “Login with Google” → BE redirect tới Google.
 export const googleAuth = async (req, res) => {
-  // BE sẽ tạo ra URL Google OAuth hợp lệ
-
   const authUrl = oauthClient.generateAuthUrl({
     access_type: "offline",
     prompt: "consent",
     scope: ["profile", "email"],
   });
 
-  // Redirect user tới URL của Google
   return res.redirect(authUrl);
 };
 
-// Đây là callback route mà Google redirect về sau khi user đồng ý cấp quyền.
 export const googleCallback = async (req, res) => {
   try {
     const { code } = req.query;
@@ -117,16 +113,14 @@ export const googleCallback = async (req, res) => {
 
     const { email, name, picture } = userInfo.data;
 
-    // Tìm user theo email
     let user = await User.findOne({ email });
 
     if (!user) {
-      // Tạo username an toàn (không trùng, không khoảng trắng)
       const safeUsername = email.split("@")[0];
 
       user = await User.create({
         username: safeUsername,
-        hashedPassword: "", // Google không có password
+        hashedPassword: "",
         email,
         displayName: name,
         avatarUrl: picture || "",
@@ -135,23 +129,21 @@ export const googleCallback = async (req, res) => {
       });
     }
 
-    // Nếu user đã tồn tại -> set role
     if (!user.role) {
       user.role = "customer";
       await user.save();
     }
-    // Tạo JWT
+
     const jwtToken = jwt.sign(
       { userId: user._id },
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "7d" }
     );
 
-    // Redirect về FE kèm token
     return res.redirect(`http://localhost:5173/login?token=${jwtToken}`);
   } catch (err) {
     console.log("GOOGLE OAUTH ERROR:", err);
-    return res.status(500).json({ message: "Đăng nhập Google thất bại" });
+    return res.status(500).json({ message: getErrorMessage("SERVER_ERROR") });
   }
 };
 
@@ -164,10 +156,9 @@ export const getMe = async (req, res) => {
       message: `Người dùng ${user.displayName} đã đăng nhập!`,
     });
   } catch (err) {
-    return res.status(500).json({ message: "Lỗi hệ thống" });
+    return res.status(500).json({ message: getErrorMessage("SERVER_ERROR") });
   }
 };
-
 
 // ================== FORGOT / RESET PASSWORD ==================
 
@@ -176,17 +167,17 @@ export const forgotPassword = async (req, res) => {
     const { email } = req.body;
 
     if (!email) {
-      return res.status(400).json({ message: "Email là bắt buộc" });
+      return res.status(400).json({ message: getErrorMessage("MISSING_REQUIRED_FIELDS") });
     }
 
     const token = await authService.requestPasswordReset(email);
 
     return res.status(200).json({
-      message: "Reset password token generated",
-      token, // ⚠️ demo – sẽ bỏ khi merge dev
+      message: "Yêu cầu đặt lại mật khẩu thành công",
+      token, // ⚠️ demo only - remove in production
     });
   } catch (err) {
-    return res.status(400).json({ message: err.message });
+    return handleServiceError(err, res);
   }
 };
 
@@ -200,7 +191,7 @@ export const verifyResetToken = async (req, res) => {
       message: "Token hợp lệ",
     });
   } catch (err) {
-    return res.status(400).json({ message: err.message });
+    return handleServiceError(err, res);
   }
 };
 
@@ -210,7 +201,7 @@ export const resetPassword = async (req, res) => {
 
     if (!token || !newPassword) {
       return res.status(400).json({
-        message: "Token và mật khẩu mới là bắt buộc",
+        message: getErrorMessage("MISSING_REQUIRED_FIELDS"),
       });
     }
 
@@ -220,7 +211,7 @@ export const resetPassword = async (req, res) => {
       message: "Đặt lại mật khẩu thành công",
     });
   } catch (err) {
-    return res.status(400).json({ message: err.message });
+    return handleServiceError(err, res);
   }
 };
 
@@ -232,7 +223,7 @@ export const changePassword = async (req, res) => {
 
     if (!oldPassword || !newPassword) {
       return res.status(400).json({
-        message: "Mật khẩu cũ và mật khẩu mới là bắt buộc",
+        message: getErrorMessage("MISSING_REQUIRED_FIELDS"),
       });
     }
 
@@ -246,7 +237,6 @@ export const changePassword = async (req, res) => {
       message: "Đổi mật khẩu thành công",
     });
   } catch (err) {
-    return res.status(400).json({ message: err.message });
+    return handleServiceError(err, res);
   }
 };
-

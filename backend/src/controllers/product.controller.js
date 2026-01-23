@@ -1,13 +1,15 @@
 import * as productService from "../services/product.service.js";
+import { handleServiceError } from "../utils/errorHandler.js";
+import { getErrorMessage } from "../constants/errorMessages.js";
 
 export const createProduct = async (req, res) => {
   try {
     const { code, title, description, category, tags } = req.body;
     if (!code || !title || !category) {
-      return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
+      return res.status(400).json({ message: getErrorMessage("MISSING_REQUIRED_FIELDS") });
     }
     if (!req.file) {
-      return res.status(400).json({ message: "Ảnh đại diện là bắt buộc" });
+      return res.status(400).json({ message: getErrorMessage("THUMBNAIL_REQUIRED") });
     }
     let processedTags = [];
     if (tags) {
@@ -28,20 +30,7 @@ export const createProduct = async (req, res) => {
       data: newProduct,
     });
   } catch (error) {
-    if (error.message === "PRODUCT_CODE_EXISTS") {
-      return res.status(409).json({ message: "Mã sản phẩm đã tồn tại" });
-    }
-    if (error.message === "CATEGORY_NOT_FOUND") {
-      return res.status(400).json({ message: "Danh mục không tìm thấy" });
-    }
-    if (error.message === "SLUG_EXISTS") {
-      return res
-        .status(409)
-        .json({ message: "Tên sản phẩm bị trùng slug" });
-    }
-
-    console.error("Controller Error:", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
+    return handleServiceError(error, res);
   }
 };
 
@@ -59,7 +48,8 @@ export const getProduct = async (req, res) => {
     });
 
     return res.status(200).json({
-      success: "Lấy danh sách sản phẩm thành công",
+      success: true,
+      message: "Lấy danh sách sản phẩm thành công",
       data: products,
       pagination: {
         total,
@@ -69,8 +59,7 @@ export const getProduct = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Get products controller error:", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
+    return handleServiceError(error, res);
   }
 };
 
@@ -82,12 +71,12 @@ export const getOneProduct = async (req, res) => {
     const product = await productService.getOneProduct({ id, userId });
 
     return res.status(200).json({
-      success: "Lấy sản phẩm thành công",
+      success: true,
+      message: "Lấy sản phẩm thành công",
       data: product,
     });
   } catch (error) {
-    console.error("Get products controller error:", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
+    return handleServiceError(error, res);
   }
 };
 
@@ -99,7 +88,7 @@ export const updateProduct = async (req, res) => {
     if (tags) {
       processedTags = Array.isArray(tags) ? tags : [tags];
     }
-    const updatedProduct = await productService.updateProduct(
+    await productService.updateProduct(
       id,
       {
         code,
@@ -115,23 +104,7 @@ export const updateProduct = async (req, res) => {
       message: "Cập nhật sản phẩm thành công",
     });
   } catch (error) {
-    if (error.message === "PRODUCT_NOT_FOUND") {
-      return res.status(404).json({ message: "Sản phẩm không tìm thấy" });
-    }
-    if (error.message === "PRODUCT_ID_EXISTS") {
-      return res.status(409).json({ message: "ID sản phẩm đã tồn tại" });
-    }
-    if (error.message === "CATEGORY_NOT_FOUND") {
-      return res.status(400).json({ message: "Danh mục không tìm thấy" });
-    }
-    if (error.message === "SLUG_EXISTS") {
-      return res
-        .status(409)
-        .json({ message: "Tên sản phẩm bị trùng slug" });
-    }
-
-    console.error("Controller Update Error:", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
+    return handleServiceError(error, res);
   }
 };
 
@@ -145,12 +118,7 @@ export const deleteProduct = async (req, res) => {
       message: "Xóa sản phẩm và các biến thể liên quan thành công",
     });
   } catch (error) {
-    if (error.message === "PRODUCT_NOT_FOUND") {
-      return res.status(404).json({ message: "Sản phẩm không tìm thấy" });
-    }
-
-    console.error("Delete product controller error:", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
+    return handleServiceError(error, res);
   }
 };
 
@@ -160,10 +128,10 @@ export const createProductVariant = async (req, res) => {
     const { stock, price, color, size } = req.body;
 
     if (color === undefined || price === undefined || stock === undefined) {
-      return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
+      return res.status(400).json({ message: getErrorMessage("MISSING_REQUIRED_FIELDS") });
     }
 
-    const newVariant = await productService.createVariant({
+    await productService.createVariant({
       productId: id,
       stock: Number(stock),
       price: Number(price),
@@ -176,28 +144,7 @@ export const createProductVariant = async (req, res) => {
       message: "Tạo biến thể sản phẩm thành công",
     });
   } catch (error) {
-    if (error.message === "PRODUCT_NOT_FOUND") {
-      return res.status(404).json({ message: "Sản phẩm cha không tồn tại" });
-    }
-    if (error.message === "SKU_EXISTS") {
-      return res.status(409).json({ message: "Mã SKU đã tồn tại" });
-    }
-    if (error.message === "INVALID_INPUT") {
-      return res
-        .status(400)
-        .json({ message: "Giá hoặc Trữ lượng phải là số dương" });
-    }
-    if (error.message === "VARIANT_ALREADY_EXISTS") {
-      return res
-        .status(409)
-        .json({ message: "Biến thể đã tồn tại" });
-    }
-    if (error.message === "IMAGE_REQUIRED_FOR_NEW_COLOR") {
-      return res.status(400).json({ message: "Ảnh là bắt buộc cho màu mới" });
-    }
-
-    console.error("Variant Controller Error:", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
+    return handleServiceError(error, res);
   }
 };
 
@@ -206,7 +153,7 @@ export const updateProductVariant = async (req, res) => {
     const { id } = req.params;
     const { size, color, price, stock } = req.body;
 
-    const updatedVariant = await productService.updateVariant(
+    await productService.updateVariant(
       id,
       {
         size,
@@ -221,20 +168,7 @@ export const updateProductVariant = async (req, res) => {
       message: "Cập nhật biến thể sản phẩm thành công",
     });
   } catch (error) {
-    if (error.message === "VARIANT_NOT_FOUND") {
-      return res.status(404).json({ message: "Biến thể không tồn tại" });
-    }
-    if (error.message === "INVALID_INPUT") {
-      return res
-        .status(400)
-        .json({ message: "Giá và trữ lượng phải là số dương" });
-    }
-    if (error.message === "MISSING_UPDATE_FIELDS") {
-      return res.status(409).json({ message: "Thiếu trường cập nhật" });
-    }
-
-    console.error("Controller Update Error:", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
+    return handleServiceError(error, res);
   }
 };
 
@@ -245,8 +179,7 @@ export const deleteProductVariant = async (req, res) => {
 
     if (!size || !color) {
       return res.status(400).json({
-        message:
-          "Thiếu định danh: size và color là bắt buộc.",
+        message: getErrorMessage("MISSING_REQUIRED_FIELDS"),
       });
     }
 
@@ -256,11 +189,6 @@ export const deleteProductVariant = async (req, res) => {
       message: "Xóa biến thể sản phẩm và ảnh thành công",
     });
   } catch (error) {
-    if (error.message === "VARIANT_NOT_FOUND") {
-      return res.status(404).json({ message: "Biến thể không tìm thấy" });
-    }
-
-    console.error("Delete Variant Error:", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
+    return handleServiceError(error, res);
   }
 };

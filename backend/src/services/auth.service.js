@@ -9,7 +9,7 @@ const ACCESS_TOKEN_TTL = "30m";
 
 export const register = async ({ name, email, password }) => {
     const exist = await User.findOne({ email });
-    if (exist) throw new Error("Email already used");
+    if (exist) throw new Error("EMAIL_ALREADY_EXISTS");
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const username = slugify(name, { lower: true, strict: true, locale: "vi" }).replace(/-/g, "");
@@ -24,10 +24,10 @@ export const register = async ({ name, email, password }) => {
 
 export const authenticate = async ({ email, password }) => {
     const user = await User.findOne({ email });
-    if (!user) throw new Error("Incorrect email or password");
+    if (!user) throw new Error("INVALID_CREDENTIALS");
 
     const isMatch = await bcrypt.compare(password, user.hashedPassword);
-    if (!isMatch) throw new Error("Incorrect email or password");
+    if (!isMatch) throw new Error("INVALID_CREDENTIALS");
 
     const accessToken = generateAccessToken(user);
     const refreshToken = crypto.randomBytes(64).toString("hex");
@@ -53,16 +53,14 @@ export const generateAccessToken = (user) => {
 
 export const verifyAndRefreshSession = async (refreshToken) => {
     const session = await Session.findOne({ refreshToken });
-    if (!session) throw new Error("Refresh token is not valid");
-    if (session.expiresAt < new Date()) throw new Error("Refresh token is expired");
+    if (!session) throw new Error("REFRESH_TOKEN_INVALID");
+    if (session.expiresAt < new Date()) throw new Error("REFRESH_TOKEN_EXPIRED");
 
     const user = await User.findById(session.userId);
     const accessToken = generateAccessToken(user);
 
     return { user, accessToken };
 };
-
-
 
 // ================== FORGOT / RESET PASSWORD ==================
 
@@ -71,17 +69,17 @@ export const requestPasswordReset = async (email) => {
   const user = await User.findOne({ email });
 
   if (!user) {
-    throw new Error("Email không tồn tại");
+    throw new Error("EMAIL_NOT_FOUND");
   }
 
-  // admin account cannt reset password via this flow
+  // admin account cannot reset password via this flow
   if (user.role === "admin") {
-    throw new Error("Tài khoản admin không thể sử dụng chức năng này");
+    throw new Error("ADMIN_CANNOT_RESET");
   }
 
-  // gg acctount cannot reset password via this flow
+  // google account cannot reset password via this flow
   if (user.authType === "google") {
-    throw new Error("Tài khoản Google không thể đặt lại mật khẩu");
+    throw new Error("GOOGLE_ACCOUNT_CANNOT_RESET");
   }
 
   const rawToken = crypto.randomBytes(32).toString("hex");
@@ -91,7 +89,7 @@ export const requestPasswordReset = async (email) => {
     .digest("hex");
 
   user.resetPasswordToken = hashedToken;
-  user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 phút
+  user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 minutes
 
   await user.save();
 
@@ -113,12 +111,11 @@ export const verifyResetToken = async (token) => {
   });
 
   if (!user) {
-    throw new Error("Token không hợp lệ hoặc đã hết hạn");
+    throw new Error("RESET_TOKEN_INVALID");
   }
 
   return true;
 };
-
 
 // -------- reset password -------
 export const resetPassword = async (token, newPassword) => {
@@ -133,7 +130,7 @@ export const resetPassword = async (token, newPassword) => {
   });
 
   if (!user) {
-    throw new Error("Token không hợp lệ hoặc đã hết hạn");
+    throw new Error("RESET_TOKEN_INVALID");
   }
 
   user.hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -143,25 +140,23 @@ export const resetPassword = async (token, newPassword) => {
   await user.save();
 };
 
-
 // ------- Change password (while logged in) -------
 export const changePassword = async (userId, oldPassword, newPassword) => {
   const user = await User.findById(userId);
 
   if (!user) {
-    throw new Error("User không tồn tại");
+    throw new Error("USER_NOT_FOUND");
   }
 
   if (user.authType === "google") {
-    throw new Error("Tài khoản Google không thể đổi mật khẩu");
+    throw new Error("GOOGLE_ACCOUNT_CANNOT_CHANGE");
   }
 
   const isMatch = await bcrypt.compare(oldPassword, user.hashedPassword);
   if (!isMatch) {
-    throw new Error("Mật khẩu hiện tại không đúng");
+    throw new Error("OLD_PASSWORD_INCORRECT");
   }
 
   user.hashedPassword = await bcrypt.hash(newPassword, 10);
   await user.save();
 };
-

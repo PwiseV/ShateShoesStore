@@ -1,10 +1,12 @@
 import * as promotionService from "../services/promotion.service.js";
+import { handleServiceError } from "../utils/errorHandler.js";
+import { getErrorMessage } from "../constants/errorMessages.js";
 
 export const createPromotion = async (req, res) => {
   try {
     const { code, description, discountType, discountAmount, totalQuantity, minOrderAmount, endDate, startDate } = req.body;
     if (!code || !description || !discountType || !discountAmount || !totalQuantity || !minOrderAmount || !endDate) {
-      return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
+      return res.status(400).json({ message: getErrorMessage("MISSING_REQUIRED_FIELDS") });
     }
 
     const newPromotion = await promotionService.createPromotion({
@@ -22,20 +24,10 @@ export const createPromotion = async (req, res) => {
       message: "Tạo khuyến mãi thành công",
     });
   } catch (error) {
-    if (error.message === "PROMOTION_CODE_EXISTS") {
-      return res.status(409).json({ message: "Mã khuyến mãi đã tồn tại" });
-    }
-    if (error.message === "EXPIRED_DATE_INVALID") {
-      return res.status(400).json({ message: "Ngày kết thúc phải ở tương lai" });
-    }
-    if (error.message === "STARTED_DATE_INVALID") {
-      return res.status(400).json({ message: "Ngày bắt đầu phải ở tương lai" });
-    }
-    if (error.message === "INVALID_DATE_RANGE") {
-      return res.status(400).json({ message: "Ngày bắt đầu phải trước ngày kết thúc" });
-    }
+    const message = getErrorMessage(error.message);
+    const statusCode = error.message === "PROMOTION_CODE_EXISTS" ? 409 : 400;
     console.error("Controller Error:", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
+    return res.status(statusCode).json({ message });
   }
 };
 
@@ -75,7 +67,7 @@ export const getPromotions = async (req, res) => {
     });
   } catch (error) {
     console.error("Get promotions controller error:", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
+    return res.status(500).json({ message: getErrorMessage("SERVER_ERROR") });
   }
 };
 
@@ -92,48 +84,11 @@ export const applyPromotion = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Promotion applied successfully",
+      message: "Áp dụng khuyến mãi thành công",
       data: promotion,
     });
   } catch (error) {
-    const errorMap = {
-      PROMOTION_CODE_REQUIRED: { status: 404, msg: "Invalid promotion code" },
-      PROMOTION_NOT_FOUND: { status: 404, msg: "Invalid promotion code" },
-      PROMOTION_EXPIRED: { status: 400, msg: "This promotion has expired" },
-      PROMOTION_NOT_STARTED: {
-        status: 400,
-        msg: "This promotion is not active yet",
-      },
-      PROMOTION_NOT_VALID: {
-        status: 400,
-        msg: "This promotion is no longer valid",
-      },
-      PROMOTION_LIMIT_REACHED: {
-        status: 400,
-        msg: "This promotion is out of stock",
-      },
-      PROMOTION_ALREADY_USED_BY_USER: {
-        status: 409,
-        msg: "You have already used this code",
-      },
-      MIN_ORDER_VALUE_NOT_MET: {
-        status: 400,
-        msg: "Order total doesn't meet the minimum requirement",
-      },
-    };
-
-    const errorDetail = errorMap[error.message];
-
-    if (errorDetail) {
-      return res.status(errorDetail.status).json({
-        success: false,
-        message: errorDetail.msg,
-      });
-    }
-    return res.status(500).json({
-      success: false,
-      message: "An internal server error occurred",
-    });
+    return handleServiceError(error, res);
   }
 };
 
@@ -148,12 +103,11 @@ export const getUserAvailablePromotions = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Fetch user promotions success",
+      message: "Lấy danh sách khuyến mãi thành công",
       data: promotions
     });
   } catch (error) {
-    console.error("Get user promotions controller error:", error);
-    return res.status(500).json({ message: "Server error" });
+    return handleServiceError(error, res);
   }
 };
 
@@ -189,24 +143,7 @@ export const updatePromotion = async (req, res) => {
       message: "Cập nhật khuyến mãi thành công"
     });
   } catch (error) {
-    const errorMap = {
-      "PROMOTION_NOT_FOUND": { status: 404, message: "Khuyến mãi không tìm thấy" },
-      "PROMOTION_CODE_ALREADY_EXISTS": { status: 400, message: "Mã khuyến mãi đã tồn tại" },
-      "INVALID_DATE_RANGE": { status: 400, message: "Ngày bắt đầu phải trước ngày hết hạn" },
-      "CANNOT_SET_ACTIVE_BEFORE_START_DATE": { status: 400, message: "Không thể kích hoạt trước ngày bắt đầu" },
-      "CANNOT_SET_ACTIVE_AFTER_EXPIRED_DATE": { status: 400, message: "Không thể kích hoạt sau ngày hết hạn" },
-      "CANNOT_SET_UPCOMING_AFTER_START_DATE": { status: 400, message: "Đã qua ngày bắt đầu, không thể đặt là sắp diễn ra" },
-      "CANNOT_SET_EXPIRED_BEFORE_END_DATE": { status: 400, message: "Khuyến mãi chưa kết thúc, không thể đặt là hết hạn" },
-      "INVALID_STATUS_VALUE": { status: 400, message: "Trạng thái không hợp lệ" }
-    };
-
-    if (errorMap[error.message]) {
-      const { status, message } = errorMap[error.message];
-      return res.status(status).json({ message });
-    }
-
-    console.error("Controller Error:", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
+    return handleServiceError(error, res);
   }
 };
 
@@ -219,20 +156,11 @@ export const deletePromotion = async (req, res) => {
       message: "Xóa khuyến mãi thành công",
     });
   } catch (error) {
-    if (error.message === "PROMOTION_NOT_FOUND") {
-      return res.status(404).json({
-        message: "Khuyến mãi không tìm thấy",
-      });
-    }
     if (error.name === "CastError") {
       return res.status(400).json({
         message: "Định dạng ID khuyến mãi không hợp lệ",
       });
     }
-
-    console.error("Delete Promotion Error:", error);
-    return res.status(500).json({
-      message: "Lỗi hệ thống",
-    });
+    return handleServiceError(error, res);
   }
 };

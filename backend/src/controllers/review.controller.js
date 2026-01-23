@@ -1,128 +1,72 @@
+import {
+  getProductForReviewService,
+  createReviewService,
+  getReviewsByProductService,
+} from "../services/review.service.js";
+import { handleServiceError } from "../utils/errorHandler.js";
 
+/**
+ * GET /api/users/reviews/order-item/:orderItemId
+ * Get info to write a review
+ */
 import * as reviewService from "../services/review.service.js";
-
-import Review from "../models/Review.js";
-import OrderItem from "../models/OrderItem.js";
-import Product from "../models/Product.js";
-import Order from "../models/Order.js";
 
 // GET /api/users/reviews/order-item/:orderItemId
 // Get info to write a review
 export const getProductForReview = async (req, res) => {
-    try {
-        const { orderItemId } = req.params;
-        const userId = req.user._id;
+  try {
+    const { orderItemId } = req.params;
+    const userId = req.user._id;
 
-        // 1. Find OrderItem and populate Variant -> Product
-        const orderItem = await OrderItem.findById(orderItemId).populate({
-            path: "variantId",
-            populate: { path: "productId", select: "title avatar" }
-        });
+    const reviewInfo = await getProductForReviewService(orderItemId, userId);
 
-        if (!orderItem) {
-            return res.status(404).json({ message: "Không tìm thấy sản phẩm trong đơn hàng" });
-        }
-
-        const variant = orderItem.variantId;
-        if (!variant) {
-            // Variant deleted? handle gracefully
-            return res.status(404).json({ message: "Sản phẩm biến thể không tồn tại" });
-        }
-        const product = variant.productId; // Populated above
-        if (!product) {
-            return res.status(404).json({ message: "Sản phẩm không tồn tại" });
-        }
-
-        res.status(200).json({
-            success: true,
-            data: {
-                orderItemId: orderItem._id,
-                productId: product._id,
-                productTitle: product.title,
-                productImage: product.avatar?.url || "",
-                color: variant.color,
-                size: variant.size,
-            }
-        });
-
-    } catch (error) {
-        console.error("Error getProductForReview:", error);
-        res.status(500).json({ message: "Lỗi Server" });
-    }
+    res.status(200).json({
+      success: true,
+      data: reviewInfo,
+    });
+  } catch (error) {
+    return handleServiceError(error, res);
+  }
 };
 
-// POST /api/users/reviews
+/**
+ * POST /api/users/reviews
+ * Create a new review
+ */
 export const createReview = async (req, res) => {
-    try {
-        const { orderItemId, productId, rating, content, color, size } = req.body;
-        const userId = req.user._id;
+  try {
+    const userId = req.user._id;
+    const reviewData = req.body;
 
-        // 1. Check if review already exists
-        const existing = await Review.findOne({ orderItemId });
-        if (existing) {
-            return res.status(400).json({ message: "Bạn đã đánh giá sản phẩm này rồi!" });
-        }
+    const newReview = await createReviewService(reviewData, userId);
 
-        // 2. Create Review
-        const newReview = new Review({
-            userId,
-            productId,
-            orderItemId,
-            rating,
-            content,
-            color,
-            size
-        });
-
-        await newReview.save();
-
-        // Optional: Update Product average rating
-        // await updateProductRating(productId);
-
-        res.status(201).json({
-            success: true,
-            message: "Đánh giá thành công!",
-            data: newReview
-        });
-
-    } catch (error) {
-        console.error("Error createReview:", error);
-        res.status(500).json({ message: "Lỗi Server" });
-    }
+    res.status(201).json({
+      success: true,
+      message: "Đánh giá thành công!",
+      data: newReview,
+    });
+  } catch (error) {
+    return handleServiceError(error, res);
+  }
 };
 
-// GET /api/users/reviews/product/:productId
+/**
+ * GET /api/users/reviews/product/:productId
+ * Get all reviews for a product
+ */
 export const getReviewsByProduct = async (req, res) => {
-    try {
-        const { productId } = req.params;
+  try {
+    const { productId } = req.params;
 
-        const reviews = await Review.find({ productId })
-            .populate("userId", "displayName avatar email") // Get reviewer info
-            .sort({ createdAt: -1 });
+    const reviews = await getReviewsByProductService(productId);
 
-        // Transform to FE format if needed or send as is
-        // FE Review type: { reviewId, author, rating, content, createdAt, size, color }
-
-        const formattedReviews = reviews.map(r => ({
-            reviewId: r._id,
-            author: r.userId?.displayName || "Người dùng ẩn danh", // Use displayName from User model
-            rating: r.rating,
-            content: r.content,
-            createdAt: r.createdAt,
-            size: r.size,
-            color: r.color,
-            productVariant: "" // Optional
-        }));
-
-        res.status(200).json({
-            success: true,
-            data: formattedReviews
-        });
-
-    } catch (error) {
-        console.error("Error getReviewsByProduct:", error);
-        res.status(500).json({ message: "Lỗi Server" });
-    }
+    res.status(200).json({
+      success: true,
+      data: reviews,
+    });
+  } catch (error) {
+    return handleServiceError(error, res);
+  }
 };
 
 export const getAllReviews = async (req, res) => {

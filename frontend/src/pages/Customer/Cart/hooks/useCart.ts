@@ -5,8 +5,9 @@ import { useToast } from "../../../../context/useToast";
 // ==========================================
 // KHU VỰC IMPORT SERVICE (CHỌN 1 TRONG 2)
 // ==========================================
+// CART HOOK - Using Real API Services
+// ==========================================
 
-// --- OPTION 1: MOCK DATA (ĐANG SỬ DỤNG) ---
 import {
   getCartItems as getCartService,
   updateCartItem as updateCartService,
@@ -101,7 +102,7 @@ export const useCart = () => {
         )
       );
 
-      // Gọi Service (Mock hoặc Real tùy import)
+      // Call cart service to update quantity
       await updateCartService(id, { quantity: newQty, variantId });
     } catch (error: any) {
       console.error("Update qty error", error);

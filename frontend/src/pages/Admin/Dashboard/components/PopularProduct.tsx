@@ -5,7 +5,7 @@ import { useToast } from "../../../../context/useToast";
 import {
   type ProductItem,
   getDashboardPopularProducts,
-} from "../../../../services/fakeAdminServices";
+} from "../../../../services/adminServices";
 
 const PopularProduct = () => {
   const [products, setProducts] = useState<ProductItem[]>([]);
@@ -20,8 +20,8 @@ const PopularProduct = () => {
           err instanceof Error
             ? err.message
             : typeof err === "string"
-            ? err
-            : "Something went wrong";
+              ? err
+              : "Something went wrong";
         showToast(message, "error");
       }
     };

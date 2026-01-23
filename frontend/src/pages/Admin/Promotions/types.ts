@@ -14,7 +14,7 @@ export interface PromotionFilterState {
 export interface Promotion {
   id: number;
   code: string;
-  description?: string; 
+  description?: string;
   discountType: DiscountType;
   discountAmount: number;
   minOrderAmount: number;
