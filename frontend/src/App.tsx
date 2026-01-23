@@ -20,6 +20,9 @@ import ProductDetail from "./pages/Customer/ProductDetail/ProductDetail.tsx";
 import Posts from "./pages/Admin/Post/Posts.tsx";
 import CartPage from "./pages/Customer/Cart/CartPage.tsx";
 import CheckoutPage from "./pages/Customer/Checkout/CheckoutPage.tsx";
+import BlogPage from "./pages/Costumer/Blog/Blog.tsx";
+import BlogPost from "./pages/Costumer/BlogPost/BlogPost.tsx";
+import BlogList from "./pages/Costumer/BlogList/BlogList.tsx";
 import Orders from "./pages/Admin/Orders/Orders.tsx";
 import ReviewProduct from "./pages/Costumer/ReviewProduct/ReviewProduct.tsx";
 import UserProfile from "./pages/Costumer/UserProfile/UserProfile.tsx";
@@ -70,6 +73,9 @@ export default function AppRoutes() {
           <Route path="/history" element={<OrderHistory />} />
           <Route path="/history/:orderId" element={<OrderDetail />} />
 
+          <Route path="/blog" element={<BlogPage />} />
+          <Route path="/blog/list" element={<BlogList />} />
+          <Route path="/blog/:postid" element={<BlogPost />} />
           <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/admin/dashboard" element={<Dashboard />} />
             <Route path="/admin/users" element={<Users />} />
@@ -86,6 +92,16 @@ export default function AppRoutes() {
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/payment" element={<Payment />} />
             <Route path="/order-success" element={<OrderSuccess />} />
+            <Route path="/homepage" element={<HomePage />} />
+            <Route path="/products" element={<ProductList />} />
+            <Route
+              path="/products/details/:productid/"
+              element={<ProductDetail />}
+            />
+            <Route path="/products/:slug" element={<ProductList />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/list" element={<BlogList />} />
+            <Route path="/blog/:postid" element={<BlogPost />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />
