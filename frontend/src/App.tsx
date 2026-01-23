@@ -36,6 +36,8 @@ import OrderSuccess from "./pages/Customer/Payment/SuccessOrder.tsx";
 // forgot password components
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword/ResetPassword";
+import Favourite from "./pages/Costumer/Favourite/Favourite.tsx";
+
 export default function AppRoutes() {
   return (
     <Router>
@@ -63,6 +65,7 @@ export default function AppRoutes() {
           <Route path="/payment" element={<Payment />} />
           <Route path="/order-success" element={<OrderSuccess />} />
 
+          <Route path="/favourite" element={<Favourite />} />
           <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/admin/dashboard" element={<Dashboard />} />
             <Route path="/admin/users" element={<Users />} />
@@ -91,6 +94,7 @@ export default function AppRoutes() {
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/payment" element={<Payment />} />
             <Route path="/order-success" element={<OrderSuccess />} />
+            <Route path="/favourite" element={<Favourite />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />
