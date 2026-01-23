@@ -26,7 +26,7 @@ import type { Order } from "../../../services/userHistoryServices";
 import {
   getOrders,
   getOrderCounts,
-} from "../../../services/fakeUserHistoryServices";
+} from "../../../services/userHistoryServices";
 
 const OrderHistory = () => {
   const [tabValue, setTabValue] = useState(0);
