@@ -53,11 +53,11 @@ export const getUsers = async ({
 
   const users = rawUsers.map((user) => ({
     userId: user._id,
-    username: user.username,
-    email: user.email,
-    displayName: user.displayName,
-    phone: user.phone,
-    role: user.role,
+    username: user.username || "",
+    email: user.email || "",
+    displayName: user.displayName || user.username || "User",
+    phone: user.phone || "",
+    role: user.role || "customer",
     status: user.status || "active",
     createdAt: user.createdAt,
     avatar: user.avatar?.url || null,
@@ -68,12 +68,12 @@ export const getUsers = async ({
       .map((addr) => ({
         addressId: addr._id,
         isDefault: addr.isDefault,
-        street: addr.street,
-        ward: addr.ward,
-        district: addr.district,
-        city: addr.city,
-        country: addr.country,
-        Address: `${addr.street}, ${addr.ward}, ${addr.district}, ${addr.city}, ${addr.country}`,
+        street: addr.street || "",
+        ward: addr.ward || "",
+        district: addr.district || "",
+        city: addr.city || "",
+        country: addr.country || "",
+        Address: `${addr.street || ""}, ${addr.ward || ""}, ${addr.district || ""}, ${addr.city || ""}, ${addr.country || ""}`,
       })),
   }));
 
@@ -90,12 +90,12 @@ export const getUser = async ({ id }) => {
 
   return {
     userId: user._id,
-    username: user.username,
-    email: user.email,
-    displayName: user.displayName,
-    phone: user.phone,
-    role: user.role,
-    status: user.status,
+    username: user.username || "",
+    email: user.email || "",
+    displayName: user.displayName || user.username || "User",
+    phone: user.phone || "",
+    role: user.role || "customer",
+    status: user.status || "active",
     createdAt: user.createdAt,
     avatar: user.avatar?.url || null,
     orderCount: 5,
@@ -103,12 +103,12 @@ export const getUser = async ({ id }) => {
     addresses: rawAddresses.map((addr) => ({
       addressId: addr._id,
       isDefault: addr.isDefault,
-      street: addr.street,
-      ward: addr.ward,
-      district: addr.district,
-      city: addr.city,
-      country: addr.country,
-      Address: `${addr.street}, ${addr.ward}, ${addr.district}, ${addr.city}, ${addr.country}`,
+      street: addr.street || "",
+      ward: addr.ward || "",
+      district: addr.district || "",
+      city: addr.city || "",
+      country: addr.country || "",
+      Address: `${addr.street || ""}, ${addr.ward || ""}, ${addr.district || ""}, ${addr.city || ""}, ${addr.country || ""}`,
     })),
   };
 };

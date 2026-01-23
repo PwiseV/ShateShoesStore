@@ -35,15 +35,23 @@ const LoginForm: React.FC = () => {
         const params = new URLSearchParams(window.location.search);
         const token = params.get("token");
         if (!token) return;
+        
         setAccessToken(token);
         const data = await getMe({ token });
         const user = data.user;
 
         if (user) {
           setUser(user);
+          
+          // Lưu userId vào localStorage
+          if (user.id) {
+            localStorage.setItem("userId", user.id);
+          }
+          
           const cleanUrl = window.location.origin + window.location.pathname;
           window.history.replaceState({}, "", cleanUrl);
           showToast("Sign in successfully", "success");
+          
           if (user.role === "admin") {
             navigate("/admin/dashboard");
           } else {
@@ -80,6 +88,11 @@ const LoginForm: React.FC = () => {
       }
 
       setUser(data.user);
+      
+      // Lưu userId vào localStorage
+      if (data.user.id) {
+        localStorage.setItem("userId", data.user.id);
+      }
 
       showToast(data.message ?? "Sign in successfully!", "success");
 

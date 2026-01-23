@@ -23,8 +23,9 @@ const userSChema = new mongoose.Schema(
     },
     displayName: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
+      default: "",
     },
     role: {
       type: String,
@@ -47,6 +48,7 @@ const userSChema = new mongoose.Schema(
     phone: {
       type: String,
       sparse: true,
+      default: "",
     },
     authType: {
         type: String,

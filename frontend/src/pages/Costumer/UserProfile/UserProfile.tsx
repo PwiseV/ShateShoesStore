@@ -39,13 +39,13 @@ const UserProfile = () => {
       <Container sx={{ maxWidth: "lg", flex: 1, py: 8 }}>
         <Grid container spacing={2}>
           {/* CỘT TRÁI: SIDEBAR */}
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             {/* 3. Truyền đúng tên prop là selectedMenu, bỏ onChangeTab */}
             <SideBar selectedMenu={activeTab} />
           </Grid>
 
           {/* CỘT PHẢI: NỘI DUNG CHÍNH */}
-          <Grid item xs={12} md={9}>
+          <Grid size={{ xs: 12, md: 9 }}>
             {/* 4. So sánh với chuỗi viết hoa ("User" thay vì "user") để khớp với SideBar */}
             {activeTab === "User" && <ProfileInfo />}
 

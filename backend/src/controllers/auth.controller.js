@@ -1,6 +1,7 @@
 import * as authService from "../services/auth.service.js";
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import { OAuth2Client } from "google-auth-library";
 import { handleServiceError } from "../utils/errorHandler.js";
 import { getErrorMessage } from "../constants/errorMessages.js";
@@ -58,23 +59,38 @@ export const signIn = async (req, res) => {
 export const refreshAccessToken = async (req, res) => {
   try {
     const token = req.cookies.refreshToken;
-    if (!token)
-      return res.status(401).json({ message: "Không tìm thấy refresh token" });
+    
+    console.log("Refresh token request - Cookie:", token ? "exists" : "missing");
+    
+    if (!token) {
+      return res.status(401).json({ 
+        message: "Không tìm thấy refresh token",
+        code: "NO_REFRESH_TOKEN"
+      });
+    }
 
-    const { user, accessToken } = await authService.verifyAndRefreshSession(
-      token
-    );
+    const { user, accessToken } = await authService.verifyAndRefreshSession(token);
+    
     return res.status(200).json({
       message: "Làm mới access token thành công",
       accessToken,
       user: {
         id: user._id,
-        name: user.displayName,
+        name: user.displayName || user.username,
         email: user.email,
         role: user.role ?? "customer",
       },
     });
   } catch (error) {
+    console.error("Refresh token error:", error.message);
+    
+    // Clear invalid cookie
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+    });
+    
     return handleServiceError(error, res);
   }
 };
@@ -122,9 +138,13 @@ export const googleCallback = async (req, res) => {
         username: safeUsername,
         hashedPassword: "",
         email,
-        displayName: name,
-        avatarUrl: picture || "",
+        displayName: name || safeUsername,
+        avatar: picture ? {
+          url: picture,
+          publicId: ""
+        } : undefined,
         authType: "google",
+        phone: "",
         role: "customer",
       });
     }
@@ -134,13 +154,24 @@ export const googleCallback = async (req, res) => {
       await user.save();
     }
 
-    const jwtToken = jwt.sign(
-      { userId: user._id },
-      process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "7d" }
-    );
+    // Generate tokens
+    const accessToken = authService.generateAccessToken(user);
+    const refreshToken = crypto.randomBytes(64).toString("hex");
+    
+    // Create session
+    const REFRESH_TOKEN_TTL = 14 * 24 * 60 * 60 * 1000; // 14 days
+    await authService.createSession(user._id, refreshToken, REFRESH_TOKEN_TTL);
+    
+    // Set refresh token cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: REFRESH_TOKEN_TTL,
+    });
 
-    return res.redirect(`http://localhost:5173/login?token=${jwtToken}`);
+    // Redirect with access token
+    return res.redirect(`http://localhost:5173/login?token=${accessToken}`);
   } catch (err) {
     console.log("GOOGLE OAUTH ERROR:", err);
     return res.status(500).json({ message: getErrorMessage("SERVER_ERROR") });
@@ -151,11 +182,21 @@ export const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select("-hashedPassword");
 
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     return res.json({
-      user,
-      message: `Người dùng ${user.displayName} đã đăng nhập!`,
+      user: {
+        id: user._id,
+        name: user.displayName || user.username,
+        email: user.email,
+        role: user.role,
+      },
+      message: `Người dùng ${user.displayName || user.username} đã đăng nhập!`,
     });
   } catch (err) {
+    console.error("GetMe error:", err);
     return res.status(500).json({ message: getErrorMessage("SERVER_ERROR") });
   }
 };

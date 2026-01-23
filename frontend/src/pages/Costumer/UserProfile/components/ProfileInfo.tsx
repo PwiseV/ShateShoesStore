@@ -35,11 +35,6 @@ const ProfileInfo = () => {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
 
-  // [LƯU Ý] Vì API dùng /users/profile (dựa trên Token) nên không cần dùng currentUserId để gọi API nữa.
-  // Tuy nhiên vẫn giữ biến này nếu bạn cần dùng cho logic khác (như check role, v.v...)
-  const currentUserId =
-    localStorage.getItem("userId") || "69206c045dee2bcc7351a962";
-
   const [userData, setUserData] = useState<UserProfile | null>(null);
 
   // Modal States
@@ -53,10 +48,22 @@ const ProfileInfo = () => {
     try {
       setLoading(true);
       const data = await getUserProfile();
+      
+      // Validate data trước khi set
+      if (!data || !data.userId) {
+        throw new Error("Invalid user data");
+      }
+      
       setUserData(data);
-    } catch (error) {
-      showToast("Lỗi tải thông tin người dùng", "error");
-      console.error(error);
+    } catch (error: any) {
+      console.error("Fetch user profile error:", error);
+      const errorMessage = error.message || "Lỗi tải thông tin người dùng";
+      showToast(errorMessage, "error");
+      
+      // Nếu lỗi 401, redirect về login
+      if (error.response?.status === 401) {
+        window.location.href = "/login";
+      }
     } finally {
       setLoading(false);
     }
@@ -158,7 +165,15 @@ const ProfileInfo = () => {
     );
   }
 
-  if (!userData) return null;
+  if (!userData) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 10 }}>
+        <Typography variant="h6" color="error">
+          Không thể tải thông tin người dùng
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ width: "100%", pl: { md: 4 } }}>
@@ -207,14 +222,14 @@ const ProfileInfo = () => {
                 textAlign: "left",
               }}
             >
-              <InfoRow label="Username" value={userData.username} />
-              <InfoRow label="Name" value={userData.displayName} />
-              <InfoRow label="Email" value={userData.email} />
-              <InfoRow label="Phone number" value={userData.phone} />
-              <InfoRow label="Orders" value={userData.orderCount.toString()} />
+              <InfoRow label="Username" value={userData.username || "N/A"} />
+              <InfoRow label="Name" value={userData.displayName || "N/A"} />
+              <InfoRow label="Email" value={userData.email || "N/A"} />
+              <InfoRow label="Phone number" value={userData.phone || "Chưa cập nhật"} />
+              <InfoRow label="Orders" value={(userData.orderCount || 0).toString()} />
               <InfoRow
                 label="Total Spent"
-                value={userData.totalSpent.toLocaleString() + " đ"}
+                value={(userData.totalSpent || 0).toLocaleString() + " đ"}
               />
             </Box>
           </Grid>
@@ -227,21 +242,23 @@ const ProfileInfo = () => {
               }}
             >
               <Avatar
-                src={userData.avatar}
+                src={userData.avatar || undefined}
                 sx={{
                   width: 120,
                   height: 120,
                   mb: 2,
                   border: "4px solid white",
                 }}
-              />
+              >
+                {!userData.avatar && (userData.displayName?.[0] || userData.username?.[0] || "U")}
+              </Avatar>
               <Typography
                 sx={{ fontWeight: 800, fontSize: "1.1rem", color: "#2C3E50" }}
               >
-                {userData.displayName}
+                {userData.displayName || userData.username || "User"}
               </Typography>
               <Typography sx={{ fontSize: "0.85rem", color: "white", mb: 3 }}>
-                {userData.email}
+                {userData.email || ""}
               </Typography>
               <Button
                 onClick={() => setOpenModal(true)}
@@ -278,7 +295,7 @@ const ProfileInfo = () => {
         }}
       >
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {userData.addresses &&
+          {userData.addresses && userData.addresses.length > 0 ? (
             userData.addresses.map((addr) => (
               <Box
                 key={addr.addressId}
@@ -317,7 +334,14 @@ const ProfileInfo = () => {
                   </Typography>
                 )}
               </Box>
-            ))}
+            ))
+          ) : (
+            <Box sx={{ textAlign: "center", py: 3 }}>
+              <Typography color="text.secondary">
+                Chưa có địa chỉ nào
+              </Typography>
+            </Box>
+          )}
         </Box>
         <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
           <Button
@@ -341,10 +365,10 @@ const ProfileInfo = () => {
         open={openModal}
         onClose={() => setOpenModal(false)}
         initialData={{
-          username: userData.username,
-          displayName: userData.displayName,
-          phone: userData.phone,
-          avatar: userData.avatar,
+          username: userData.username || "",
+          displayName: userData.displayName || "",
+          phone: userData.phone || "",
+          avatar: userData.avatar || "",
         }}
         onUpdate={handleUpdateProfile}
       />
