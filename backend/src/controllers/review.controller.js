@@ -5,6 +5,7 @@ import Review from "../models/Review.js";
 import OrderItem from "../models/OrderItem.js";
 import Product from "../models/Product.js";
 import Order from "../models/Order.js";
+import { equal } from "assert";
 
 // GET /api/users/reviews/order-item/:orderItemId
 // Get info to write a review
@@ -131,7 +132,8 @@ export const getAllReviews = async (req, res) => {
         const limit = parseInt(req.query.limit) || 10;
         const status = req.query.status;
         const rating =  req.query.rating;
-        const { formattedReviews, total } = await reviewService.getAllReviewsService(page, limit, status, rating);
+        const keyword = req.query.keyword;
+        const { formattedReviews, total } = await reviewService.getAllReviewsService(page, limit, status, rating, keyword);
 
         return res.status(200).json({
             success: true,

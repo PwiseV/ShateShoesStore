@@ -5,6 +5,7 @@ export const getAllReviewsService = async (
   limit = 10,
   status,
   rating,
+  keyword
 ) => {
   const skip = (page - 1) * limit;
   const filter = {};
@@ -14,6 +15,10 @@ export const getAllReviewsService = async (
 
   if (rating) {
     filter.rating = parseInt(rating);
+  }
+  
+  if (keyword) {
+    filter.content = { $regex: keyword, $options: "i" };
   }
 
   const reviews = await Review.find(filter)

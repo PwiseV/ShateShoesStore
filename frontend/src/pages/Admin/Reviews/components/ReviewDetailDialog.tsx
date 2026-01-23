@@ -16,7 +16,7 @@ interface Props {
   review: ReviewData | null;
   open: boolean;
   onClose: () => void;
-  onStatusChange: (status: "pending" | "approved" | "rejected") => void;
+  onStatusChange: (status: "pending" | "active" | "hidden") => void;
 }
 
 const ReviewDetailDialog: React.FC<Props> = ({
@@ -26,7 +26,7 @@ const ReviewDetailDialog: React.FC<Props> = ({
   onStatusChange,
 }) => {
   const [selectedStatus, setSelectedStatus] = useState<
-    "pending" | "approved" | "rejected"
+    "pending" | "active" | "hidden"
   >(review?.status || "pending");
 
   React.useEffect(() => {
@@ -55,7 +55,7 @@ const ReviewDetailDialog: React.FC<Props> = ({
               Mã đánh giá
             </Typography>
             <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
-              {review.review_id}
+              {review.reviewId}
             </Typography>
           </Box>
 
@@ -65,7 +65,7 @@ const ReviewDetailDialog: React.FC<Props> = ({
               Tên sản phẩm
             </Typography>
             <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
-              {review.product_name}
+              {review.title}
             </Typography>
           </Box>
 
@@ -108,7 +108,7 @@ const ReviewDetailDialog: React.FC<Props> = ({
                   key={key}
                   variant={selectedStatus === key ? "contained" : "outlined"}
                   size="small"
-                  onClick={() => setSelectedStatus(key as "pending" | "approved" | "rejected")}
+                  onClick={() => setSelectedStatus(key as "pending" | "active" | "hidden")}
                   sx={{
                     textTransform: "none",
                     borderColor: value.color === "warning" ? "#FBC02D" : value.color === "success" ? "#4CAF50" : "#F44336",
@@ -128,7 +128,7 @@ const ReviewDetailDialog: React.FC<Props> = ({
               Ngày tạo
             </Typography>
             <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
-              {review.created_at.toLocaleDateString("vi-VN")}
+              {new Date(review.createdAt).toLocaleDateString("vi-VN")}
             </Typography>
           </Box>
         </Box>

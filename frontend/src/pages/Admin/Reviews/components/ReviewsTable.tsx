@@ -20,7 +20,7 @@ interface Props {
   reviews: ReviewData[];
   loading: boolean;
   onRowClick: (review: ReviewData) => void;
-  onUpdateStatus: (id: string, status: "approved" | "rejected") => void;
+  onUpdateStatus: (id: string, status: "active" | "hidden") => void;
 }
 
 const ReviewsTable: React.FC<Props> = ({
@@ -43,7 +43,7 @@ const ReviewsTable: React.FC<Props> = ({
     setSelectedReviewId(null);
   };
 
-  const handleStatusChange = (newStatus: "approved" | "rejected") => {
+  const handleStatusChange = (newStatus: "active" | "hidden") => {
     if (selectedReviewId) {
       onUpdateStatus(selectedReviewId, newStatus);
     }
@@ -69,9 +69,9 @@ const ReviewsTable: React.FC<Props> = ({
             alignItems: "center",
           }}
         >
-          <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#000" }}>
+          {/* <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#000" }}>
             Mã đánh giá
-          </Typography>
+          </Typography> */}
           <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#000" }}>
             Tên sản phẩm
           </Typography>
@@ -110,7 +110,7 @@ const ReviewsTable: React.FC<Props> = ({
         ) : reviews.length > 0 ? (
           reviews.map((review) => (
             <Paper
-              key={review.id}
+              key={review.reviewId}
               onClick={() => onRowClick(review)}
               sx={{
                 display: "grid",
@@ -122,8 +122,8 @@ const ReviewsTable: React.FC<Props> = ({
                 borderRadius: "12px",
                 cursor: "pointer",
                 transition: "0.2s",
-                backgroundColor: review.status === "rejected" ? "#f0f0f0" : "white",
-                opacity: review.status === "rejected" ? 0.75 : 1,
+                backgroundColor: review.status === "hidden" ? "#f0f0f0" : "white",
+                opacity: review.status === "hidden" ? 0.75 : 1,
                 "&:hover": {
                   boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                   transform: "translateY(-2px)",
@@ -131,7 +131,7 @@ const ReviewsTable: React.FC<Props> = ({
               }}
               elevation={0}
             >
-              <Typography
+              {/* <Typography
                 sx={{
                   fontWeight: 600,
                   fontSize: "14px",
@@ -140,7 +140,18 @@ const ReviewsTable: React.FC<Props> = ({
                   overflowWrap: "break-word",
                 }}
               >
-                {review.review_id}
+                {review.reviewId}
+              </Typography> */}
+
+              <Typography
+                sx={{
+                  fontSize: "14px",
+                  color: "#555",
+                  whiteSpace: "normal",
+                  overflowWrap: "break-word",
+                }}
+              >
+                {review.title || "tên SP không tồn tại"}
               </Typography>
 
               <Typography
@@ -151,18 +162,7 @@ const ReviewsTable: React.FC<Props> = ({
                   overflowWrap: "break-word",
                 }}
               >
-                {review.product_name}
-              </Typography>
-
-              <Typography
-                sx={{
-                  fontSize: "14px",
-                  color: "#555",
-                  whiteSpace: "normal",
-                  overflowWrap: "break-word",
-                }}
-              >
-                {review.username}
+                {review.username || "Phatkhung"}
               </Typography>
 
               <Box sx={{ display: "flex", justifyContent: "center" }}>
@@ -186,7 +186,7 @@ const ReviewsTable: React.FC<Props> = ({
                   justifyContent: "center",
                   cursor: "pointer",
                 }}
-                onClick={(e) => handleStatusClick(e, review.id)}
+                onClick={(e) => handleStatusClick(e, review.reviewId)}
               >
                 <Typography
                   sx={{
@@ -248,14 +248,14 @@ const ReviewsTable: React.FC<Props> = ({
         transformOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Box sx={{ minWidth: 160, py: 1 }}>
-          <MenuItem onClick={() => handleStatusChange("approved")}>
+          <MenuItem onClick={() => handleStatusChange("active")}>
             <ListItemIcon>
               <CheckCircleOutlineIcon fontSize="small" color="success" />
             </ListItemIcon>
             <ListItemText primary="Duyệt" />
           </MenuItem>
 
-          <MenuItem onClick={() => handleStatusChange("rejected")}>
+          <MenuItem onClick={() => handleStatusChange("hidden")}>
             <ListItemIcon>
               <VisibilityOffIcon fontSize="small" color="warning" />
             </ListItemIcon>

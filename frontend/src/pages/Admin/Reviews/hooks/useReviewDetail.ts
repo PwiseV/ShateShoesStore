@@ -7,8 +7,8 @@ interface UseReviewDetailReturn {
   handleOpenDetail: (review: ReviewData) => void;
   handleCloseDetail: () => void;
   handleUpdateStatus: (
-    onUpdateStatus: (id: string, status: "pending" | "approved" | "rejected") => void,
-    status: "pending" | "approved" | "rejected"
+    onUpdateStatus: (id: string, status: "pending" | "active" | "hidden") => void,
+    status: "pending" | "active" | "hidden"
   ) => void;
 }
 
@@ -28,11 +28,11 @@ export const useReviewDetail = (): UseReviewDetailReturn => {
 
   const handleUpdateStatus = useCallback(
     (
-      onUpdateStatus: (id: string, status: "pending" | "approved" | "rejected") => void,
-      status: "pending" | "approved" | "rejected"
+      onUpdateStatus: (id: string, status: "pending" | "active" | "hidden") => void,
+      status: "pending" | "active" | "hidden"
     ) => {
       if (selectedReview) {
-        onUpdateStatus(selectedReview.id, status);
+        onUpdateStatus(selectedReview.reviewId, status);
         handleCloseDetail();
       }
     },

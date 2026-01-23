@@ -5,7 +5,7 @@ import {
   getReviews,
   updateReviewStatus,
   deleteReview,
-} from "../../../../services/fakeAdminReviewServices";
+} from "../../../../services/adminReviewServices";
 
 export const useReviewsLogic = () => {
   const [reviews, setReviews] = useState<ReviewData[]>([]);
@@ -70,13 +70,13 @@ export const useReviewsLogic = () => {
   // Handle Update Status
   const handleUpdateReviewStatus = async (
     id: string,
-    status: "pending" | "approved" | "rejected"
+    status: "active" | "hidden"
   ) => {
     try {
       await updateReviewStatus(id, status);
       setReviews((prev) =>
         prev.map((review) =>
-          review.id === id ? { ...review, status } : review
+          review.reviewId === id ? { ...review, status } : review
         )
       );
     } catch (error) {

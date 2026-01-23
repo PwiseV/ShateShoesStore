@@ -1,24 +1,22 @@
 export interface ReviewData {
-  id: string;
-  review_id: number;
+  reviewId: string;
   rating: number;
   title: string;
   content: string;
   order_item_id: number;
-  product_id: number;
-  product_name: string;
-  user_id: number;
+  product_id: string;
+  userId: string;
   username: string;
   status: ReviewStatus;
-  created_at: Date;
+  createdAt: Date;
 }
 
 export interface ReviewQueryParams {
-  search?: string;
-  status?: string[];
-  rating?: number[];
+  keyword?: string;
+  status?: string;
+  rating?: number;
   page?: number;
-  pageSize?: number;
+  limit?: number;
 }
 
 export interface ReviewResponse {
@@ -31,4 +29,4 @@ export interface ReviewResponse {
   };
 }
 
-export type ReviewStatus = "pending" | "approved" | "rejected";
+export type ReviewStatus = "pending" | "active" | "hidden";

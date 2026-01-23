@@ -18,10 +18,10 @@ export const getReviews = async (
 
 export const updateReviewStatus = async (
   id: string,
-  status: "pending" | "approved" | "rejected"
+  status: "active" | "hidden"
 ): Promise<ReviewData> => {
   try {
-    const response = await api.patch(`/admin/reviews/${id}/status`, { status });
+    const response = await api.patch(`/admin/reviews/${id}`, { status });
     return response.data;
   } catch (error) {
     console.error("updateReviewStatus error:", error);

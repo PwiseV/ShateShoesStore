@@ -1,7 +1,7 @@
 export const statusConfig: Record<string, { label: string; color: "warning" | "info" | "success" | "done" | "error" }> = {
   pending: { label: "Chờ duyệt", color: "warning" },
-  approved: { label: "Đã duyệt", color: "success" },
-  rejected: { label: "Ẩn", color: "error" },
+  active: { label: "Đã duyệt", color: "success" },
+  hidden: { label: "Ẩn", color: "error" },
 };
 
 export const starConfig: Record<number, string> = {
