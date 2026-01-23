@@ -1,4 +1,5 @@
 import * as userService from "../services/user.service.js";
+import { handleServiceError } from "../utils/errorHandler.js";
 
 export const getUsers = async (req, res) => {
   try {
@@ -27,17 +28,14 @@ export const getUsers = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Get users controller error:", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
+    return handleServiceError(error, res);
   }
 };
 
 export const getUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const users = await userService.getUser({
-      id,
-    });
+    const users = await userService.getUser({ id });
 
     return res.status(200).json({
       success: true,
@@ -45,38 +43,22 @@ export const getUser = async (req, res) => {
       data: users,
     });
   } catch (error) {
-    if (error.message === "USER_ID_REQUIRED") {
-      return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
-    }
-    if (error.message === "USER_NOT_FOUND") {
-      return res.status(404).json({ message: "Người dùng không tồn tại" });
-    }
-    console.error("Get users controller error:", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
+    return handleServiceError(error, res);
   }
 };
 
 export const getUserProfile = async (req, res) => {
   try {
-    const  id  = req.user._id;
-    const users = await userService.getUser({
-      id,
-    });
+    const id = req.user._id;
+    const users = await userService.getUser({ id });
 
     return res.status(200).json({
       success: true,
-      message: "Fetch users success",
+      message: "Lấy thông tin người dùng thành công",
       data: users,
     });
   } catch (error) {
-    if (error.message === "USER_ID_REQUIRED") {
-      return res.status(400).json({ message: "Missing requires fields" });
-    }
-    if (error.message === "USER_NOT_FOUND") {
-      return res.status(404).json({ message: "User not found" });
-    }
-    console.error("Get users controller error:", error);
-    return res.status(500).json({ message: "Server error" });
+    return handleServiceError(error, res);
   }
 };
 
@@ -86,13 +68,7 @@ export const updateUser = async (req, res) => {
     const { username, displayName, phone, role, status } = req.body;
     const users = await userService.updateUser(
       id,
-      {
-        username,
-        displayName,
-        phone,
-        role,
-        status,
-      },
+      { username, displayName, phone, role, status },
       req.file
     );
 
@@ -102,47 +78,26 @@ export const updateUser = async (req, res) => {
       data: users,
     });
   } catch (error) {
-    if (error.message === "USER_ID_REQUIRED") {
-      return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
-    }
-    if (error.message === "USER_NOT_FOUND") {
-      return res.status(404).json({ message: "Người dùng không tồn tại" });
-    }
-    console.error("Get users controller error:", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
+    return handleServiceError(error, res);
   }
 };
 
 export const updateUserProfile = async (req, res) => {
   try {
-    const  id  = req.user._id;
+    const id = req.user._id;
     const { username, displayName, phone, role, status } = req.body;
-    console.log("các trường username: ", username);
     const users = await userService.updateUser(
       id,
-      {
-        username,
-        displayName,
-        phone,
-        role,
-        status,
-      },
+      { username, displayName, phone, role, status },
       req.file
     );
 
     return res.status(200).json({
       success: true,
-      message: "Update users success",
+      message: "Cập nhật thông tin thành công",
       data: users,
     });
   } catch (error) {
-    if (error.message === "USER_ID_REQUIRED") {
-      return res.status(400).json({ message: "Missing requires fields" });
-    }
-    if (error.message === "USER_NOT_FOUND") {
-      return res.status(404).json({ message: "User not found" });
-    }
-    console.error("Get users controller error:", error);
-    return res.status(500).json({ message: "Server error" });
+    return handleServiceError(error, res);
   }
 };

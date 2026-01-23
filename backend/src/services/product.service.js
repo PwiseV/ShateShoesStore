@@ -219,7 +219,7 @@ export const getOneProduct = async ({ id, userId }) => {
     .lean();
 
   if (!product) {
-    throw new Error("Sản phẩm không tồn tại");
+    throw new Error("PRODUCT_NOT_FOUND");
   }
 
   let isFavourite = false;

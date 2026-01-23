@@ -3,16 +3,7 @@ import {
   createReviewService,
   getReviewsByProductService,
 } from "../services/review.service.js";
-
-// Error messages mapping
-const ERROR_MESSAGES = {
-  ORDER_ITEM_NOT_FOUND: "Không tìm thấy sản phẩm trong đơn hàng",
-  VARIANT_NOT_FOUND: "Sản phẩm biến thể không tồn tại",
-  PRODUCT_NOT_FOUND: "Sản phẩm không tồn tại",
-  REVIEW_ALREADY_EXISTS: "Bạn đã đánh giá sản phẩm này rồi!",
-  INVALID_RATING: "Đánh giá phải từ 1 đến 5 sao",
-  UNAUTHORIZED: "Bạn không có quyền thực hiện thao tác này",
-};
+import { handleServiceError } from "../utils/errorHandler.js";
 
 /**
  * GET /api/users/reviews/order-item/:orderItemId
@@ -30,12 +21,7 @@ export const getProductForReview = async (req, res) => {
       data: reviewInfo,
     });
   } catch (error) {
-    console.error("Error getProductForReview:", error);
-
-    const message = ERROR_MESSAGES[error.message] || "Lỗi Server";
-    const statusCode = error.message in ERROR_MESSAGES ? 404 : 500;
-
-    res.status(statusCode).json({ message });
+    return handleServiceError(error, res);
   }
 };
 
@@ -56,12 +42,7 @@ export const createReview = async (req, res) => {
       data: newReview,
     });
   } catch (error) {
-    console.error("Error createReview:", error);
-
-    const message = ERROR_MESSAGES[error.message] || "Lỗi Server";
-    const statusCode = error.message === "REVIEW_ALREADY_EXISTS" ? 400 : 500;
-
-    res.status(statusCode).json({ message });
+    return handleServiceError(error, res);
   }
 };
 
@@ -80,8 +61,6 @@ export const getReviewsByProduct = async (req, res) => {
       data: reviews,
     });
   } catch (error) {
-    console.error("Error getReviewsByProduct:", error);
-    res.status(500).json({ message: "Lỗi Server" });
+    return handleServiceError(error, res);
   }
 };
-
