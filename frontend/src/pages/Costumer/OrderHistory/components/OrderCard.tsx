@@ -19,6 +19,8 @@ import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
 import ReplayIcon from "@mui/icons-material/Replay";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import RateReviewOutlinedIcon from "@mui/icons-material/RateReviewOutlined";
 
 type Props = {
   order: Order;
@@ -66,22 +68,48 @@ const OrderCard: React.FC<Props> = ({ order }) => {
 
   const renderActionButtons = () => {
     // Logic nút bấm dựa trên status
-    if (["pending", "paid", "processing"].includes(order.status)) {
-      // Có thể thêm nút Hủy nếu cần
+    if (["pending", "paid", "processing", "shipped"].includes(order.status)) {
       return null;
     }
-    if (order.status === "delivered" || order.status === "cancelled") {
-      return (
-        <Button
-          variant="contained"
-          startIcon={<ReplayIcon fontSize="small" />}
-          sx={{ bgcolor: "#567C8D", color: "#fff", textTransform: "none" }}
-        >
-          Mua lại
-        </Button>
-      );
-    }
-    return null;
+    return (
+      <>
+        {/* Nút Mua lại: Hiện cho Delivered và Cancelled */}
+        {(order.status === "delivered" || order.status === "cancelled") && (
+          <Button
+            variant="contained"
+            startIcon={<ReplayIcon fontSize="small" />}
+            sx={{ bgcolor: "#567C8D", color: "#fff", textTransform: "none" }}
+            onClick={() => {
+              // Logic mua lại (Giả định)
+              console.log("Re-order", order.orderId);
+            }}
+          >
+            Mua lại
+          </Button>
+        )}
+
+        {/* [THÊM MỚI] Nút Đánh giá: Chỉ hiện khi Delivered */}
+        {order.status === "delivered" && (
+          <Button
+            variant="outlined"
+            startIcon={<RateReviewOutlinedIcon fontSize="small" />}
+            onClick={() => navigate(`/history/${order.orderId}`)}
+            sx={{
+              borderColor: "#567C8D",
+              color: "#567C8D",
+              textTransform: "none",
+              "&:hover": {
+                borderColor: "#37474F",
+                color: "#37474F",
+                bgcolor: "rgba(86, 124, 141, 0.05)",
+              },
+            }}
+          >
+            Đánh giá
+          </Button>
+        )}
+      </>
+    );
   };
 
   const initialItems = order.items.slice(0, INITIAL_LIMIT);
@@ -160,19 +188,17 @@ const OrderCard: React.FC<Props> = ({ order }) => {
           </Typography>
         </Box>
         {/* 1. Đường nối bên trái (Chấm tròn + gạch) */}
-        {/* --- [SỬA] LOGIC HIỂN THỊ TRẠNG THÁI VẬN CHUYỂN --- */}
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            flex: 1,
+            flex: 1, // Để nó chiếm hết khoảng trống giữa 2 địa chỉ
             px: 1,
-            color: "#90A4AE", // Màu xám cho nét đứt
+            color: "#90A4AE",
           }}
         >
-          {order.status === "shipping" ? (
-            // === TRƯỜNG HỢP 1: ĐANG VẬN CHUYỂN (Hiện 3 phần: Nét đứt - Ngày - Nét đứt) ===
+          {order.status === "shipped" ? (
             <>
               {/* 1. Nét đứt bên trái */}
               <Box
@@ -191,19 +217,29 @@ const OrderCard: React.FC<Props> = ({ order }) => {
                 </Typography>
               </Box>
 
-              {/* 2. Ngày Dự Kiến (Hiển thị nổi bật) */}
-              <Typography
+              {/* 2. Ngày Dự Kiến */}
+              <Box
                 sx={{
-                  fontSize: "0.75rem",
-                  fontWeight: 700,
-                  color: "#546E7A",
-                  whiteSpace: "nowrap",
-                  pb: 0.2, // Căn chỉnh nhẹ
+                  ...pillStyle, // Thừa hưởng style của box địa chỉ
+                  bgcolor: "#F8F9FA", // (Tuỳ chọn) Đổi màu nền nhẹ khác 1 chút hoặc giữ nguyên white
+                  gap: 0.5,
                 }}
               >
-                {/* Logic lấy ngày: Ưu tiên dates.expected cho đơn đang vận chuyển */}
-                Dự kiến: {order.dates?.expected || "Đang cập nhật"}
-              </Typography>
+                <AccessTimeIcon sx={{ color: "#546E7A", fontSize: "16px" }} />
+                <Typography
+                  sx={{
+                    fontSize: "0.75rem",
+                    fontWeight: 600,
+                    color: "#546E7A",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Dự kiến:{" "}
+                  {order.arrivedAt
+                    ? new Date(order.arrivedAt).toLocaleDateString("vi-VN")
+                    : "Đang cập nhật"}
+                </Typography>
+              </Box>
 
               {/* 3. Nét đứt bên phải + Mũi tên */}
               <Box
@@ -217,11 +253,12 @@ const OrderCard: React.FC<Props> = ({ order }) => {
                 <Typography sx={{ letterSpacing: 2, fontSize: "0.7rem" }}>
                   - - - -
                 </Typography>
-                <ArrowRightAltIcon sx={{ fontSize: "1.1rem", ml: -0.5 }} />
+                <ArrowRightAltIcon sx={{ fontSize: "1.1rem", ml: 0.5 }} />
               </Box>
             </>
           ) : (
-            // === TRƯỜNG HỢP 2: CÁC TRẠNG THÁI KHÁC (Chỉ hiện đường nối dài) ===
+            // === TRƯỜNG HỢP 2: CÁC TRẠNG THÁI KHÁC ===
+            // Chỉ hiển thị mũi tên dài: • - - - - - - - ->
             <Box
               sx={{
                 display: "flex",

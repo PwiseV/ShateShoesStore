@@ -5,6 +5,7 @@ import VolunteerActivismOutlinedIcon from "@mui/icons-material/VolunteerActivism
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import ReplayIcon from "@mui/icons-material/Replay";
+import RateReviewOutlinedIcon from "@mui/icons-material/RateReviewOutlined";
 import {
   type Order,
   reOrder,
@@ -329,12 +330,23 @@ const Delivered: React.FC<Props> = ({ order }) => {
                 <Button
                   variant="outlined"
                   size="small"
+                  startIcon={
+                    <RateReviewOutlinedIcon
+                      sx={{ fontSize: "16px !important" }}
+                    />
+                  }
                   onClick={() => navigate(`/review/${item.productId}`)}
                   sx={{
-                    color: "#2C3E50",
-                    borderColor: "#838e93",
+                    color: "#567C8D",
+                    borderColor: "#567C8D",
                     textTransform: "none",
-                    bgcolor: "#f0f2f5",
+                    borderRadius: "20px",
+                    px: 2,
+                    "&:hover": {
+                      borderColor: "#37474F",
+                      color: "#37474F",
+                      bgcolor: "rgba(86, 124, 141, 0.05)",
+                    },
                   }}
                 >
                   Đánh giá
