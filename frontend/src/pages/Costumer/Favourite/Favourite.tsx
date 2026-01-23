@@ -26,7 +26,6 @@ const Favourite = () => {
 
   const ITEMS_PER_PAGE = 6;
 
-  // [MỚI] Khởi tạo toast
   const { showToast } = useToast();
 
   const fetchFavourites = async () => {
@@ -34,9 +33,13 @@ const Favourite = () => {
     try {
       const response = await getFavouriteList(page, ITEMS_PER_PAGE);
       setProducts(response.data);
-      setTotalItems(response.count);
-      const calculatedTotalPages = Math.ceil(response.count / ITEMS_PER_PAGE);
-      setTotalPages(calculatedTotalPages > 0 ? calculatedTotalPages : 1);
+      if (response.pagination) {
+        setTotalItems(response.pagination.total);
+        setTotalPages(response.pagination.totalPages);
+      } else {
+        setTotalItems(0);
+        setTotalPages(1);
+      }
     } catch (error) {
       console.error("Failed to fetch favourites:", error);
     } finally {
@@ -106,7 +109,7 @@ const Favourite = () => {
               minHeight: "600px",
             }}
           >
-            <Box sx={{ height: "50%" }}>
+            <Box sx={{ height: "50%", position: "sticky", top: "100px" }}>
               <SideBar selectedMenu="Favourite" />
             </Box>
           </Box>
