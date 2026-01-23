@@ -25,7 +25,6 @@ const ProductList = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
 
-  // Biến này là SLUG lấy từ URL (VD: "giay-tay")
   const currentSlug = slug || "";
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -33,9 +32,12 @@ const ProductList = () => {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortValue>("priceAsc");
   const [loading, setLoading] = useState<boolean>(true);
-  const [page, setPage] = useState(1);
 
-  // 2. Lấy danh sách Categories (Chạy 1 lần đầu)
+  // State quản lý phân trang
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1); // [SỬA] Dùng state này để lưu tổng số trang từ Backend
+
+  // 2. Lấy danh sách Categories
   useEffect(() => {
     const fetchCats = async () => {
       try {
@@ -48,42 +50,41 @@ const ProductList = () => {
     fetchCats();
   }, []);
 
-  // [LOGIC MỚI QUAN TRỌNG]: Tìm "Name" dựa trên "Slug"
-  // Chúng ta duyệt qua mảng categories để tìm xem slug 'giay-tay' là của 'Giày Tây'
+  // Logic tìm tên Category
   const categoryNameToSend = useMemo(() => {
-    if (!currentSlug) return ""; // Nếu không có slug -> Tất cả -> Gửi rỗng
-    if (categories.length === 0) return ""; // Chưa tải xong danh mục -> Tạm gửi rỗng
-
-    // Duyệt tìm trong cây danh mục
+    if (!currentSlug) return "";
+    if (categories.length === 0) return "";
     for (const parent of categories) {
-      // 1. Check cha (nếu cần)
       if (parent.slug === currentSlug) return parent.name;
-
-      // 2. Check con
       const child = parent.category.find((c) => c.slug === currentSlug);
-      if (child) return child.name; // Tìm thấy! Trả về "Giày Tây"
+      if (child) return child.name;
     }
-
-    return currentSlug; // Fallback: Nếu không tìm thấy thì gửi luôn slug (hoặc xử lý lỗi)
+    return currentSlug;
   }, [categories, currentSlug]);
 
   // 3. Gọi API lấy sản phẩm
   useEffect(() => {
-    // Nếu có slug trên URL mà danh mục chưa tải xong thì khoan hãy gọi API Product
-    // Để tránh việc gọi API với tham số sai.
     if (currentSlug && categories.length === 0) return;
 
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        const data = await getAllProducts({
-          category: categoryNameToSend, // [QUAN TRỌNG] Gửi NAME (Giày Tây), không gửi SLUG
+        // [SỬA QUAN TRỌNG]: Nhận object { products, pagination } thay vì mảng data
+        const response = await getAllProducts({
+          category: categoryNameToSend,
           keyword: query,
+          page: page, // [THÊM]: Gửi trang hiện tại lên server
+          limit: PAGE_SIZE, // [THÊM]: Gửi giới hạn (6) lên server
         });
-        setProducts(data);
-        setPage(1);
+
+        // Cập nhật State
+        setProducts(response.products);
+        setTotalPages(response.pagination.totalPages); // [THÊM]: Cập nhật tổng số trang thật từ backend
       } catch (error) {
         console.error("Err products:", error);
+        // Reset nếu lỗi
+        setProducts([]);
+        setTotalPages(1);
       } finally {
         setLoading(false);
       }
@@ -94,22 +95,23 @@ const ProductList = () => {
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [categoryNameToSend, query, categories.length, currentSlug]);
-  // Dependency thay đổi: khi tìm được tên đúng thì mới gọi
+  }, [categoryNameToSend, query, categories.length, currentSlug, page]); // [QUAN TRỌNG]: Thêm 'page' vào dependency để gọi lại API khi chuyển trang
 
-  // 4. Logic Sort & Pagination (Giữ nguyên)
-  const sortedAndPaginatedProducts = useMemo(() => {
+  // 4. Logic Sort (ĐÃ SỬA: BỎ slice phân trang)
+  const sortedProducts = useMemo(() => {
+    // Backend đã trả về đúng 6 item rồi, Frontend chỉ việc sắp xếp lại nếu cần
     let arr = [...products];
     if (sort === "priceAsc") {
       arr.sort((a, b) => (a.priceVnd || 0) - (b.priceVnd || 0));
     } else if (sort === "priceDesc") {
       arr.sort((a, b) => (b.priceVnd || 0) - (a.priceVnd || 0));
     }
-    const startIndex = (page - 1) * PAGE_SIZE;
-    return arr.slice(startIndex, startIndex + PAGE_SIZE);
-  }, [products, sort, page]);
+    // [QUAN TRỌNG]: Không dùng .slice() ở đây nữa
+    return arr;
+  }, [products, sort]);
 
-  const totalPages = Math.max(1, Math.ceil(products.length / PAGE_SIZE));
+  // [ĐÃ XÓA]: Dòng tính toán totalPages sai logic cũ
+  // const totalPages = Math.max(1, Math.ceil(products.length / PAGE_SIZE));
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -156,21 +158,21 @@ const ProductList = () => {
 
             <CategorySidebar
               categories={categories}
-              selectedCategory={currentSlug} // Sidebar vẫn cần SLUG để highlight đúng
+              selectedCategory={currentSlug}
             />
           </Grid>
 
           <Grid size={{ xs: 12, md: 9 }}>
             <SortBar value={sort} onChange={setSort} />
             <ProductGrid
-              products={sortedAndPaginatedProducts}
+              products={sortedProducts} // Sử dụng danh sách đã bỏ slice
               loading={loading}
             />
 
             {!loading && products.length > 0 && (
               <Pagination
                 current={page}
-                total={totalPages}
+                total={totalPages} // Sử dụng state totalPages lấy từ API
                 onChange={setPage}
               />
             )}

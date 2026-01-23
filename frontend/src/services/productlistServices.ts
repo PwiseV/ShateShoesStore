@@ -55,20 +55,40 @@ export interface Product {
    API FUNCTIONS
 ============================ */
 
+export interface ProductResponse {
+  products: Product[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
 export const getAllProducts = async (params?: {
   category?: string;
   keyword?: string;
   page?: number;
   limit?: number;
-}): Promise<Product[]> => {
+  sort?: string;
+}): Promise<ProductResponse> => {
   try {
     const response = await api.get("/users/products", { params });
-    const data = response.data?.data || [];
 
-    return (data as BackendProductItem[]).map((item) => ({
+    // Lấy data và pagination từ response backend
+    const rawData = response.data?.data || [];
+    const pagination = response.data?.pagination || {
+      total: 0,
+      page: 1,
+      limit: 6,
+      totalPages: 1,
+    };
+
+    // Map dữ liệu sang cấu trúc Product của frontend
+    const mappedProducts = (rawData as any[]).map((item) => ({
       id: item.productId,
       name: item.title,
-      priceVnd: item.sizes?.[0]?.colors?.[0]?.price || 0,
+      priceVnd: item.min_price || item.sizes?.[0]?.colors?.[0]?.price || 0,
       rating: item.rating || 5.0,
       image: item.avatar,
       category: {
@@ -77,9 +97,17 @@ export const getAllProducts = async (params?: {
         slug: item.category?.slug || "",
       },
     }));
+
+    return {
+      products: mappedProducts,
+      pagination: pagination,
+    };
   } catch (error) {
-    console.error("Get products error:", error);
-    throw error;
+    console.error("Error fetching products:", error);
+    return {
+      products: [],
+      pagination: { total: 0, page: 1, limit: 6, totalPages: 1 },
+    };
   }
 };
 
