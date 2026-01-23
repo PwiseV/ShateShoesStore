@@ -9,7 +9,6 @@ import ProductPreview from "./components/ProductPreview";
 import ReviewForm from "./components/ReviewForm";
 import { useToast } from "../../../context/useToast";
 
-// [QUAN TRỌNG] Đổi import sang Fake để test trước, sau này đổi về Real
 import {
   getProductForReview,
   submitReview,

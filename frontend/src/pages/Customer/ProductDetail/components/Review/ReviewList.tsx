@@ -10,7 +10,7 @@ import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import Stack from "@mui/material/Stack";
 
-// --- CẬP NHẬT TYPE REVIEW MỚI (Khớp với Type ProductReview bên Fake Service) ---
+// Review type matching ProductReview from service
 export type Review = {
   reviewId: string;
   author: string;

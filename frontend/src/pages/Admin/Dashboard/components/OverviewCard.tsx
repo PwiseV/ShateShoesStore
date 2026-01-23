@@ -9,7 +9,7 @@ import {
   type NewCustomer,
   getDashboardOverview,
   getDashboardNewCustomers,
-} from "../../../../services/fakeAdminServices";
+} from "../../../../services/adminServices";
 import { useToast } from "../../../../context/useToast";
 
 const OverviewCard = () => {
@@ -31,8 +31,8 @@ const OverviewCard = () => {
           err instanceof Error
             ? err.message
             : typeof err === "string"
-            ? err
-            : "Something went wrong";
+              ? err
+              : "Something went wrong";
         showToast(message, "error");
       }
     };

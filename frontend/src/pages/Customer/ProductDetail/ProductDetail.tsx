@@ -27,11 +27,6 @@ import {
 } from "../../../services/productDetailsServices";
 import { useToast } from "../../../context/useToast";
 
-// Fake imports
-import {
-  getProductPromotionFake,
-  addToCartFake,
-} from "../../../services/fakeProductDetailsServices";
 import { getReviewsByProduct } from "../../../services/reviewProductServices";
 
 type BreadcrumbItem = {
@@ -70,12 +65,12 @@ const ProductDetail: React.FC = () => {
         const data = await getProductDetails(id, controller.signal);
         setProduct(data);
         setIsLiked(data.isFavourite);
-        const [reviewsData, promoData] = await Promise.all([
+        const [reviewsData] = await Promise.all([
           getReviewsByProduct(id),
-          getProductPromotionFake(id),
+          // getProductPromotionFake(id), // TODO: implement real promotion API
         ]);
         setReviews(reviewsData);
-        setPromotion(promoData);
+        // setPromotion(promoData); // TODO: set when API ready
       } catch (err) {
         if (err.name !== "AbortError") console.error(err);
       } finally {
@@ -264,8 +259,8 @@ const ProductDetail: React.FC = () => {
     })),
   }));
 
-  // 7. Rating
-  const uiRating = product.rating || { value: 4.5, count: 100 }; // Fake số đẹp nếu backend chưa trả về
+  // 7. Rating - fallback to default if backend doesn't return rating
+  const uiRating = product.rating || { value: 4.5, count: 100 };
 
   return (
     <Box

@@ -4,7 +4,7 @@ import { useToast } from "../../../../context/useToast";
 import {
   type CommentItem,
   getDashboardComments,
-} from "../../../../services/fakeAdminServices";
+} from "../../../../services/adminServices";
 
 const Comment = () => {
   const [comments, setComments] = useState<CommentItem[]>([]);
@@ -19,8 +19,8 @@ const Comment = () => {
           err instanceof Error
             ? err.message
             : typeof err === "string"
-            ? err
-            : "Something went wrong";
+              ? err
+              : "Something went wrong";
         showToast(message, "error");
       }
     };

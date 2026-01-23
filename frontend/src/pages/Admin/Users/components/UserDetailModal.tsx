@@ -23,6 +23,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import StarIcon from "@mui/icons-material/Star";
 import type { User, OrderHistoryItem } from "../types";
 
+// TODO: Replace with real API call when backend implements user order history endpoint
 // Mock Data Lịch sử mua hàng
 const MOCK_HISTORY: OrderHistoryItem[] = [
   {

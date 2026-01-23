@@ -10,7 +10,12 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 
-const menuItems = ["Giới thiệu", "Tin tức", "Danh mục", "Liên hệ"];
+const menuItems = [
+  { label: "Trang chủ", path: "/homepage" },
+  { label: "Sản phẩm", path: "/products" },
+  { label: "Giới thiệu", path: "/about-us" },
+  { label: "Liên hệ", path: "/contact-us" },
+];
 
 const Header: React.FC = () => {
   return (
@@ -64,7 +69,7 @@ const Header: React.FC = () => {
             <Box
               key={index}
               component={Link}
-              to="/"
+              to={item.path}
               sx={{
                 textDecoration: "none",
                 color: "#567C8D",
@@ -81,11 +86,11 @@ const Header: React.FC = () => {
                   fontSize: "1rem",
                 }}
               >
-                {item}
+                {item.label}
               </Typography>
 
-              {/* Chỉ hiển thị icon nếu item là "Danh mục" */}
-              {item === "Danh mục" && (
+              {/* Chỉ hiển thị icon nếu item là "Danh mục" -> "Sản phẩm" có thể cần hoặc không, tạm bỏ logic icon hoặc giữ cho Sản phẩm */}
+              {item.label === "Sản phẩm" && (
                 <KeyboardArrowDownIcon fontSize="small" />
               )}
             </Box>
@@ -95,7 +100,7 @@ const Header: React.FC = () => {
         {/* ICONS */}
         <Box sx={{ display: "flex", gap: "1rem", alignItems: "center" }}>
           <IconButton component={Link} to="/cart" aria-label="Open cart" sx={{ color: "#627D98" }}>
-            <ShoppingBagIcon fontSize="small"/>
+            <ShoppingBagIcon fontSize="small" />
           </IconButton>
 
           <IconButton

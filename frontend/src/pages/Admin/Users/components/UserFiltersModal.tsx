@@ -137,7 +137,7 @@ const UserFiltersModal: React.FC<Props> = ({
 
       <DialogContent dividers sx={{ p: "16px", bgcolor: "#f8f9fa" }}>
         <Box sx={{ display: "flex", flexDirection: "column" }}>
-          {/* 1. Vai trò (Khớp value với Mock Data) */}
+          {/* 1. Vai trò */}
           {renderFilterSection("Vai trò", "role", [
             { label: "Tất cả", value: "All" },
             { label: "Khách hàng", value: "Customer" },
