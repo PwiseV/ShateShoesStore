@@ -15,6 +15,7 @@ import UpdateAddressModal, {
   type AddressFormState as UpdateAddressState,
 } from "./UpdateAddressModal";
 import AddAddressModal, { type AddressFormState } from "./AddAddressModal";
+import ChangePasswordModal from "./ChangePasswordModal";
 
 import { useToast } from "../../../../context/useToast";
 
@@ -26,6 +27,7 @@ import {
   updateUserAddress,
   deleteUserAddress,
 } from "../../../../services/userProfileServices";
+import { changePassword } from "../../../../services/authServices";
 import type {
   UserProfile,
   Address,
@@ -41,6 +43,7 @@ const ProfileInfo = () => {
   const [openModal, setOpenModal] = useState(false);
   const [openAddressModal, setOpenAddressModal] = useState(false);
   const [openAddModal, setOpenAddModal] = useState(false);
+  const [openChangePasswordModal, setOpenChangePasswordModal] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
 
   // --- 1. HÀM FETCH DATA ---
@@ -157,6 +160,19 @@ const ProfileInfo = () => {
     setOpenAddressModal(true);
   };
 
+  // --- 4. XỬ LÝ ĐỔI MẬT KHẨU ---
+  const handleChangePassword = async (oldPassword: string, newPassword: string) => {
+    try {
+      await changePassword({ oldPassword, newPassword });
+      showToast("Đổi mật khẩu thành công", "success");
+      setOpenChangePasswordModal(false);
+    } catch (error: any) {
+      const errorMessage = error?.message || "Đổi mật khẩu thất bại";
+      showToast(errorMessage, "error");
+      throw error; // Re-throw to let modal handle loading state
+    }
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", py: 10 }}>
@@ -268,10 +284,27 @@ const ProfileInfo = () => {
                   color: "#2C3E50",
                   borderRadius: "30px",
                   fontWeight: 600,
+                  mb: 1.5,
                   "&:hover": { bgcolor: "#f5f5f5" },
                 }}
               >
                 Cập nhập hồ sơ
+              </Button>
+              <Button
+                onClick={() => setOpenChangePasswordModal(true)}
+                variant="outlined"
+                sx={{
+                  borderColor: "white",
+                  color: "white",
+                  borderRadius: "30px",
+                  fontWeight: 600,
+                  "&:hover": { 
+                    bgcolor: "rgba(255, 255, 255, 0.1)",
+                    borderColor: "white",
+                  },
+                }}
+              >
+                Đổi mật khẩu
               </Button>
             </Box>
           </Grid>
@@ -386,6 +419,12 @@ const ProfileInfo = () => {
         open={openAddModal}
         onClose={() => setOpenAddModal(false)}
         onAdd={handleAddNewAddress}
+      />
+
+      <ChangePasswordModal
+        open={openChangePasswordModal}
+        onClose={() => setOpenChangePasswordModal(false)}
+        onSubmit={handleChangePassword}
       />
     </Box>
   );

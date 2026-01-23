@@ -2,6 +2,7 @@ import React from "react";
 import { Box, Typography, Card, CardActionArea } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import type { BlogPost } from "../../../../services/blogServices";
+import { formatDate } from "../../../../utils/dateFormatter";
 
 interface BlogCardProps {
   post: BlogPost;
@@ -58,7 +59,14 @@ const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
         </Box>
 
         {/* --- Phần Nội dung (Bên phải) --- */}
-        <Box sx={{ flex: 1 }}>
+        <Box 
+          sx={{ 
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+          }}
+        >
           <Typography
             className="blog-title"
             variant="h6"
@@ -67,7 +75,6 @@ const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
               fontWeight: 800,
               fontFamily: '"Lexend", sans-serif',
               color: "#2C3E50",
-              mb: 1,
               fontSize: "1.1rem",
               lineHeight: 1.4,
               transition: "color 0.3s ease",
@@ -83,10 +90,10 @@ const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
               fontFamily: '"Lexend", sans-serif',
               fontSize: "0.85rem",
               display: "block",
-              mt: 2,
+              mt: 1,
             }}
           >
-            {post.published_at || post.createdAt}
+            {formatDate((post.published_at || post.createdAt) ?? "")}
           </Typography>
         </Box>
       </CardActionArea>

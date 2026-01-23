@@ -216,6 +216,7 @@ const SizeGuideContent: React.FC = () => {
             </p>
           </div>
           <button
+            onClick={() => window.location.href = '/contact-us'}
             style={{
               backgroundColor: "#fff",
               color: "#2e3f4f",
@@ -224,7 +225,10 @@ const SizeGuideContent: React.FC = () => {
               fontWeight: "600",
               borderRadius: "50px",
               cursor: "pointer",
+              transition: "transform 0.2s ease",
             }}
+            onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.05)"}
+            onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
           >
             Nhắn tin tư vấn
           </button>

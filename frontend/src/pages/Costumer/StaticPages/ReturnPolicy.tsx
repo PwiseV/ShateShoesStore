@@ -141,6 +141,7 @@ Bước 4: Gửi sản phẩm mới cho bạn (Thời gian xử lý: 3-5 ngày).
             </p>
           </div>
           <button
+            onClick={() => window.location.href = '/contact-us'}
             style={{
               backgroundColor: "#fff",
               color: "#2e3f4f",
@@ -149,7 +150,10 @@ Bước 4: Gửi sản phẩm mới cho bạn (Thời gian xử lý: 3-5 ngày).
               fontWeight: "600",
               borderRadius: "50px",
               cursor: "pointer",
+              transition: "transform 0.2s ease",
             }}
+            onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.05)"}
+            onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
           >
             Nhắn tin hỗ trợ
           </button>

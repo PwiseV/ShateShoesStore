@@ -11,7 +11,6 @@ import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 
 const menuItems = [
-  { label: "Trang chủ", path: "/homepage" },
   { label: "Sản phẩm", path: "/products" },
   { label: "Giới thiệu", path: "/about-us" },
   { label: "Tin tức", path: "/blog" },
@@ -33,7 +32,7 @@ const Header: React.FC = () => {
         backgroundColor: "#FFFFFF",
       }}
     >
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between", px: 3 }}>
         {/* LOGO + TEXT */}
         <Box
           component={Link}
@@ -42,6 +41,7 @@ const Header: React.FC = () => {
             display: "flex",
             alignItems: "center",
             gap: "0.8rem",
+            textDecoration: "none",
           }}
         >
           <Box
@@ -65,7 +65,7 @@ const Header: React.FC = () => {
         </Box>
 
         {/* MENU */}
-        <Box sx={{ display: "flex", gap: "4rem", alignItems: "center" }}>
+        <Box sx={{ display: "flex", gap: "2.5rem", alignItems: "center" }}>
           {menuItems.map((item, index) => (
             <Box
               key={index}
@@ -90,7 +90,6 @@ const Header: React.FC = () => {
                 {item.label}
               </Typography>
 
-              {/* Chỉ hiển thị icon nếu item là "Danh mục" -> "Sản phẩm" có thể cần hoặc không, tạm bỏ logic icon hoặc giữ cho Sản phẩm */}
               {item.label === "Sản phẩm" && (
                 <KeyboardArrowDownIcon fontSize="small" />
               )}

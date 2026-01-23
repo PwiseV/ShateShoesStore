@@ -153,3 +153,24 @@ export const resetPassword = async (params: {
     throw error?.response?.data || error;
   }
 };
+
+/* ============================
+   CHANGE PASSWORD (LOGGED IN)
+============================ */
+
+export const changePassword = async (params: {
+  oldPassword: string;
+  newPassword: string;
+}): Promise<{ message: string }> => {
+  try {
+    const response = await api.put<{ message: string }>(
+      "/auth/change-password",
+      params
+    );
+
+    return response.data;
+  } catch (error: any) {
+    console.error("Change password error:", error);
+    throw error?.response?.data || error;
+  }
+};

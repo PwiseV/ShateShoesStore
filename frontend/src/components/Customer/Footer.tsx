@@ -51,7 +51,7 @@ const Footer = () => {
                 </Box>
 
                 {/* Dòng 2 (Sẽ tự động căn giữa so với dòng 1) */}
-                <FooterLink to="#">HƯỚNG DẪN CHỌN SIZE</FooterLink>
+                <FooterLink to="/size-guide">HƯỚNG DẪN CHỌN SIZE</FooterLink>
               </Box>
               {/* --- KẾT THÚC HỘP GOM NHÓM --- */}
             </Box>

@@ -9,6 +9,7 @@ import {
 
 import { resetPassword } from "../../services/authServices";
 import { useToast } from "../../context/useToast";
+import validatePassword from "../../utils/ValidatePassword";
 import RoundedInput from "../Signin/TextInput";
 
 const ResetPassword: React.FC = () => {
@@ -21,6 +22,7 @@ const ResetPassword: React.FC = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   /* ============================
      GUARD: bắt buộc có token
@@ -40,10 +42,12 @@ const ResetPassword: React.FC = () => {
       return;
     }
 
-    if (newPassword.length < 6) {
-      showToast("Mật khẩu phải có ít nhất 6 ký tự", "warning");
+    const validationError = validatePassword(newPassword);
+    if (validationError) {
+      setError(validationError);
       return;
     }
+    setError(null);
 
     if (newPassword !== confirmPassword) {
       showToast("Mật khẩu xác nhận không khớp", "error");
@@ -109,7 +113,9 @@ const ResetPassword: React.FC = () => {
             value={newPassword}
             setValue={setNewPassword}
             placeholder="Nhập mật khẩu mới"
+            onBlur={() => setError(validatePassword(newPassword))}
           />
+          {error && <p className="text-red-500 text-xs mb-2">{error}</p>}
 
           <RoundedInput
             label="Xác nhận mật khẩu"
