@@ -63,6 +63,129 @@ export const getAllOrders = async (query) => {
   };
 };
 
+export const getMyOrders = async (userId, query) => {
+  const { status } = query;
+  const filter = { userId };
+
+  if (status && status !== "all") {
+    filter.status = status;
+  }
+
+  const orders = await Order.find(filter)
+    .sort({ createdAt: -1 })
+    .select(
+      "orderNumber name phone address total shippingFee paymentMethod status createdAt",
+    )
+    .lean();
+
+  const formattedOrders = await Promise.all(
+    orders.map(async (order) => {
+      const items = await OrderItem.find({ orderId: order._id })
+        .populate({
+          path: "variantId",
+          model: "ProductVariant",
+          select: "size color price productVariantImageId productId",
+          populate: {
+            path: "productId",
+            model: "Product",
+            select: "title code avatar",
+          },
+        })
+        .lean();
+      const deliveryDate = new Date(order.createdAt);
+      deliveryDate.setDate(deliveryDate.getDate() + 5);
+
+      return {
+        orderId: order._id,
+        orderNumber: order.orderNumber,
+        status: order.status,
+        total: order.total,
+        name: order.name,
+        phone: order.phone,
+        address: order.address,
+        shippingFee: order.shippingFee,
+        shippingDuration: 5,
+        fromAddress: "77 Võ Văn Kiệt, Bình Tân, TP Hồ Chí Minh, Việt Nam",
+        paymentMethod: order.paymentMethod,
+        createdAt: order.createdAt,
+        arrivedAt: deliveryDate,
+        items: items.map((item) => ({
+          orderItemId: item._id,
+          quantity: item.quantity,
+          price: item.price,
+          variantId: item.variantId?._id,
+          size: item.variantId?.size,
+          color: item.variantId?.color,
+          productId: item.variantId?.productId?._id,
+          title: item.variantId?.productId?.title,
+          code: item.variantId?.productId?.code,
+          avatar: item.variantId?.productId?.avatar?.url,
+        })),
+      };
+    }),
+  );
+
+  return {
+    data: formattedOrders,
+  };
+};
+
+export const getMyOrderDetail = async (userId, orderId) => {
+
+  const order = await Order.findOne({ _id: orderId, userId })
+    .select(
+      "orderNumber name phone address total shippingFee paymentMethod status createdAt"
+    )
+    .lean();
+
+  if (!order) {
+    throw new Error("ORDER_NOT_FOUND");
+  }
+
+  const items = await OrderItem.find({ orderId: order._id })
+    .populate({
+      path: "variantId",
+      model: "ProductVariant",
+      select: "size color price productVariantImageId productId",
+      populate: {
+        path: "productId",
+        model: "Product",
+        select: "title code avatar",
+      },
+    })
+    .lean();
+  const deliveryDate = new Date(order.createdAt);
+  deliveryDate.setDate(deliveryDate.getDate() + 5);
+
+  return {
+    orderId: order._id,
+    orderNumber: order.orderNumber,
+    status: order.status,
+    total: order.total,
+    name: order.name,
+    phone: order.phone,
+    address: order.address,
+    shippingFee: order.shippingFee,
+    shippingDuration: 5,
+    fromAddress: "77 Võ Văn Kiệt, Bình Tân, TP Hồ Chí Minh, Việt Nam",
+    paymentMethod: order.paymentMethod,
+    createdAt: order.createdAt,
+    arrivedAt: deliveryDate,
+    items: items.map((item) => ({
+      orderItemId: item._id,
+      quantity: item.quantity,
+      price: item.price,
+      variantId: item.variantId?._id,
+      size: item.variantId?.size,
+      color: item.variantId?.color,
+      productId: item.variantId?.productId?._id,
+      title: item.variantId?.productId?.title,
+      code: item.variantId?.productId?.code,
+      avatar: item.variantId?.productId?.avatar?.url,
+    })),
+  };
+};
+
 /**
  * GET /admin/orders/:id
  * Chi tiết đơn hàng

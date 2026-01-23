@@ -32,7 +32,8 @@ import NotFound from "./pages/Costumer/StaticPages/NotFound.tsx";
 import SizeGuide from "./pages/Costumer/StaticPages/SizeGuide.tsx";
 import Payment from "./pages/Customer/Payment/Payment.tsx";
 import OrderSuccess from "./pages/Customer/Payment/SuccessOrder.tsx";
-
+import OrderHistory from "./pages/Costumer/OrderHistory/OrderHistory.tsx";
+import OrderDetail from "./pages/Costumer/OrderHistory/OrderDetail.tsx";
 // forgot password components
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword/ResetPassword";
@@ -66,6 +67,9 @@ export default function AppRoutes() {
           <Route path="/order-success" element={<OrderSuccess />} />
 
           <Route path="/favourite" element={<Favourite />} />
+          <Route path="/history" element={<OrderHistory />} />
+          <Route path="/history/:orderId" element={<OrderDetail />} />
+
           <Route element={<ProtectedRoute role="admin" />}>
             <Route path="/admin/dashboard" element={<Dashboard />} />
             <Route path="/admin/users" element={<Users />} />
@@ -95,6 +99,10 @@ export default function AppRoutes() {
             <Route path="/payment" element={<Payment />} />
             <Route path="/order-success" element={<OrderSuccess />} />
             <Route path="/favourite" element={<Favourite />} />
+            {/*
+            <Route path="/history" element={<OrderHistory />} />
+            <Route path="/history/:orderId" element={<OrderDetail />} /> 
+            */}
           </Route>
 
           <Route path="*" element={<NotFound />} />
