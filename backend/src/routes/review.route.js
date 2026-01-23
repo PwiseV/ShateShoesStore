@@ -10,16 +10,20 @@ import {
 
 const router = express.Router();
 
+// IMPORTANT: More specific routes must come BEFORE general routes
 // Get info to review (Protected by parent route)
 router.get("/reviews/order-item/:orderItemId", getProductForReview);
+
+// Get reviews for a product
+router.get("/reviews/product/:productId", getReviewsByProduct);
+
+// Get all reviews (admin)
 router.get("/reviews", getAllReviews);
-router.patch("/reviews/:reviewId", updateReviewStatus);
+
 // Submit review (Protected)
 router.post("/reviews", createReview);
 
-// Get reviews for a product (Can be public, but if parent is protected, it's protected)
-// Note: Route path will be /api/users/reviews/product/:productId
-// Or if we mount at /api/users, it is users/reviews...
-router.get("/reviews/product/:productId", getReviewsByProduct);
+// Update review status (admin)
+router.patch("/reviews/:reviewId", updateReviewStatus);
 
 export default router;

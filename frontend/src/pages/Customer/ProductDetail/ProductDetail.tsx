@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
-import { useSearchParams, useLocation, useParams } from "react-router-dom";
+import { useSearchParams, useLocation, useParams, useNavigate } from "react-router-dom";
 
 // Component con
 import Header from "../../../components/Customer/Header";
@@ -38,6 +38,7 @@ const ProductDetail: React.FC = () => {
   const { productid: paramId } = useParams<{ productid: string }>();
   const [searchParams] = useSearchParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const stateId = (location.state as { id?: string })?.id;
   let id = paramId ?? searchParams.get("id") ?? stateId ?? "";
 
@@ -65,12 +66,10 @@ const ProductDetail: React.FC = () => {
         const data = await getProductDetails(id, controller.signal);
         setProduct(data);
         setIsLiked(data.isFavourite);
-        const [reviewsData] = await Promise.all([
-          getReviewsByProduct(id),
-          // getProductPromotionFake(id), // TODO: implement real promotion API
-        ]);
+        
+        // Fetch reviews using the correct service
+        const reviewsData = await getReviewsByProduct(id);
         setReviews(reviewsData);
-        // setPromotion(promoData); // TODO: set when API ready
       } catch (err) {
         if (err.name !== "AbortError") console.error(err);
       } finally {
@@ -125,6 +124,29 @@ const ProductDetail: React.FC = () => {
       });
       if (response.success) {
         showToast(response.message, "success");
+      } else {
+        showToast(response.message, "error");
+      }
+    } catch (error) {
+      console.error(error);
+      showToast("Có lỗi xảy ra, vui lòng thử lại sau.", "error");
+    }
+  };
+
+  const handleBuyNow = async (data: any) => {
+    if (!data.variantId) {
+      showToast("Vui lòng chọn đầy đủ Size và Màu sắc!", "warning");
+      return;
+    }
+    try {
+      const response = await addToCart({
+        variantId: data.variantId,
+        quantity: data.quantity,
+      });
+      if (response.success) {
+        showToast(response.message, "success");
+        // Navigate to cart page
+        navigate("/cart");
       } else {
         showToast(response.message, "error");
       }
@@ -285,7 +307,7 @@ const ProductDetail: React.FC = () => {
           rating={uiRating}
           promotion={promotion}
           onSubmit={handleAddToCart}
-          onBuyNow={() => console.log("Buy now")}
+          onBuyNow={handleBuyNow}
           isLiked={isLiked}
           onToggleLike={handleToggleLike}
         />

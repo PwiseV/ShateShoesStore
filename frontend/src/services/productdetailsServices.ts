@@ -111,8 +111,8 @@ export const getProductReviews = async (
   signal?: AbortSignal
 ): Promise<ProductReview[]> => {
   try {
-    const response = await api.get(`/users/reviews/${productId}`, { signal });
-    return response.data;
+    const response = await api.get(`/users/reviews/product/${productId}`, { signal });
+    return response.data.data || [];
   } catch (error) {
     return []; // Trả mảng rỗng nếu lỗi
   }

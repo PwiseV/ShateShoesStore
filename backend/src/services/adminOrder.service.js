@@ -85,11 +85,18 @@ export const getMyOrders = async (userId, query) => {
           path: "variantId",
           model: "ProductVariant",
           select: "size color price productVariantImageId productId",
-          populate: {
-            path: "productId",
-            model: "Product",
-            select: "title code avatar",
-          },
+          populate: [
+            {
+              path: "productId",
+              model: "Product",
+              select: "title code avatar",
+            },
+            {
+              path: "productVariantImageId",
+              model: "ProductVariantImage",
+              select: "avatar color",
+            },
+          ],
         })
         .lean();
       const deliveryDate = new Date(order.createdAt);
@@ -109,18 +116,24 @@ export const getMyOrders = async (userId, query) => {
         paymentMethod: order.paymentMethod,
         createdAt: order.createdAt,
         arrivedAt: deliveryDate,
-        items: items.map((item) => ({
-          orderItemId: item._id,
-          quantity: item.quantity,
-          price: item.price,
-          variantId: item.variantId?._id,
-          size: item.variantId?.size,
-          color: item.variantId?.color,
-          productId: item.variantId?.productId?._id,
-          title: item.variantId?.productId?.title,
-          code: item.variantId?.productId?.code,
-          avatar: item.variantId?.productId?.avatar?.url,
-        })),
+        items: items.map((item) => {
+          const variantImage = item.variantId?.productVariantImageId?.avatar?.url;
+          const productImage = item.variantId?.productId?.avatar?.url;
+          const finalAvatar = variantImage || productImage;
+          
+          return {
+            orderItemId: item._id,
+            quantity: item.quantity,
+            price: item.price,
+            variantId: item.variantId?._id,
+            size: item.variantId?.size,
+            color: item.variantId?.color,
+            productId: item.variantId?.productId?._id,
+            title: item.variantId?.productId?.title,
+            code: item.variantId?.productId?.code,
+            avatar: finalAvatar,
+          };
+        }),
       };
     }),
   );
@@ -147,11 +160,18 @@ export const getMyOrderDetail = async (userId, orderId) => {
       path: "variantId",
       model: "ProductVariant",
       select: "size color price productVariantImageId productId",
-      populate: {
-        path: "productId",
-        model: "Product",
-        select: "title code avatar",
-      },
+      populate: [
+        {
+          path: "productId",
+          model: "Product",
+          select: "title code avatar",
+        },
+        {
+          path: "productVariantImageId",
+          model: "ProductVariantImage",
+          select: "avatar color",
+        },
+      ],
     })
     .lean();
   const deliveryDate = new Date(order.createdAt);
@@ -171,18 +191,24 @@ export const getMyOrderDetail = async (userId, orderId) => {
     paymentMethod: order.paymentMethod,
     createdAt: order.createdAt,
     arrivedAt: deliveryDate,
-    items: items.map((item) => ({
-      orderItemId: item._id,
-      quantity: item.quantity,
-      price: item.price,
-      variantId: item.variantId?._id,
-      size: item.variantId?.size,
-      color: item.variantId?.color,
-      productId: item.variantId?.productId?._id,
-      title: item.variantId?.productId?.title,
-      code: item.variantId?.productId?.code,
-      avatar: item.variantId?.productId?.avatar?.url,
-    })),
+    items: items.map((item) => {
+      const variantImage = item.variantId?.productVariantImageId?.avatar?.url;
+      const productImage = item.variantId?.productId?.avatar?.url;
+      const finalAvatar = variantImage || productImage;
+      
+      return {
+        orderItemId: item._id,
+        quantity: item.quantity,
+        price: item.price,
+        variantId: item.variantId?._id,
+        size: item.variantId?.size,
+        color: item.variantId?.color,
+        productId: item.variantId?.productId?._id,
+        title: item.variantId?.productId?.title,
+        code: item.variantId?.productId?.code,
+        avatar: finalAvatar,
+      };
+    }),
   };
 };
 
@@ -197,30 +223,42 @@ export const getOrderDetail = async (id) => {
 
   const items = await OrderItem.find({ orderId: id }).populate({
     path: "variantId",
-    populate: {
-      path: "productId",
-      select: "title avatar",
-    },
+    populate: [
+      {
+        path: "productId",
+        select: "title avatar",
+      },
+      {
+        path: "productVariantImageId",
+        select: "avatar color",
+      },
+    ],
   });
 
   return {
     ...order.toJSON(),
-    items: items.map((item) => ({
-      _id: item._id,
-      quantity: item.quantity,
-      price: item.price,
-      subtotal: item.price * item.quantity,
-      variant: {
-        _id: item.variantId?._id,
-        size: item.variantId?.size,
-        color: item.variantId?.color,
-      },
-      product: {
-        _id: item.variantId?.productId?._id,
-        title: item.variantId?.productId?.title,
-        image: item.variantId?.productId?.avatar?.url,
-      },
-    })),
+    items: items.map((item) => {
+      const variantImage = item.variantId?.productVariantImageId?.avatar?.url;
+      const productImage = item.variantId?.productId?.avatar?.url;
+      const finalImage = variantImage || productImage;
+      
+      return {
+        _id: item._id,
+        quantity: item.quantity,
+        price: item.price,
+        subtotal: item.price * item.quantity,
+        variant: {
+          _id: item.variantId?._id,
+          size: item.variantId?.size,
+          color: item.variantId?.color,
+        },
+        product: {
+          _id: item.variantId?.productId?._id,
+          title: item.variantId?.productId?.title,
+          image: finalImage,
+        },
+      };
+    }),
   };
 };
 

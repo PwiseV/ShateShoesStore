@@ -1,24 +1,13 @@
-import {
-  getProductForReviewService,
-  createReviewService,
-  getReviewsByProductService,
-} from "../services/review.service.js";
-import { handleServiceError } from "../utils/errorHandler.js";
-
-/**
- * GET /api/users/reviews/order-item/:orderItemId
- * Get info to write a review
- */
 import * as reviewService from "../services/review.service.js";
+import { handleServiceError } from "../utils/errorHandler.js";
 
 // GET /api/users/reviews/order-item/:orderItemId
 // Get info to write a review
 export const getProductForReview = async (req, res) => {
   try {
     const { orderItemId } = req.params;
-    const userId = req.user._id;
 
-    const reviewInfo = await getProductForReviewService(orderItemId, userId);
+    const reviewInfo = await reviewService.getProductForReviewService(orderItemId);
 
     res.status(200).json({
       success: true,
@@ -38,7 +27,7 @@ export const createReview = async (req, res) => {
     const userId = req.user._id;
     const reviewData = req.body;
 
-    const newReview = await createReviewService(reviewData, userId);
+    const newReview = await reviewService.createReviewService(reviewData, userId);
 
     res.status(201).json({
       success: true,
@@ -58,7 +47,7 @@ export const getReviewsByProduct = async (req, res) => {
   try {
     const { productId } = req.params;
 
-    const reviews = await getReviewsByProductService(productId);
+    const reviews = await reviewService.getReviewsByProductService(productId);
 
     res.status(200).json({
       success: true,

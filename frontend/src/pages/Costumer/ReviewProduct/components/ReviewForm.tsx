@@ -13,11 +13,11 @@ interface Props {
 }
 
 const ReviewForm = ({ onSubmit, loading = false }: Props) => {
-  const [rating, setRating] = useState<number | null>(0);
+  const [rating, setRating] = useState<number>(0);
   const [comment, setComment] = useState("");
 
   const handleSubmit = () => {
-    if (rating) onSubmit({ rating, comment });
+    if (rating > 0) onSubmit({ rating, comment });
   };
 
   return (

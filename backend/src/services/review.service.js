@@ -7,26 +7,42 @@ import OrderItem from "../models/OrderItem.js";
  * @param {string} userId - User ID (for future authorization check)
  * @returns {Promise<Object>} Product review info
  */
-export const getProductForReviewService = async (orderItemId, userId) => {
-  // Find OrderItem and populate Variant -> Product
+export const getProductForReviewService = async (orderItemId) => {
+  // Find OrderItem and populate Variant -> Product and ProductVariantImage
   const orderItem = await OrderItem.findById(orderItemId).populate({
     path: "variantId",
-    populate: { path: "productId", select: "title avatar" },
+    populate: [
+      { 
+        path: "productId", 
+        select: "title avatar" 
+      },
+      {
+        path: "productVariantImageId",
+        select: "avatar color"
+      }
+    ],
   });
-
+  
   if (!orderItem) {
     throw new Error("ORDER_ITEM_NOT_FOUND");
   }
 
   const variant = orderItem.variantId;
+  
   if (!variant) {
     throw new Error("VARIANT_NOT_FOUND");
   }
 
   const product = variant.productId;
+  
   if (!product) {
     throw new Error("PRODUCT_NOT_FOUND");
   }
+
+  // Get variant image or fallback to product image
+  const variantImage = variant.productVariantImageId?.avatar?.url;
+  const productImage = product.avatar?.url || product.avatar;
+  const finalImage = variantImage || productImage || "";
 
   // Optional: Verify that this orderItem belongs to the user
   // const order = await Order.findOne({ _id: orderItem.orderId, userId });
@@ -36,7 +52,7 @@ export const getProductForReviewService = async (orderItemId, userId) => {
     orderItemId: orderItem._id,
     productId: product._id,
     productTitle: product.title,
-    productImage: product.avatar?.url || "",
+    productImage: finalImage,
     color: variant.color,
     size: variant.size,
   };
@@ -87,7 +103,7 @@ export const createReviewService = async (reviewData, userId) => {
  * @returns {Promise<Array>} List of reviews
  */
 export const getReviewsByProductService = async (productId) => {
-  const reviews = await Review.find({ productId })
+  const reviews = await Review.find({ productId, status: "active" })
     .populate("userId", "displayName avatar email")
     .sort({ createdAt: -1 });
 

@@ -31,7 +31,7 @@ export type ProductFormProps = {
   promotion: Promotion | null;
 
   onSubmit?: (payload: any) => void;
-  onBuyNow?: () => void;
+  onBuyNow?: (payload: any) => void;
 
   // --- PROPS WISHLIST ---
   isLiked: boolean;
@@ -244,7 +244,15 @@ const ProductForm: React.FC<ProductFormProps> = ({
               fullWidth
               size="large"
               disabled={isOutOfStock}
-              onClick={onBuyNow}
+              onClick={() =>
+                onBuyNow?.({
+                  sizeId: size,
+                  colorName: color,
+                  variantId: currentVariant?.variantId,
+                  price: displayPrice,
+                  quantity,
+                })
+              }
               sx={{
                 bgcolor: "#546E7A",
                 color: "#fff",

@@ -35,10 +35,16 @@ export const getCart = async (userId) => {
   const items = await CartItem.find({ userId })
     .populate({
       path: "variantId",
-      populate: {
-        path: "productId",
-        select: "title avatar code description categoryId",
-      },
+      populate: [
+        {
+          path: "productId",
+          select: "title avatar code description categoryId",
+        },
+        {
+          path: "productVariantImageId",
+          select: "avatar color",
+        },
+      ],
     })
     .sort({ createdAt: -1 });
 
@@ -100,6 +106,20 @@ export const getCart = async (userId) => {
         });
       });
 
+      // Get the avatar for the current variant
+      const variantAvatar = variant.productVariantImageId?.avatar?.url;
+      const productAvatar = product.avatar?.url;
+      const finalAvatar = variantAvatar || productAvatar;
+
+      console.log(`Cart Item ${item._id}:`, {
+        variantId: variant._id,
+        color: variant.color,
+        size: variant.size,
+        variantAvatar,
+        productAvatar,
+        finalAvatar,
+      });
+
       return {
         cartItemId: item._id,
         variantId: variant._id,
@@ -108,7 +128,7 @@ export const getCart = async (userId) => {
         color: variant.color,
         price: variant.price,
         stock: variant.stock,
-        avatar: variant.productVariantImageId?.avatar?.url || product.avatar?.url,
+        avatar: finalAvatar,
         isOutOfStock: variant.stock <= 0,
         isAdjust: needsUpdate,
         product: {

@@ -335,7 +335,7 @@ const Delivered: React.FC<Props> = ({ order }) => {
                       sx={{ fontSize: "16px !important" }}
                     />
                   }
-                  onClick={() => navigate(`/review/${item.productId}`)}
+                  onClick={() => navigate(`/review/${item.orderItemId}`)}
                   sx={{
                     color: "#567C8D",
                     borderColor: "#567C8D",

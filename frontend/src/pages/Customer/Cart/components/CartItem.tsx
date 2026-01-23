@@ -132,7 +132,7 @@ const CartItemView = ({
         }}
       >
         <img
-          src={item.avatar || item.product?.avatar || '/placeholder.png'}
+          src={item.avatar || '/placeholder.png'}
           alt={item.product?.title || 'Product'}
           style={{ width: "100%", height: "100%", objectFit: "cover" }}
         />
