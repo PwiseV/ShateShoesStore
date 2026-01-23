@@ -48,7 +48,6 @@ const Posts: React.FC = () => {
     <div
       style={{
         background: "#F5EFEB",
-        borderRadius: "40px",
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",

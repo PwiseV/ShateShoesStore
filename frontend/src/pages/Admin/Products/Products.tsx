@@ -51,7 +51,9 @@ const Products: React.FC = () => {
   // --- QUAN TRỌNG: Tự động cập nhật dữ liệu Modal cha khi refreshData ---
   useEffect(() => {
     if (openEdit && editingProduct) {
-      const updated = products.find(p => p.productId === editingProduct.productId);
+      const updated = products.find(
+        (p) => p.productId === editingProduct.productId,
+      );
       if (updated) {
         setEditingProduct(updated); // Cập nhật lại state để Modal cha thấy data mới
       }
@@ -74,11 +76,18 @@ const Products: React.FC = () => {
     setOpenEdit(true);
   };
 
-  const handleEditColorClick = (sIdx: number, cIdx: number, sizeData: any, sizeName: string, pId: number) => {
-    const colorData = cIdx === -1 || !sizeData.colors ? null : sizeData.colors[cIdx];
+  const handleEditColorClick = (
+    sIdx: number,
+    cIdx: number,
+    sizeData: any,
+    sizeName: string,
+    pId: number,
+  ) => {
+    const colorData =
+      cIdx === -1 || !sizeData.colors ? null : sizeData.colors[cIdx];
     setEditingColor(colorData);
-    setActiveSize(sizeName); 
-    setActiveProductId(pId); 
+    setActiveSize(sizeName);
+    setActiveProductId(pId);
     setOpenColorEdit(true);
   };
 
@@ -100,36 +109,110 @@ const Products: React.FC = () => {
   };
 
   return (
-    <div style={{ background: "#F5EFEB", borderRadius: "40px", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+    <div
+      style={{
+        background: "#F5EFEB",
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       <Header />
-      <div style={{ maxWidth: "1200px", margin: "2rem auto", width: "100%", display: "grid", gridTemplateColumns: "260px 1fr", gap: "2rem", padding: "0 2rem", boxSizing: "border-box" }}>
+      <div
+        style={{
+          maxWidth: "1200px",
+          margin: "2rem auto",
+          width: "100%",
+          display: "grid",
+          gridTemplateColumns: "260px 1fr",
+          gap: "2rem",
+          padding: "0 2rem",
+          boxSizing: "border-box",
+        }}
+      >
         <SideBar selectedMenu="Quản lý sản phẩm" />
 
-        <Box sx={{ backgroundColor: "#D3E2E9", borderRadius: "24px", p: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: "#2C3E50" }}>Quản lý sản phẩm</Typography>
-            <Button variant="contained" startIcon={<AddIcon />} sx={{ backgroundColor: "#567C8D" }} onClick={() => setOpenCreate(true)}>Thêm mới</Button>
+        <Box
+          sx={{
+            backgroundColor: "#D3E2E9",
+            borderRadius: "24px",
+            p: 3,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 2,
+            }}
+          >
+            <Typography variant="h5" sx={{ fontWeight: 700, color: "#2C3E50" }}>
+              Quản lý sản phẩm
+            </Typography>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              sx={{ backgroundColor: "#567C8D" }}
+              onClick={() => setOpenCreate(true)}
+            >
+              Thêm mới
+            </Button>
           </Box>
 
           <ProductFilterBar
-            keyword={keyword} setKeyword={setKeyword} onSearch={handleSearch}
+            keyword={keyword}
+            setKeyword={setKeyword}
+            onSearch={handleSearch}
             onOpenFilter={() => setOpenFilter(true)}
-            isFiltered={filterCategory !== "All" || filterPriceRange[0] !== 0 || filterPriceRange[1] !== 10000000}
+            isFiltered={
+              filterCategory !== "All" ||
+              filterPriceRange[0] !== 0 ||
+              filterPriceRange[1] !== 10000000
+            }
           />
 
-          <ProductTable loading={loading} products={products} currentPage={currentPage} pageSize={10} onEdit={handleEditProductClick} onDelete={handleDeleteProduct} />
+          <ProductTable
+            loading={loading}
+            products={products}
+            currentPage={currentPage}
+            pageSize={10}
+            onEdit={handleEditProductClick}
+            onDelete={handleDeleteProduct}
+          />
 
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 3, gap: 1 }}>
-            <Pagination count={totalPages} page={currentPage} onChange={(_, p) => setCurrentPage(p)} shape="rounded" color="primary" />
+          <Box
+            sx={{ display: "flex", justifyContent: "center", mt: 3, gap: 1 }}
+          >
+            <Pagination
+              count={totalPages}
+              page={currentPage}
+              onChange={(_, p) => setCurrentPage(p)}
+              shape="rounded"
+              color="primary"
+            />
           </Box>
         </Box>
       </div>
       <Footer />
 
       {/* --- CÁC MODAL QUẢN LÝ --- */}
-      <ProductFiltersModal open={openFilter} onClose={() => setOpenFilter(false)} categoryFilter={filterCategory} setCategoryFilter={setFilterCategory} priceRange={filterPriceRange} setPriceRange={setFilterPriceRange} onClear={handleFilterClear} />
-      
-      <ProductCreateModal open={openCreate} onClose={() => setOpenCreate(false)} onSuccess={refreshData} />
+      <ProductFiltersModal
+        open={openFilter}
+        onClose={() => setOpenFilter(false)}
+        categoryFilter={filterCategory}
+        setCategoryFilter={setFilterCategory}
+        priceRange={filterPriceRange}
+        setPriceRange={setFilterPriceRange}
+        onClear={handleFilterClear}
+      />
+
+      <ProductCreateModal
+        open={openCreate}
+        onClose={() => setOpenCreate(false)}
+        onSuccess={refreshData}
+      />
 
       {/* Modal Cha - Chỉnh sửa thông tin chính */}
       <ProductEditModal

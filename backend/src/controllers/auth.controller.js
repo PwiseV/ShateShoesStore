@@ -167,3 +167,86 @@ export const getMe = async (req, res) => {
     return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
+
+
+// ================== FORGOT / RESET PASSWORD ==================
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email là bắt buộc" });
+    }
+
+    const token = await authService.requestPasswordReset(email);
+
+    return res.status(200).json({
+      message: "Reset password token generated",
+      token, // ⚠️ demo – sẽ bỏ khi merge dev
+    });
+  } catch (err) {
+    return res.status(400).json({ message: err.message });
+  }
+};
+
+export const verifyResetToken = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    await authService.verifyResetToken(token);
+
+    return res.status(200).json({
+      message: "Token hợp lệ",
+    });
+  } catch (err) {
+    return res.status(400).json({ message: err.message });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({
+        message: "Token và mật khẩu mới là bắt buộc",
+      });
+    }
+
+    await authService.resetPassword(token, newPassword);
+
+    return res.status(200).json({
+      message: "Đặt lại mật khẩu thành công",
+    });
+  } catch (err) {
+    return res.status(400).json({ message: err.message });
+  }
+};
+
+// ================== CHANGE PASSWORD (LOGGED IN) ==================
+
+export const changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({
+        message: "Mật khẩu cũ và mật khẩu mới là bắt buộc",
+      });
+    }
+
+    await authService.changePassword(
+      req.user._id,
+      oldPassword,
+      newPassword
+    );
+
+    return res.status(200).json({
+      message: "Đổi mật khẩu thành công",
+    });
+  } catch (err) {
+    return res.status(400).json({ message: err.message });
+  }
+};
+

@@ -6,10 +6,11 @@ import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import logoImg from "../../assets/logo3.svg";
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 
-const menuItems = ["Giới thiệu", "Tin tức", "Danh mục", "abc"];
+const menuItems = ["Giới thiệu", "Tin tức", "Danh mục", "Liên hệ"];
 
 const Header: React.FC = () => {
   return (
@@ -58,28 +59,42 @@ const Header: React.FC = () => {
         </Box>
 
         {/* MENU */}
-        <Box sx={{ display: "flex", gap: "2rem", alignItems: "center" }}>
+        <Box sx={{ display: "flex", gap: "4rem", alignItems: "center" }}>
           {menuItems.map((item, index) => (
-            <Typography
+            <Box
               key={index}
               component={Link}
               to="/"
               sx={{
                 textDecoration: "none",
                 color: "#567C8D",
-                fontWeight: 500,
-                fontSize: "1rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "2px",
+                cursor: "pointer",
                 "&:hover": { color: "#486172" },
               }}
             >
-              {item}
-            </Typography>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: "1rem",
+                }}
+              >
+                {item}
+              </Typography>
+
+              {/* Chỉ hiển thị icon nếu item là "Danh mục" */}
+              {item === "Danh mục" && (
+                <KeyboardArrowDownIcon fontSize="small" />
+              )}
+            </Box>
           ))}
         </Box>
 
         {/* ICONS */}
         <Box sx={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-          <IconButton aria-label="Open cart" sx={{ color: "#627D98" }}>
+          <IconButton component={Link} to="/cart" aria-label="Open cart" sx={{ color: "#627D98" }}>
             <ShoppingBagIcon fontSize="small"/>
           </IconButton>
 

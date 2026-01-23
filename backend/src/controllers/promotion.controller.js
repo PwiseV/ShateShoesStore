@@ -15,7 +15,7 @@ export const createPromotion = async (req, res) => {
       stock: totalQuantity,
       minOrderAmount,
       expiredAt: endDate,
-      startedAt: startDate
+      startedAt: startDate,
     });
 
     return res.status(201).json({
@@ -79,6 +79,84 @@ export const getPromotions = async (req, res) => {
   }
 };
 
+export const applyPromotion = async (req, res) => {
+  try {
+    const userId = req.user._id; 
+    const { codeString, total } = req.body;
+
+    const promotion = await promotionService.applyPromotion({
+      codeString,
+      userId,
+      total,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Promotion applied successfully",
+      data: promotion,
+    });
+  } catch (error) {
+    const errorMap = {
+      PROMOTION_CODE_REQUIRED: { status: 404, msg: "Invalid promotion code" },
+      PROMOTION_NOT_FOUND: { status: 404, msg: "Invalid promotion code" },
+      PROMOTION_EXPIRED: { status: 400, msg: "This promotion has expired" },
+      PROMOTION_NOT_STARTED: {
+        status: 400,
+        msg: "This promotion is not active yet",
+      },
+      PROMOTION_NOT_VALID: {
+        status: 400,
+        msg: "This promotion is no longer valid",
+      },
+      PROMOTION_LIMIT_REACHED: {
+        status: 400,
+        msg: "This promotion is out of stock",
+      },
+      PROMOTION_ALREADY_USED_BY_USER: {
+        status: 409,
+        msg: "You have already used this code",
+      },
+      MIN_ORDER_VALUE_NOT_MET: {
+        status: 400,
+        msg: "Order total doesn't meet the minimum requirement",
+      },
+    };
+
+    const errorDetail = errorMap[error.message];
+
+    if (errorDetail) {
+      return res.status(errorDetail.status).json({
+        success: false,
+        message: errorDetail.msg,
+      });
+    }
+    return res.status(500).json({
+      success: false,
+      message: "An internal server error occurred",
+    });
+  }
+};
+
+export const getUserAvailablePromotions = async (req, res) => {
+  try {
+    const userId = req.user._id; 
+    const { total } = req.query;
+    const  promotions  = await promotionService.getPromotionsForUser({
+      userId,
+      total
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Fetch user promotions success",
+      data: promotions
+    });
+  } catch (error) {
+    console.error("Get user promotions controller error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
 export const updatePromotion = async (req, res) => {
   try {
     const { id } = req.params;
@@ -110,7 +188,6 @@ export const updatePromotion = async (req, res) => {
     return res.status(200).json({
       message: "Cập nhật khuyến mãi thành công"
     });
-
   } catch (error) {
     const errorMap = {
       "PROMOTION_NOT_FOUND": { status: 404, message: "Khuyến mãi không tìm thấy" },
@@ -141,7 +218,6 @@ export const deletePromotion = async (req, res) => {
     return res.status(200).json({
       message: "Xóa khuyến mãi thành công",
     });
-
   } catch (error) {
     if (error.message === "PROMOTION_NOT_FOUND") {
       return res.status(404).json({

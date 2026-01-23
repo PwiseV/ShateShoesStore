@@ -51,12 +51,17 @@ const userSChema = new mongoose.Schema(
       sparse: true,
     },
     authType: {
-      type: String,
-      enum: ["local", "google"],
-      default: "local",
+        type: String,
+        enum: ["local", "google"],
+        default: "local"
     },
-  },
-  {
+    resetPasswordToken: {
+        type: String,
+    },
+    resetPasswordExpires: {
+        type: Date,
+    },
+}, {
     timestamps: true,
   }
 );

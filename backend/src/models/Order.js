@@ -94,7 +94,8 @@ orderSchema.index(
   {
     unique: true,
     partialFilterExpression: {
-      promotionId: { $exists: true },
+      promotionId: { $type: "objectId" }, 
+      status: { $in: ["pending", "paid", "processing", "shipped", "delivered"] }
     },
   }
 );
