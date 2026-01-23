@@ -47,6 +47,7 @@ export default function AppRoutes() {
         <Routes>
           <Route path="/" element={<Navigate to="/homepage" replace />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/signin" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/register" element={<Signup />} />
@@ -55,17 +56,15 @@ export default function AppRoutes() {
             path="/products/details/:productid"
             element={<ProductDetail />}
           />
-          <Route path="/users/cart" element={<CartPage />} />
+          <Route path="/cart" element={<CartPage />} />
           <Route path="/products" element={<ProductList />} />
           <Route path="/products/:slug" element={<ProductList />} />
-          <Route path="/admin/orders" element={<Orders />} />
-          <Route path="/review/:orderItemId" element={<ReviewProduct />} />
-
-          <Route path="/profile" element={<UserProfile />} />
+          <Route path="/about-us" element={<AboutUs />} />
+          <Route path="/contact-us" element={<ContactUs />} />
           <Route path="/faqs" element={<FAQs />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/payment" element={<Payment />} />
-          <Route path="/order-success" element={<OrderSuccess />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/return-policy" element={<ReturnPolicy />} />
+          <Route path="/size-guide" element={<SizeGuide />} />
 
           <Route path="/favourite" element={<Favourite />} />
           <Route path="/history" element={<OrderHistory />} />
@@ -82,29 +81,11 @@ export default function AppRoutes() {
           </Route>
 
           <Route element={<ProtectedRoute role="customer" />}>
-            <Route path="/homepage" element={<HomePage />} />
-            <Route path="/products" element={<ProductList />} />
-            <Route
-              path="/products/details/:productid/"
-              element={<ProductDetail />}
-            />
-            <Route path="/products/:slug" element={<ProductList />} />
             <Route path="/review/:orderItemId" element={<ReviewProduct />} />
             <Route path="/profile" element={<UserProfile />} />
-            <Route path="/about-us" element={<AboutUs />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/return-policy" element={<ReturnPolicy />} />
-            <Route path="/contact-us" element={<ContactUs />} />
-            <Route path="/size-guide" element={<SizeGuide />} />
-            <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/payment" element={<Payment />} />
             <Route path="/order-success" element={<OrderSuccess />} />
-            <Route path="/favourite" element={<Favourite />} />
-            {/*
-            <Route path="/history" element={<OrderHistory />} />
-            <Route path="/history/:orderId" element={<OrderDetail />} /> 
-            */}
           </Route>
 
           <Route path="*" element={<NotFound />} />

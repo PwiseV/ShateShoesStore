@@ -2,6 +2,7 @@
 import { createContext, useState, useEffect, type ReactNode } from "react";
 import type { User } from "../services/authServices";
 import { refreshToken, signout as apiLogout } from "../services/authServices";
+import { removeAccessToken } from "../services/tokenServices";
 
 export interface AuthContextType {
   user: User | null;
@@ -40,7 +41,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } catch (err) {
       console.error("Logout error:", err);
     } finally {
+      // Clear all auth data
       setUser(null);
+      removeAccessToken();
+      localStorage.removeItem("userId");
       window.location.href = "/login";
     }
   };

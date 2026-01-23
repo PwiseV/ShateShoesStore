@@ -240,3 +240,25 @@ export const changePassword = async (req, res) => {
     return handleServiceError(err, res);
   }
 };
+
+// ================== LOGOUT ==================
+
+export const logout = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    await authService.logout(refreshToken);
+
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+    });
+
+    return res.status(200).json({
+      message: "Đăng xuất thành công",
+    });
+  } catch (err) {
+    return handleServiceError(err, res);
+  }
+};

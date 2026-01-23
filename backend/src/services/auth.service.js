@@ -160,3 +160,19 @@ export const changePassword = async (userId, oldPassword, newPassword) => {
   user.hashedPassword = await bcrypt.hash(newPassword, 10);
   await user.save();
 };
+
+// ================== LOGOUT ==================
+
+export const logout = async (refreshToken) => {
+  if (!refreshToken) {
+    throw new Error("REFRESH_TOKEN_MISSING");
+  }
+
+  const session = await Session.findOneAndDelete({ refreshToken });
+  
+  if (!session) {
+    throw new Error("SESSION_NOT_FOUND");
+  }
+
+  return true;
+};

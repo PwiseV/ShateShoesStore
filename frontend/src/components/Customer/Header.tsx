@@ -105,8 +105,8 @@ const Header: React.FC = () => {
 
           <IconButton
             component={Link}
-            to="/signin"
-            aria-label="Sign in"
+            to="/profile"
+            aria-label="User profile"
             sx={{ color: "#567C8D" }}
           >
             <AccountCircleIcon fontSize="small" />

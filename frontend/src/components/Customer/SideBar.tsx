@@ -5,6 +5,7 @@ import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import NavigateNextSharpIcon from "@mui/icons-material/NavigateNextSharp";
 
 import { useAuth } from "../../context/useAuth";
+import { useToast } from "../../context/useToast";
 
 interface SideBarProps {
   selectedMenu: string;
@@ -20,15 +21,21 @@ const routes: Record<string, string> = {
 
 const SideBar = ({ selectedMenu }: SideBarProps) => {
   const navigate = useNavigate();
-  const { setUser } = useAuth();
+  const { logout } = useAuth();
+  const { showToast } = useToast();
 
   const handleButtonClick = (item: string) => () => {
     navigate(routes[item]); // 🔥 navigate đến route tương ứng
   };
 
-  const handleSignOut = () => {
-    setUser(null);
-    navigate("/login");
+  const handleSignOut = async () => {
+    try {
+      await logout();
+      showToast("Đăng xuất thành công", "success");
+    } catch (error) {
+      console.error("Logout error:", error);
+      showToast("Đăng xuất thất bại", "error");
+    }
   };
 
   return (

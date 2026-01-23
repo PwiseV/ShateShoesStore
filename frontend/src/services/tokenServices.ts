@@ -11,5 +11,10 @@ export const setAccessToken = (t: string | null) => {
 /** Lấy access token hiện tại (có thể là null) */
 export const getAccessToken = (): string | null => accessToken;
 
+/** Xóa access token */
+export const removeAccessToken = () => {
+  accessToken = null;
+};
+
 /** Check quick */
 export const hasAccessToken = () => !!accessToken;

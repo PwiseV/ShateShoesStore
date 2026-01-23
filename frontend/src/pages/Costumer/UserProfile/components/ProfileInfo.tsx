@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -49,10 +49,9 @@ const ProfileInfo = () => {
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
 
   // --- 1. HÀM FETCH DATA ---
-  const fetchUserProfile = useCallback(async () => {
+  const fetchUserProfile = async () => {
     try {
-      if (!userData) setLoading(true);
-      // [SỬA LỖI 1] Bỏ tham số currentUserId, vì service getUserProfile không nhận tham số nào
+      setLoading(true);
       const data = await getUserProfile();
       setUserData(data);
     } catch (error) {
@@ -61,11 +60,12 @@ const ProfileInfo = () => {
     } finally {
       setLoading(false);
     }
-  }, [showToast]); // Bỏ currentUserId khỏi dependency
+  };
 
   useEffect(() => {
     fetchUserProfile();
-  }, [fetchUserProfile]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Chỉ gọi 1 lần khi mount
 
   // --- 2. XỬ LÝ CẬP NHẬT PROFILE ---
   const handleUpdateProfile = async (newData: ProfileData) => {

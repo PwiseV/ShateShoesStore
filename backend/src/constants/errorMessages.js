@@ -19,6 +19,8 @@ export const ERROR_MESSAGES = {
   TOKEN_EXPIRED: "Token đã hết hạn",
   REFRESH_TOKEN_INVALID: "Refresh token không hợp lệ",
   REFRESH_TOKEN_EXPIRED: "Refresh token đã hết hạn",
+  REFRESH_TOKEN_MISSING: "Không tìm thấy refresh token",
+  SESSION_NOT_FOUND: "Phiên đăng nhập không tồn tại",
   EMAIL_NOT_FOUND: "Email không tồn tại",
   ADMIN_CANNOT_RESET: "Tài khoản admin không thể sử dụng chức năng này",
   GOOGLE_ACCOUNT_CANNOT_RESET: "Tài khoản Google không thể đặt lại mật khẩu",

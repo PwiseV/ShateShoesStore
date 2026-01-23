@@ -65,7 +65,7 @@ export const signup = async (
 ============================ */
 export const signout = async (): Promise<{ message: string }> => {
   try {
-    const response = await api.post<{ message: string }>("/auth/signout");
+    const response = await api.post<{ message: string }>("/auth/logout");
     return response.data;
   } catch (error) {
     console.error("Signout error:", error);
