@@ -33,12 +33,10 @@ const userSChema = new mongoose.Schema(
     },
     avatar: {
       url: {
-        required: true,
         type: String,
       },
       publicId: {
         type: String,
-        required: true,
       },
     },
     status: {

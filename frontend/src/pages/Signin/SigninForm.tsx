@@ -72,8 +72,8 @@ const LoginForm: React.FC = () => {
     e.preventDefault();
 
     try {
-      // FE gửi email + password -> BE trả về { user, message, accessToken }
       const data = await signin({ email, password });
+      console.log("data: ", data);
 
       if (!data.user) {
         throw new Error("Unexpected response from server");
