@@ -34,24 +34,29 @@ export const signIn = async (req, res) => {
 
     await authService.createSession(user._id, refreshToken, REFRESH_TOKEN_TTL);
 
+    // Set cookie với settings phù hợp
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: false, // true if using https
       sameSite: "lax",
       maxAge: REFRESH_TOKEN_TTL,
+      path: "/", // Đảm bảo cookie available cho tất cả paths
     });
 
+    console.log("SignIn - Cookie set:", refreshToken ? "success" : "failed");
+
     return res.status(200).json({
-      message: `Người dùng ${user.displayName} đã đăng nhập!`,
+      message: `Người dùng ${user.displayName || user.username} đã đăng nhập!`,
       accessToken,
       user: {
         id: user._id,
-        name: user.displayName,
+        name: user.displayName || user.username,
         email: user.email,
         role: user.role ?? "customer",
       },
     });
   } catch (error) {
+    console.error("SignIn error:", error);
     return handleServiceError(error, res);
   }
 };
@@ -59,17 +64,27 @@ export const signIn = async (req, res) => {
 export const refreshAccessToken = async (req, res) => {
   try {
     const token = req.cookies.refreshToken;
+    const allCookies = req.cookies;
     
-    console.log("Refresh token request - Cookie:", token ? "exists" : "missing");
+    console.log("=== REFRESH TOKEN DEBUG ===");
+    console.log("All cookies:", Object.keys(allCookies));
+    console.log("RefreshToken exists:", !!token);
+    console.log("RefreshToken value:", token ? token.substring(0, 20) + "..." : "null");
     
     if (!token) {
       return res.status(401).json({ 
         message: "Không tìm thấy refresh token",
-        code: "NO_REFRESH_TOKEN"
+        code: "NO_REFRESH_TOKEN",
+        debug: {
+          cookiesReceived: Object.keys(allCookies),
+          headers: req.headers.cookie
+        }
       });
     }
 
     const { user, accessToken } = await authService.verifyAndRefreshSession(token);
+    
+    console.log("Refresh successful for user:", user.email);
     
     return res.status(200).json({
       message: "Làm mới access token thành công",
@@ -89,6 +104,7 @@ export const refreshAccessToken = async (req, res) => {
       httpOnly: true,
       secure: false,
       sameSite: "lax",
+      path: "/",
     });
     
     return handleServiceError(error, res);
@@ -168,7 +184,10 @@ export const googleCallback = async (req, res) => {
       secure: false,
       sameSite: "lax",
       maxAge: REFRESH_TOKEN_TTL,
+      path: "/", // Đảm bảo cookie available cho tất cả paths
     });
+
+    console.log("OAuth - Cookie set:", refreshToken ? "success" : "failed");
 
     // Redirect with access token
     return res.redirect(`http://localhost:5173/login?token=${accessToken}`);

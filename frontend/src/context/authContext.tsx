@@ -32,19 +32,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           localStorage.setItem("userId", auth.user.id);
         }
       } catch (error: any) {
-        console.error("Auth initialization error:", error);
+        console.error("Auth initialization error:", error.message);
         setUser(null);
         localStorage.removeItem("userId");
         
-        // Chỉ redirect về login nếu đang ở protected route
-        const publicRoutes = ['/login', '/register', '/forgot-password', '/reset-password', '/homepage', '/products', '/about-us', '/contact-us'];
-        const currentPath = window.location.pathname;
-        const isPublicRoute = publicRoutes.some(route => currentPath.startsWith(route));
-        
-        if (!isPublicRoute && error.response?.data?.code === "NO_REFRESH_TOKEN") {
-          // Có thể user chưa login, không cần redirect
-          console.log("No refresh token found, user not logged in");
-        }
+        // KHÔNG hiển thị toast khi init, vì user có thể chưa login
+        // Chỉ log error để debug
       } finally {
         setLoading(false);
       }
