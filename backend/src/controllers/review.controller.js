@@ -75,7 +75,8 @@ export const getAllReviews = async (req, res) => {
         const limit = parseInt(req.query.limit) || 10;
         const status = req.query.status;
         const rating =  req.query.rating;
-        const { formattedReviews, total } = await reviewService.getAllReviewsService(page, limit, status, rating);
+        const keyword = req.query.keyword;
+        const { formattedReviews, total } = await reviewService.getAllReviewsService(page, limit, status, rating, keyword);
 
         return res.status(200).json({
             success: true,

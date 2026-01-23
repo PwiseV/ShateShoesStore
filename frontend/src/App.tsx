@@ -38,6 +38,7 @@ import OrderDetail from "./pages/Costumer/OrderHistory/OrderDetail.tsx";
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword/ResetPassword";
 import Favourite from "./pages/Costumer/Favourite/Favourite.tsx";
+import Reviews from "./pages/Admin/Reviews/Reviews.tsx";
 
 export default function AppRoutes() {
   return (
@@ -77,6 +78,7 @@ export default function AppRoutes() {
             <Route path="/admin/promotions" element={<Promotions />} />
             <Route path="/admin/posts" element={<Posts />} />
             <Route path="/admin/orders" element={<Orders />} />
+            <Route path="/admin/reviews" element={<Reviews />} />
           </Route>
 
           <Route element={<ProtectedRoute role="customer" />}>
