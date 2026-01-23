@@ -7,12 +7,12 @@ export const getUserAddresses = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Fetch user addresses success",
+      message: "Lấy danh sách địa chỉ thành công",
       data: addresses,
     });
   } catch (error) {
     console.error("Get users controller error:", error);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
 
@@ -30,18 +30,18 @@ export const createUserAddress = async (req, res) => {
     });
     return res.status(200).json({
       success: true,
-      message: "Create user addresses success",
+      message: "Tạo địa chỉ thành công",
       data: addresses,
     });
   } catch (error) {
     if (error.message === "MISSING_REQUIRED_FIELDS") {
-      return res.status(400).json({ message: "Missing requires fields" });
+      return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
     }
     if (error.message === "USER_NOT_FOUND") {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(400).json({ message: "Người dùng không tồn tại" });
     }
     console.error("Get users controller error:", error);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
 
@@ -60,23 +60,23 @@ export const updateUserAddress = async (req, res) => {
     });
     return res.status(200).json({
       success: true,
-      message: "Update user addresses success",
+      message: "Cập nhật địa chỉ thành công",
       data: addresses,
     });
   } catch (error) {
     if (error.message === "USER_NOT_FOUND") {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(400).json({ message: "Người dùng không tồn tại" });
     }
     if (error.message === "ADDRESS_NOT_FOUND") {
-      return res.status(400).json({ message: "User address not found" });
+      return res.status(400).json({ message: "Địa chỉ không tồn tại" });
     }
     if (error.message === "CANNOT_UNSET_DEFAULT_ADDRESSD") {
       return res
         .status(400)
-        .json({ message: "There's only one default address" });
+        .json({ message: "Chỉ có một địa chỉ mặc định" });
     }
     console.error("Get users controller error:", error);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
 
@@ -87,22 +87,22 @@ export const deleteUserAddress = async (req, res) => {
     const addresses = await addressService.deleteUserAddress(addressId, id);
     return res.status(200).json({
       success: true,
-      message: "Delete user addresses success",
+      message: "Xóa địa chỉ thành công",
       data: addresses,
     });
   } catch (error) {
     if (error.message === "USER_NOT_FOUND") {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(400).json({ message: "Người dùng không tồn tại" });
     }
     if (error.message === "ADDRESS_NOT_FOUND") {
-      return res.status(400).json({ message: "User address not found" });
+      return res.status(400).json({ message: "Địa chỉ không tồn tại" });
     }
     if (error.message === "CANNOT_UNSET_DEFAULT_ADDRESSD") {
       return res
         .status(400)
-        .json({ message: "There's only one default address" });
+        .json({ message: "Chỉ có một địa chỉ mặc định" });
     }
     console.error("Get users controller error:", error);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };

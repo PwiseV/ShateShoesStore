@@ -22,12 +22,12 @@ import { useToast } from "../../../context/useToast";
 
 // Fake imports
 import {
-  getProductReviewsFake,
   getProductPromotionFake,
   addToCartFake,
   addToWishlistFake,
   removeFromWishlistFake,
 } from "../../../services/fakeProductDetailsServices";
+import { getReviewsByProduct } from "../../../services/reviewProductServices";
 
 type BreadcrumbItem = {
   name: string;
@@ -73,7 +73,7 @@ const ProductDetail: React.FC = () => {
         setProduct(data);
         setIsLiked(data.isFavourite);
         const [reviewsData, promoData] = await Promise.all([
-          getProductReviewsFake(id),
+          getReviewsByProduct(id),
           getProductPromotionFake(id),
         ]);
         setReviews(reviewsData);
@@ -95,7 +95,7 @@ const ProductDetail: React.FC = () => {
         const res = await removeFromWishlist(id);
         if (!res) {
           setIsLiked(previousLiked);
-          
+
           showToast(res.message || "Lỗi", "error");
         } else {
           setLikeState(previousLiked);
@@ -106,7 +106,7 @@ const ProductDetail: React.FC = () => {
         const res = await addToWishlist(id);
         if (!res) {
           setIsLiked(previousLiked);
-          
+
           showToast(res.message || "Lỗi", "error");
         } else {
           setLikeState(previousLiked);

@@ -13,12 +13,8 @@ import { useToast } from "../../../context/useToast";
 import {
   getProductForReview,
   submitReview,
-} from "../../../services/fakeReviewProductServices";
+} from "../../../services/reviewProductServices";
 import type { ReviewProductInfo } from "../../../services/reviewProductServices";
-//import {
-//  getProductForReview,
-//  submitReview,
-//} from "../../../services/reviewProductServices";
 
 const ReviewProduct = () => {
   // 1. URL bây giờ sẽ là /review/:orderItemId
@@ -75,7 +71,7 @@ const ReviewProduct = () => {
       });
 
       showToast("Gửi đánh giá thành công!", "success");
-      setTimeout(() => navigate("/history"), 1500); // Quay về lịch sử mua hàng
+      setTimeout(() => navigate("/homepage"), 1500); // Quay về trang chủ (hoặc trang lịch sử nếu có)
     } catch (error: any) {
       const msg = error.response?.data?.message || "Gửi đánh giá thất bại";
       showToast(msg, "error");

@@ -4,10 +4,10 @@ export const createProduct = async (req, res) => {
   try {
     const { code, title, description, category, tags } = req.body;
     if (!code || !title || !category) {
-      return res.status(400).json({ message: "Missing required fields" });
+      return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
     }
     if (!req.file) {
-      return res.status(400).json({ message: "Avatar image is required" });
+      return res.status(400).json({ message: "Ảnh đại diện là bắt buộc" });
     }
     let processedTags = [];
     if (tags) {
@@ -24,24 +24,24 @@ export const createProduct = async (req, res) => {
     });
 
     return res.status(201).json({
-      message: "Create product success",
+      message: "Tạo sản phẩm thành công",
       data: newProduct,
     });
   } catch (error) {
     if (error.message === "PRODUCT_CODE_EXISTS") {
-      return res.status(409).json({ message: "Product Code already exists" });
+      return res.status(409).json({ message: "Mã sản phẩm đã tồn tại" });
     }
     if (error.message === "CATEGORY_NOT_FOUND") {
-      return res.status(400).json({ message: "Category not found" });
+      return res.status(400).json({ message: "Danh mục không tìm thấy" });
     }
     if (error.message === "SLUG_EXISTS") {
       return res
         .status(409)
-        .json({ message: "Product title results in a duplicate slug" });
+        .json({ message: "Tên sản phẩm bị trùng slug" });
     }
 
     console.error("Controller Error:", error);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
 
@@ -59,7 +59,7 @@ export const getProduct = async (req, res) => {
     });
 
     return res.status(200).json({
-      success: "Fetch products success",
+      success: "Lấy danh sách sản phẩm thành công",
       data: products,
       pagination: {
         total,
@@ -70,7 +70,7 @@ export const getProduct = async (req, res) => {
     });
   } catch (error) {
     console.error("Get products controller error:", error);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
 
@@ -82,12 +82,12 @@ export const getOneProduct = async (req, res) => {
     const product = await productService.getOneProduct({ id, userId });
 
     return res.status(200).json({
-      success: "Fetch product success",
+      success: "Lấy sản phẩm thành công",
       data: product,
     });
   } catch (error) {
     console.error("Get products controller error:", error);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
 
@@ -112,26 +112,26 @@ export const updateProduct = async (req, res) => {
     );
 
     return res.status(200).json({
-      message: "Update product success",
+      message: "Cập nhật sản phẩm thành công",
     });
   } catch (error) {
     if (error.message === "PRODUCT_NOT_FOUND") {
-      return res.status(404).json({ message: "Product not found" });
+      return res.status(404).json({ message: "Sản phẩm không tìm thấy" });
     }
     if (error.message === "PRODUCT_ID_EXISTS") {
-      return res.status(409).json({ message: "Product Id already exists" });
+      return res.status(409).json({ message: "ID sản phẩm đã tồn tại" });
     }
     if (error.message === "CATEGORY_NOT_FOUND") {
-      return res.status(400).json({ message: "Category not found" });
+      return res.status(400).json({ message: "Danh mục không tìm thấy" });
     }
     if (error.message === "SLUG_EXISTS") {
       return res
         .status(409)
-        .json({ message: "Product title results in a duplicate slug" });
+        .json({ message: "Tên sản phẩm bị trùng slug" });
     }
 
     console.error("Controller Update Error:", error);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
 
@@ -142,15 +142,15 @@ export const deleteProduct = async (req, res) => {
     await productService.deleteProduct(id);
 
     return res.status(200).json({
-      message: "Delete product and related variants success",
+      message: "Xóa sản phẩm và các biến thể liên quan thành công",
     });
   } catch (error) {
     if (error.message === "PRODUCT_NOT_FOUND") {
-      return res.status(404).json({ message: "Product not found" });
+      return res.status(404).json({ message: "Sản phẩm không tìm thấy" });
     }
 
     console.error("Delete product controller error:", error);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
 
@@ -160,7 +160,7 @@ export const createProductVariant = async (req, res) => {
     const { stock, price, color, size } = req.body;
 
     if (color === undefined || price === undefined || stock === undefined) {
-      return res.status(400).json({ message: "Missing required fields" });
+      return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
     }
 
     const newVariant = await productService.createVariant({
@@ -173,31 +173,31 @@ export const createProductVariant = async (req, res) => {
     });
 
     return res.status(201).json({
-      message: "Create product variant success",
+      message: "Tạo biến thể sản phẩm thành công",
     });
   } catch (error) {
     if (error.message === "PRODUCT_NOT_FOUND") {
-      return res.status(404).json({ message: "Parent product not found" });
+      return res.status(404).json({ message: "Sản phẩm cha không tồn tại" });
     }
     if (error.message === "SKU_EXISTS") {
-      return res.status(409).json({ message: "SKU code already exists" });
+      return res.status(409).json({ message: "Mã SKU đã tồn tại" });
     }
     if (error.message === "INVALID_INPUT") {
       return res
         .status(400)
-        .json({ message: "Price or Stock must be a positive number" });
+        .json({ message: "Giá hoặc Trữ lượng phải là số dương" });
     }
     if (error.message === "VARIANT_ALREADY_EXISTS") {
       return res
         .status(409)
-        .json({ message: "Variant already exists" });
+        .json({ message: "Biến thể đã tồn tại" });
     }
     if (error.message === "IMAGE_REQUIRED_FOR_NEW_COLOR") {
-      return res.status(400).json({ message: "Image is required for new color" });
+      return res.status(400).json({ message: "Ảnh là bắt buộc cho màu mới" });
     }
 
     console.error("Variant Controller Error:", error);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
 
@@ -218,23 +218,23 @@ export const updateProductVariant = async (req, res) => {
     );
 
     return res.status(200).json({
-      message: "Update product variant success",
+      message: "Cập nhật biến thể sản phẩm thành công",
     });
   } catch (error) {
     if (error.message === "VARIANT_NOT_FOUND") {
-      return res.status(404).json({ message: "Variant not found" });
+      return res.status(404).json({ message: "Biến thể không tồn tại" });
     }
     if (error.message === "INVALID_INPUT") {
       return res
         .status(400)
-        .json({ message: "Price and Stock must be positive numbers" });
+        .json({ message: "Giá và trữ lượng phải là số dương" });
     }
     if (error.message === "MISSING_UPDATE_FIELDS") {
-      return res.status(409).json({ message: "Missing update fields" });
+      return res.status(409).json({ message: "Thiếu trường cập nhật" });
     }
 
     console.error("Controller Update Error:", error);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
 
@@ -246,21 +246,21 @@ export const deleteProductVariant = async (req, res) => {
     if (!size || !color) {
       return res.status(400).json({
         message:
-          "Missing identifiers: size and color are required.",
+          "Thiếu định danh: size và color là bắt buộc.",
       });
     }
 
     await productService.deleteProductVariant({ productId: id, size, color });
 
     return res.status(200).json({
-      message: "Delete product variant and its image success",
+      message: "Xóa biến thể sản phẩm và ảnh thành công",
     });
   } catch (error) {
     if (error.message === "VARIANT_NOT_FOUND") {
-      return res.status(404).json({ message: "Product variant not found" });
+      return res.status(404).json({ message: "Biến thể không tìm thấy" });
     }
 
     console.error("Delete Variant Error:", error);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };

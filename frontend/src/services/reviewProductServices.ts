@@ -56,3 +56,16 @@ export const submitReview = async (data: ReviewSubmitDTO): Promise<any> => {
   const response = await api.post<ApiResponse<any>>("/users/reviews", data);
   return response.data;
 };
+
+/**
+ * GET /users/reviews/product/:productId
+ * Get list of reviews for a product
+ */
+export const getReviewsByProduct = async (
+  productId: string
+): Promise<any[]> => {
+  const response = await api.get<ApiResponse<any[]>>(
+    `/users/reviews/product/${productId}`
+  );
+  return response.data.data;
+};
