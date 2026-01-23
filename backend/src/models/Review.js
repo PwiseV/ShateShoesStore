@@ -30,18 +30,21 @@ const reviewSchema = new mongoose.Schema(
             required: true,
             trim: true,
         },
-        // Snapshot of variant details at the time of review (optional, but good for display)
         color: {
             type: String,
         },
         size: {
             type: String,
         },
-        // If you want to track helpfulness
         likes: {
             type: Number,
             default: 0,
-        }
+        },
+        status: {
+            type: String,
+            enum: ["pending","active","hidden"],
+            default: "pending",
+        },
     },
     {
         timestamps: true,

@@ -3,14 +3,17 @@ import express from "express";
 import {
     getProductForReview,
     createReview,
-    getReviewsByProduct
+    getReviewsByProduct,
+    getAllReviews,
+    updateReviewStatus
 } from "../controllers/review.controller.js";
 
 const router = express.Router();
 
 // Get info to review (Protected by parent route)
 router.get("/reviews/order-item/:orderItemId", getProductForReview);
-
+router.get("/reviews", getAllReviews);
+router.patch("/reviews/:reviewId", updateReviewStatus);
 // Submit review (Protected)
 router.post("/reviews", createReview);
 
