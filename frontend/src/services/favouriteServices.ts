@@ -36,8 +36,13 @@ export interface FavouriteProduct {
 
 export interface GetFavouriteResponse {
   message: string;
-  count: number;
   data: FavouriteProduct[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }
 
 // [MỚI] Định nghĩa response cho hành động xóa
