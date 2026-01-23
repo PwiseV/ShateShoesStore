@@ -9,10 +9,10 @@ export const signUp = async (req, res) => {
   try {
     const { name, email, password } = req.body;
     if (!name || !email || !password)
-      return res.status(400).json({ message: "Missing fields" });
+      return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
 
     await authService.register({ name, email, password });
-    return res.status(201).json({ message: "Signup successful" });
+    return res.status(201).json({ message: "Đăng ký thành công" });
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
@@ -22,7 +22,7 @@ export const signIn = async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password)
-      return res.status(400).json({ message: "Missing required fields" });
+      return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
 
     const { user, accessToken, refreshToken } = await authService.authenticate({
       email,
@@ -39,7 +39,7 @@ export const signIn = async (req, res) => {
     });
 
     return res.status(200).json({
-      message: `User ${user.displayName} logged in!`,
+      message: `Người dùng ${user.displayName} đã đăng nhập!`,
       accessToken,
       user: {
         id: user._id,
@@ -57,13 +57,13 @@ export const refreshAccessToken = async (req, res) => {
   try {
     const token = req.cookies.refreshToken;
     if (!token)
-      return res.status(401).json({ message: "Refresh token not found" });
+      return res.status(401).json({ message: "Không tìm thấy refresh token" });
 
     const { user, accessToken } = await authService.verifyAndRefreshSession(
       token
     );
     return res.status(200).json({
-      message: "Access token refreshed successfully",
+      message: "Làm mới access token thành công",
       accessToken,
       user: {
         id: user._id,
@@ -151,7 +151,7 @@ export const googleCallback = async (req, res) => {
     return res.redirect(`http://localhost:5173/login?token=${jwtToken}`);
   } catch (err) {
     console.log("GOOGLE OAUTH ERROR:", err);
-    return res.status(500).json({ message: "Google OAuth failed" });
+    return res.status(500).json({ message: "Đăng nhập Google thất bại" });
   }
 };
 
@@ -161,7 +161,7 @@ export const getMe = async (req, res) => {
 
     return res.json({
       user,
-      message: `User ${user.displayName} đã logged in!`,
+      message: `Người dùng ${user.displayName} đã đăng nhập!`,
     });
   } catch (err) {
     return res.status(500).json({ message: "Lỗi hệ thống" });

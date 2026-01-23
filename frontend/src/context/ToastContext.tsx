@@ -1,5 +1,5 @@
 // src/context/ToastContext.tsx
-import { createContext, useState, type ReactNode } from "react";
+import { createContext, useState, type ReactNode, useCallback, useMemo } from "react";
 import { Snackbar, Alert } from "@mui/material";
 
 type Severity = "error" | "warning" | "info" | "success";
@@ -20,13 +20,15 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
     severity: "info",
   });
 
-  const showToast = (message: string, severity: Severity = "info") => {
+  const showToast = useCallback((message: string, severity: Severity = "info") => {
     setToast({ open: true, message, severity });
     window.setTimeout(() => setToast((t) => ({ ...t, open: false })), 2500);
-  };
+  }, []);
+
+  const value = useMemo(() => ({ showToast }), [showToast]);
 
   return (
-    <ToastContext.Provider value={{ showToast }}>
+    <ToastContext.Provider value={value}>
       {children}
       <Snackbar
         open={toast.open}

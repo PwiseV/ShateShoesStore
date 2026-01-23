@@ -21,6 +21,7 @@ import Posts from "./pages/Admin/Post/Posts.tsx";
 import CartPage from "./pages/Customer/Cart/CartPage.tsx";
 import CheckoutPage from "./pages/Customer/Checkout/CheckoutPage.tsx";
 import Orders from "./pages/Admin/Orders/Orders.tsx";
+import ReviewProduct from "./pages/Costumer/ReviewProduct/ReviewProduct.tsx";
 import UserProfile from "./pages/Costumer/UserProfile/UserProfile.tsx";
 import FAQs from "./pages/Costumer/FAQs/FAQs.tsx";
 import AboutUs from "./pages/Costumer/StaticPages/About/AboutUs.tsx";
@@ -53,6 +54,7 @@ export default function AppRoutes() {
           <Route path="/products" element={<ProductList />} />
           <Route path="/products/:slug" element={<ProductList />} />
           <Route path="/admin/orders" element={<Orders />} />
+          <Route path="/review/:orderItemId" element={<ReviewProduct />} />
 
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/faqs" element={<FAQs />} />
@@ -77,6 +79,7 @@ export default function AppRoutes() {
               element={<ProductDetail />}
             />
             <Route path="/products/:slug" element={<ProductList />} />
+            <Route path="/review/:orderItemId" element={<ReviewProduct />} />
             <Route path="/profile" element={<UserProfile />} />
             <Route path="/about-us" element={<AboutUs />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />

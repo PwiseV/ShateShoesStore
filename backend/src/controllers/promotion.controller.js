@@ -2,26 +2,9 @@ import * as promotionService from "../services/promotion.service.js";
 
 export const createPromotion = async (req, res) => {
   try {
-    const {
-      code,
-      description,
-      discountType,
-      discountAmount,
-      totalQuantity,
-      minOrderAmount,
-      endDate,
-      startDate,
-    } = req.body;
-    if (
-      !code ||
-      !description ||
-      !discountType ||
-      !discountAmount ||
-      !totalQuantity ||
-      !minOrderAmount ||
-      !endDate
-    ) {
-      return res.status(400).json({ message: "Missing required fields" });
+    const { code, description, discountType, discountAmount, totalQuantity, minOrderAmount, endDate, startDate } = req.body;
+    if (!code || !description || !discountType || !discountAmount || !totalQuantity || !minOrderAmount || !endDate) {
+      return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
     }
 
     const newPromotion = await promotionService.createPromotion({
@@ -36,31 +19,23 @@ export const createPromotion = async (req, res) => {
     });
 
     return res.status(201).json({
-      message: "Create promotion success",
+      message: "Tạo khuyến mãi thành công",
     });
   } catch (error) {
     if (error.message === "PROMOTION_CODE_EXISTS") {
-      return res.status(409).json({ message: "Promotion Code already exists" });
+      return res.status(409).json({ message: "Mã khuyến mãi đã tồn tại" });
     }
     if (error.message === "EXPIRED_DATE_INVALID") {
-      return res
-        .status(400)
-        .json({ message: "End date must be in the future" });
+      return res.status(400).json({ message: "Ngày kết thúc phải ở tương lai" });
     }
     if (error.message === "STARTED_DATE_INVALID") {
-      return res
-        .status(400)
-        .json({ message: "Start date must be in the future" });
+      return res.status(400).json({ message: "Ngày bắt đầu phải ở tương lai" });
     }
     if (error.message === "INVALID_DATE_RANGE") {
-      return res
-        .status(400)
-        .json({
-          message: "Invalid date range: start date must be before end date",
-        });
+      return res.status(400).json({ message: "Ngày bắt đầu phải trước ngày kết thúc" });
     }
     console.error("Controller Error:", error);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
 
@@ -69,7 +44,13 @@ export const getPromotions = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 6;
 
-    const { keyword, discountType, status, startDate, endDate } = req.query;
+    const {
+      keyword,
+      discountType,
+      status,
+      startDate,
+      endDate
+    } = req.query;
 
     const { promotions, total } = await promotionService.getPromotions({
       page,
@@ -83,7 +64,7 @@ export const getPromotions = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Fetch promotions success",
+      message: "Lấy danh sách khuyến mãi thành công",
       data: promotions,
       pagination: {
         total,
@@ -94,7 +75,7 @@ export const getPromotions = async (req, res) => {
     });
   } catch (error) {
     console.error("Get promotions controller error:", error);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
 
@@ -189,7 +170,7 @@ export const updatePromotion = async (req, res) => {
       minOrderAmount,
       endDate,
       startDate,
-      status,
+      status
     } = req.body;
 
     const updatedPromotion = await promotionService.updatePromotion(id, {
@@ -201,41 +182,22 @@ export const updatePromotion = async (req, res) => {
       minOrderAmount,
       expiredAt: endDate,
       startedAt: startDate,
-      active: status,
+      active: status
     });
 
     return res.status(200).json({
-      message: "Update promotion success",
+      message: "Cập nhật khuyến mãi thành công"
     });
   } catch (error) {
     const errorMap = {
-      PROMOTION_NOT_FOUND: { status: 404, message: "Promotion not found" },
-      PROMOTION_CODE_ALREADY_EXISTS: {
-        status: 400,
-        message: "Promotion code already exists",
-      },
-      INVALID_DATE_RANGE: {
-        status: 400,
-        message: "Start date must be before expired date",
-      },
-      CANNOT_SET_ACTIVE_BEFORE_START_DATE: {
-        status: 400,
-        message: "Cannot activate before the start date",
-      },
-      CANNOT_SET_ACTIVE_AFTER_EXPIRED_DATE: {
-        status: 400,
-        message: "Cannot activate after the expired date",
-      },
-      CANNOT_SET_UPCOMING_AFTER_START_DATE: {
-        status: 400,
-        message:
-          "Current time is already past start date, cannot set to upcoming",
-      },
-      CANNOT_SET_EXPIRED_BEFORE_END_DATE: {
-        status: 400,
-        message: "Promotion has not ended yet, cannot set to expired",
-      },
-      INVALID_STATUS_VALUE: { status: 400, message: "Invalid status value" },
+      "PROMOTION_NOT_FOUND": { status: 404, message: "Khuyến mãi không tìm thấy" },
+      "PROMOTION_CODE_ALREADY_EXISTS": { status: 400, message: "Mã khuyến mãi đã tồn tại" },
+      "INVALID_DATE_RANGE": { status: 400, message: "Ngày bắt đầu phải trước ngày hết hạn" },
+      "CANNOT_SET_ACTIVE_BEFORE_START_DATE": { status: 400, message: "Không thể kích hoạt trước ngày bắt đầu" },
+      "CANNOT_SET_ACTIVE_AFTER_EXPIRED_DATE": { status: 400, message: "Không thể kích hoạt sau ngày hết hạn" },
+      "CANNOT_SET_UPCOMING_AFTER_START_DATE": { status: 400, message: "Đã qua ngày bắt đầu, không thể đặt là sắp diễn ra" },
+      "CANNOT_SET_EXPIRED_BEFORE_END_DATE": { status: 400, message: "Khuyến mãi chưa kết thúc, không thể đặt là hết hạn" },
+      "INVALID_STATUS_VALUE": { status: 400, message: "Trạng thái không hợp lệ" }
     };
 
     if (errorMap[error.message]) {
@@ -244,7 +206,7 @@ export const updatePromotion = async (req, res) => {
     }
 
     console.error("Controller Error:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
 
@@ -254,23 +216,23 @@ export const deletePromotion = async (req, res) => {
     await promotionService.deletePromotion(id);
 
     return res.status(200).json({
-      message: "Promotion deleted successfully",
+      message: "Xóa khuyến mãi thành công",
     });
   } catch (error) {
     if (error.message === "PROMOTION_NOT_FOUND") {
       return res.status(404).json({
-        message: "Promotion not found",
+        message: "Khuyến mãi không tìm thấy",
       });
     }
     if (error.name === "CastError") {
       return res.status(400).json({
-        message: "Invalid Promotion ID format",
+        message: "Định dạng ID khuyến mãi không hợp lệ",
       });
     }
 
     console.error("Delete Promotion Error:", error);
     return res.status(500).json({
-      message: "Internal Server Error",
+      message: "Lỗi hệ thống",
     });
   }
 };

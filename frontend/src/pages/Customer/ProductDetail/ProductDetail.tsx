@@ -29,10 +29,10 @@ import { useToast } from "../../../context/useToast";
 
 // Fake imports
 import {
-  getProductReviewsFake,
   getProductPromotionFake,
   addToCartFake,
 } from "../../../services/fakeProductDetailsServices";
+import { getReviewsByProduct } from "../../../services/reviewProductServices";
 
 type BreadcrumbItem = {
   name: string;
@@ -71,7 +71,7 @@ const ProductDetail: React.FC = () => {
         setProduct(data);
         setIsLiked(data.isFavourite);
         const [reviewsData, promoData] = await Promise.all([
-          getProductReviewsFake(id),
+          getReviewsByProduct(id),
           getProductPromotionFake(id),
         ]);
         setReviews(reviewsData);
