@@ -81,17 +81,25 @@ const CartList = ({
 
         <Divider sx={{ borderColor: "#000000", mt: 1, mb: 4 }} />
 
-        {items.map((item) => (
-          <CartItemView
-            key={item.cartItemId}
-            item={item}
-            onIncrease={() => onIncrease(item.cartItemId)}
-            onDecrease={() => onDecrease(item.cartItemId)}
-            onRemove={() => onRemove(item.cartItemId)}
-            onToggle={() => onToggle(item.cartItemId)}
-            onUpdateVariant={(id, vid, qty) => onUpdateVariant(id, vid, qty)}
-          />
-        ))}
+        {items.length === 0 ? (
+          <Box sx={{ textAlign: "center", py: 4 }}>
+            <Typography variant="h6" color="text.secondary">
+              Giỏ hàng trống
+            </Typography>
+          </Box>
+        ) : (
+          items.map((item) => (
+            <CartItemView
+              key={item.cartItemId}
+              item={item}
+              onIncrease={() => onIncrease(item.cartItemId)}
+              onDecrease={() => onDecrease(item.cartItemId)}
+              onRemove={() => onRemove(item.cartItemId)}
+              onToggle={() => onToggle(item.cartItemId)}
+              onUpdateVariant={(id, vid, qty) => onUpdateVariant(id, vid, qty)}
+            />
+          ))
+        )}
       </CardContent>
     </Card>
   );

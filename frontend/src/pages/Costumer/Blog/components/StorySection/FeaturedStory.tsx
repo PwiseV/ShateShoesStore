@@ -50,7 +50,7 @@ const FeaturedStory: React.FC<FeaturedStoryProps> = ({ data }) => {
           textAlign: "left",
         }}
       >
-        {data.summary}
+        {data.summary || data.excerpt}
       </Typography>
 
       <Typography
@@ -62,7 +62,7 @@ const FeaturedStory: React.FC<FeaturedStoryProps> = ({ data }) => {
           fontFamily: '"Lexend", sans-serif',
         }}
       >
-        {formatDate(data.published_at)}
+        {formatDate(data.published_at || data.createdAt)}
       </Typography>
     </Box>
   );

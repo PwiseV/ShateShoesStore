@@ -86,7 +86,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
               mt: 2,
             }}
           >
-            {post.published_at}
+            {post.published_at || post.createdAt}
           </Typography>
         </Box>
       </CardActionArea>

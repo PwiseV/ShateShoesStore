@@ -14,6 +14,7 @@ const menuItems = [
   { label: "Trang chủ", path: "/homepage" },
   { label: "Sản phẩm", path: "/products" },
   { label: "Giới thiệu", path: "/about-us" },
+  { label: "Tin tức", path: "/blog" },
   { label: "Liên hệ", path: "/contact-us" },
 ];
 

@@ -56,7 +56,7 @@ const StoryList: React.FC<StoryListProps> = ({ data }) => {
                 fontFamily: '"Lexend", sans-serif',
               }}
             >
-              {formatDate(story.published_at)}
+              {formatDate(story.published_at || story.createdAt)}
             </Typography>
           </Box>
         </Box>

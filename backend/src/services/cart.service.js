@@ -45,15 +45,21 @@ export const getCart = async (userId) => {
   const cartData = await Promise.all(
     items.map(async (item) => {
       const variant = item.variantId;
+      
+      // Kiểm tra variant có tồn tại không
       if (!variant) {
-        return {
-          cartItemId: item._id,
-          isInvalid: true,
-          title: "Product no longer exists",
-        };
+        console.warn(`Variant not found for cart item ${item._id}`);
+        return null; // Sẽ filter ra sau
       }
 
-      const product = variant.productId || {};
+      const product = variant.productId;
+      
+      // Kiểm tra product có tồn tại không
+      if (!product) {
+        console.warn(`Product not found for variant ${variant._id}`);
+        return null; // Sẽ filter ra sau
+      }
+      
       let currentQty = item.quantity;
       let needsUpdate = false;
 
@@ -102,9 +108,9 @@ export const getCart = async (userId) => {
         color: variant.color,
         price: variant.price,
         stock: variant.stock,
-        avatar: variant.avatar?.url || product.avatar?.url,
+        avatar: variant.productVariantImageId?.avatar?.url || product.avatar?.url,
         isOutOfStock: variant.stock <= 0,
-        isAdjusted: needsUpdate,
+        isAdjust: needsUpdate,
         product: {
           productId: product._id,
           code: product.code,
@@ -119,7 +125,8 @@ export const getCart = async (userId) => {
     }),
   );
 
-  return cartData;
+  // Filter out null items (invalid cart items)
+  return cartData.filter(item => item !== null);
 };
 
 export const updateQuantity = async ({
@@ -132,6 +139,9 @@ export const updateQuantity = async ({
   if (!item) {
     throw new Error("CART_ITEM_NOT_FOUND");
   }
+  
+  // Nếu đổi variant, kiểm tra xem variant mới có tồn tại không
+  let targetVariantId = item.variantId;
   if (variantId && variantId.toString() !== item.variantId.toString()) {
     const existingOtherItem = await CartItem.findOne({
       userId,
@@ -142,12 +152,21 @@ export const updateQuantity = async ({
     if (existingOtherItem) {
       throw new Error("VARIANT_ALREADY_IN_CART");
     }
+    
+    targetVariantId = variantId;
   }
 
-  const variant = await ProductVariant.findById(item.variantId);
-  if (!variant || variant.stock < quantity) {
+  // Kiểm tra stock của variant (có thể là variant cũ hoặc mới)
+  const variant = await ProductVariant.findById(targetVariantId);
+  if (!variant) {
+    throw new Error("VARIANT_NOT_FOUND");
+  }
+  
+  if (variant.stock < quantity) {
     throw new Error("NOT_ENOUGH_STOCK");
   }
+  
+  // Cập nhật
   if (variantId) {
     item.variantId = variantId;
   }

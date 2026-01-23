@@ -46,9 +46,14 @@ const CartItemView = ({
     setIsChanged(false);
   }, [item]);
 
-  const sizes = item.product.sizes || [];
+  // Safe guards để tránh lỗi undefined
+  if (!item || !item.product) {
+    return null;
+  }
+
+  const sizes = item.product?.sizes || [];
   const currentSizeObj = sizes.find((s) => s.size === selectedSize);
-  const availableColors = currentSizeObj ? currentSizeObj.colors : [];
+  const availableColors = currentSizeObj?.colors || [];
 
   const handleSizeChange = (e: SelectChangeEvent) => {
     const newSize = e.target.value;
@@ -127,8 +132,8 @@ const CartItemView = ({
         }}
       >
         <img
-          src={item.avatar || item.product.avatar}
-          alt={item.product.title}
+          src={item.avatar || item.product?.avatar || '/placeholder.png'}
+          alt={item.product?.title || 'Product'}
           style={{ width: "100%", height: "100%", objectFit: "cover" }}
         />
       </Box>
@@ -157,7 +162,7 @@ const CartItemView = ({
             WebkitLineClamp: 2,
           }}
         >
-          {item.product.title}
+          {item.product?.title || 'Sản phẩm'}
         </Typography>
 
         {/* --- CHỈNH SỬA 2: Container Dropdown --- */}

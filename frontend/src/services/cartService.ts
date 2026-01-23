@@ -7,11 +7,25 @@ import type { CartItem, UpdateCartPayload } from "../pages/Customer/Cart/types";
 export const getCartItems = async (): Promise<CartItem[]> => {
   try {
     const response = await api.get("/users/cart");
+    console.log("Cart API Response:", response.data); // Debug log
+    
     // Dựa trên mô tả response: { data: [...] }
-    return response.data.data || response.data;
-  } catch (error) {
+    const cartData = response.data.data || response.data;
+    
+    // Validate response
+    if (!Array.isArray(cartData)) {
+      console.error("Invalid cart data format:", cartData);
+      return [];
+    }
+    
+    return cartData;
+  } catch (error: any) {
     console.error("getCartItems error:", error);
-    throw error;
+    // Trả về mảng rỗng thay vì throw error để tránh crash app
+    if (error.response?.status === 401) {
+      throw new Error("Vui lòng đăng nhập để xem giỏ hàng");
+    }
+    throw new Error(error.response?.data?.message || "Không thể tải giỏ hàng");
   }
 };
 

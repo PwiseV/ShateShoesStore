@@ -35,6 +35,13 @@ export const useCart = () => {
     try {
       const data = await getCartService();
 
+      // Validate data trước khi set
+      if (!Array.isArray(data)) {
+        console.error("Invalid cart data:", data);
+        setItems([]);
+        return;
+      }
+
       // Logic FE: Thêm trường selected = true mặc định khi mới load
       // Lưu ý: Nếu BE có lưu trạng thái selected thì bỏ dòng map này đi
       setItems((prevItems) => {
@@ -52,6 +59,7 @@ export const useCart = () => {
     } catch (err: any) {
       console.error("Load cart error:", err);
       showToast(err.message || "Lỗi tải giỏ hàng", "error");
+      setItems([]); // Set empty array on error
     } finally {
       setLoading(false);
     }

@@ -30,8 +30,10 @@ export const getLatestPosts = async (limit) => {
     id: p._id,
     title: p.title,
     summary: p.content.slice(0, 120) + "...",
+    excerpt: p.content.slice(0, 120) + "...",
     thumbnail: p.thumbnail?.url || "",
     published_at: p.createdAt,
+    createdAt: p.createdAt,
   }));
 };
 

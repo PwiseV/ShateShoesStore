@@ -14,9 +14,13 @@ export interface Product {
 export interface BlogPost {
   id: number | string;
   title: string;
-  summary: string;
+  summary?: string;
+  excerpt?: string;
   thumbnail: string;
-  published_at: string;
+  published_at?: string;
+  createdAt?: string;
+  slug?: string;
+  category?: string;
 }
 
 export interface NewsletterResponse {
