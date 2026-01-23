@@ -36,6 +36,8 @@ import OrderSuccess from "./pages/Customer/Payment/SuccessOrder.tsx";
 // forgot password components
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword/ResetPassword";
+import Reviews from "./pages/Admin/Reviews/Reviews.tsx";
+
 export default function AppRoutes() {
   return (
     <Router>
@@ -69,6 +71,7 @@ export default function AppRoutes() {
             <Route path="/admin/promotions" element={<Promotions />} />
             <Route path="/admin/posts" element={<Posts />} />
             <Route path="/admin/orders" element={<Orders />} />
+            <Route path="/admin/reviews" element={<Reviews />} />
           </Route>
 
           <Route element={<ProtectedRoute role="customer" />}>
