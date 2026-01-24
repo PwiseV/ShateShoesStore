@@ -50,10 +50,14 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // Không retry cho các auth endpoints
+    const authEndpoints = ['/auth/signin', '/auth/signup', '/auth/refresh-token', '/auth/forgot-password', '/auth/reset-password'];
+    const isAuthEndpoint = authEndpoints.some(endpoint => originalRequest.url?.includes(endpoint));
+
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      !originalRequest.url?.includes('/auth/refresh-token') // Tránh loop
+      !isAuthEndpoint // Không retry cho auth endpoints
     ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {

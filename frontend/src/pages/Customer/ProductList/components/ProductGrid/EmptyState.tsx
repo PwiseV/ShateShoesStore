@@ -1,4 +1,4 @@
-// src/pages/Costumer/ProductList/components/ProductGrid/EmptyState.tsx
+// src/pages/Customer/ProductList/components/ProductGrid/EmptyState.tsx
 import React from "react";
 import { Box, Typography } from "@mui/material";
 import SearchOffIcon from "@mui/icons-material/SearchOff";
