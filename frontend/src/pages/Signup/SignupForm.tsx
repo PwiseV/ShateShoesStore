@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link as RouterLink } from "react-router-dom";
 import {
   Box,
   Paper,
@@ -14,11 +14,11 @@ import {
 import FacebookIcon from "@mui/icons-material/Facebook";
 import GoogleIcon from "@mui/icons-material/Google";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
+import Header from "../../components/Customer/Header"; // Thêm Header vào
 
-import { signup } from "../../services/authServices";
+import { signup, googleSignIn } from "../../services/authServices";
 import { useToast } from "../../context/useToast";
 import validatePassword from "../../utils/ValidatePassword";
-
 import RoundedInput from "./TextInput";
 
 const SignupForm: React.FC = () => {
@@ -51,195 +51,199 @@ const SignupForm: React.FC = () => {
       return;
     }
 
-    // Call API
     try {
       const data = await signup({ name, email, password });
       showToast(data.message || "Đăng ký thành công!", "success");
       navigate("/login");
-    } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : typeof err === "string"
-          ? err
-          : "Something went wrong";
-
-      showToast(message, "error");
+    } catch (err: any) {
+      showToast(err.message || "Something went wrong", "error");
     }
   };
 
   return (
-    <div className="fixed inset-0 flex justify-center items-center bg-[#F5EFEB] overflow-hidden p-6">
-      <Paper
-        elevation={10}
-        className="flex max-w-[800px] w-full h-[90vh] max-h-[210vh] overflow-hidden"
-        sx={{ borderRadius: "24px" }}
-      >
-        {/* Left Side - Welcome Section */}
-        <Box className="flex-1 relative hidden md:block">
-          <img
-            src="https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=1200&q=80"
-            alt="Welcome"
-            className="w-full h-full object-cover"
-          />
-          <Box className="absolute inset-0 bg-black/30 flex flex-col justify-end p-10 text-white">
-            <Typography
-              variant="h1"
-              sx={{
-                fontWeight: 600,
-                fontSize: { xs: "2rem", md: "1.4rem" },
-                textAlign: "left",
-                mt: 2,
-              }}
-            >
-              Create your account today and get started for free!
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{
-                textAlign: "left",
-                fontSize: { xs: "0.5rem", md: "0.7rem" },
-              }}
-            >
-              <br />
-              Hãy đăng ký để tiếp tục hành trình tìm kiếm đôi giày hoàn hảo dành
-              riêng cho bạn nhé!
-            </Typography>
-          </Box>
-        </Box>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        bgcolor: "#F5EFEB",
+        display: "flex",
+        flexDirection: "column",
+        // Ép Header không sticky
+        "& .MuiAppBar-root": {
+          position: "static !important",
+          marginTop: "20px !important",
+        },
+      }}
+    >
+      <Header />
 
-        {/* Right Side - Login Form */}
-        <Box
-          className="flex-1 p-10 lg:p-15 flex flex-col justify-center"
+      <Box
+        sx={{
+          flex: 1,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          p: 2,
+        }}
+      >
+        <Paper
+          elevation={10}
           sx={{
-            background: "linear-gradient(135deg, #f8fafc 0%, #e6f0fb 100%)",
+            display: "flex",
+            maxWidth: "900px", // Nhỏ lại y chang Login
+            width: "100%",
+            minHeight: "520px", 
+            borderRadius: "20px",
+            overflow: "hidden",
           }}
         >
-          <Typography
-            variant="h3"
-            align="center"
+          {/* Left Side - Welcome Section */}
+          <Box
             sx={{
-              fontWeight: 700,
-              mb: 2,
-              fontSize: { xs: "1.5rem", md: "1.7rem" },
-              color: "#2F4156",
+              flex: 1,
+              position: "relative",
+              display: { xs: "none", md: "block" },
             }}
           >
-            Sign up
-          </Typography>
-
-          {/* Social Login Icons */}
-          <Stack direction="row" spacing={3} justifyContent="center" mb={2}>
-            <IconButton
-              aria-label="Sign in with Facebook"
-              size="medium"
+            <Box
+              component="img"
+              src="https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=1200&q=80"
+              alt="Welcome"
               sx={{
-                borderRadius: "8px",
-                bgcolor: "common.white",
-                "&:hover": { bgcolor: "primary.main", color: "common.white" },
-                transition: "all .25s",
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                display: "block",
+              }}
+            />
+            <Box
+              sx={{
+                position: "absolute",
+                inset: 0,
+                background: "linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0.1))",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "end",
+                p: 3,
+                color: "white",
               }}
             >
-              <FacebookIcon />
-            </IconButton>
+              <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
+                Join Us!
+              </Typography>
+              <Typography variant="caption" sx={{ opacity: 0.9, lineHeight: 1.4 }}>
+                Tạo tài khoản ngay để nhận ưu đãi và bắt đầu hành trình phong cách của bạn.
+              </Typography>
+            </Box>
+          </Box>
 
-            <IconButton
-              aria-label="Sign in with Google"
-              size="medium"
-              sx={{
-                borderRadius: "8px",
-                bgcolor: "common.white",
-                "&:hover": { bgcolor: "primary.main", color: "common.white" },
-                transition: "all .25s",
-              }}
-            >
-              <GoogleIcon />
-            </IconButton>
-
-            <IconButton
-              aria-label="Sign in with LinkedIn"
-              size="medium"
-              sx={{
-                borderRadius: "8px",
-                bgcolor: "common.white",
-                "&:hover": { bgcolor: "primary.main", color: "common.white" },
-                transition: "all .25s",
-              }}
-            >
-              <LinkedInIcon />
-            </IconButton>
-          </Stack>
-
-          <Typography align="center" color="#2F4156" mb={0}>
-            <span className="text-[#2F4156] text-xs">
-              Or using email for registration
-            </span>
-          </Typography>
-
+          {/* Right Side - Signup Form */}
           <Box
-            component="form"
-            onSubmit={handleSubmit}
-            sx={{ mx: "auto", width: "100%", maxWidth: 480 }}
+            sx={{
+              flex: 1.2,
+              p: { xs: 3, md: 5 },
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              background: "linear-gradient(135deg, #f8fafc 0%, #e6f0fb 100%)",
+            }}
           >
-            <RoundedInput
-              label="Name"
-              value={name}
-              setValue={setName}
-              type="text"
-              placeholder="Nguyen Van A"
-            />
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 600,
+                mb: 2,
+                color: "#2F4156",
+                textAlign: "center",
+              }}
+            >
+              Sign up
+            </Typography>
 
-            <RoundedInput
-              label="Email"
-              value={email}
-              setValue={setEmail}
-              type="email"
-              placeholder="example@email.com"
-            />
+            {/* Social Login */}
+            <Stack direction="row" spacing={1.5} justifyContent="center" mb={2}>
+              {[
+                { icon: <FacebookIcon fontSize="small" />, action: googleSignIn },
+                { icon: <GoogleIcon fontSize="small" />, action: googleSignIn },
+                { icon: <LinkedInIcon fontSize="small" />, action: googleSignIn },
+              ].map((social, idx) => (
+                <IconButton
+                  key={idx}
+                  onClick={social.action}
+                  size="small"
+                  sx={{
+                    bgcolor: "white",
+                    boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
+                    p: 1,
+                    "&:hover": { bgcolor: "#5a7d9a", color: "white" },
+                  }}
+                >
+                  {social.icon}
+                </IconButton>
+              ))}
+            </Stack>
 
-            <RoundedInput
-              label="Password"
-              value={password}
-              setValue={setPassword}
-              type="password"
-              placeholder="Your password"
-              onBlur={() => setError(validatePassword(password))}
-            />
-            {error && <p className="text-red-500 text-xs">{error}</p>}
+            <Typography variant="caption" align="center" color="text.secondary" mb={2}>
+              hoặc đăng ký bằng email
+            </Typography>
 
+            <Box component="form" onSubmit={handleSubmit} noValidate>
+              <Stack spacing={1.2}>
+                <RoundedInput
+                  label="Name"
+                  value={name}
+                  setValue={setName}
+                  type="text"
+                  placeholder="Nguyen Van A"
+                />
+                <RoundedInput
+                  label="Email"
+                  value={email}
+                  setValue={setEmail}
+                  type="email"
+                  placeholder="example@email.com"
+                />
+                <Box>
+                  <RoundedInput
+                    label="Password"
+                    value={password}
+                    setValue={setPassword}
+                    type="password"
+                    placeholder="Mật khẩu"
+                    onBlur={() => setError(validatePassword(password))}
+                  />
+                  {error && <Typography sx={{ color: "red", fontSize: "0.7rem", mt: 0.5 }}>{error}</Typography>}
+                </Box>
+                <RoundedInput
+                  label="Confirm Password"
+                  value={confirmPassword}
+                  setValue={setConfirmPassword}
+                  type="password"
+                  placeholder="Xác nhận mật khẩu"
+                />
+              </Stack>
 
-            <RoundedInput
-              label="Confirm Password"
-              value={confirmPassword}
-              setValue={setConfirmPassword}
-              type="password"
-              placeholder="Your confirm password"
-            />
+              <FormControlLabel
+                control={<Checkbox size="small" checked={check} onChange={() => setCheck(!check)} />}
+                label={
+                  <Typography sx={{ fontSize: "0.75rem", color: "#2F4156" }}>
+                    Tôi đồng ý với các{" "}
+                    <MuiLink component={RouterLink} to="/terms" sx={{ color: "#5a7d9a" }}>
+                      điều khoản dịch vụ
+                    </MuiLink>
+                  </Typography>
+                }
+                sx={{ mt: 1 }}
+              />
 
-            <FormControlLabel
-              required
-              value={check}
-              control={<Checkbox size="small" />}
-              onChange={() => setCheck(!check)}
-              label={
-                <span className="text-[#2F4156] text-xs">
-                  Tôi đồng ý với tất cả các{" "}
-                  <a href="/terms" className="text-blue-600 underline">
-                    điều khoản dịch vụ
-                  </a>
-                </span>
-              }
-            />
-
-            <Box textAlign="center" mt={1}>
               <Button
                 type="submit"
                 variant="contained"
+                fullWidth
                 sx={{
-                  width: "40%",
                   borderRadius: "9999px",
-                  py: 0.75,
-                  fontSize: "1rem",
+                  mt: 2,
+                  py: 1,
+                  fontSize: "0.9rem",
                   backgroundColor: "#5a7d9a",
                   "&:hover": { backgroundColor: "#4a6d8a" },
                   textTransform: "none",
@@ -247,21 +251,24 @@ const SignupForm: React.FC = () => {
               >
                 Sign up
               </Button>
-            </Box>
 
-            <Box textAlign="center" mt={1}>
-              <MuiLink
-                href="/login"
-                underline="hover"
-                sx={{ color: "#567C8D", display: "inline-block" }}
-              >
-                Sign in
-              </MuiLink>
+              <Box textAlign="center" mt={2}>
+                <Typography variant="caption" color="text.secondary">
+                  Đã có tài khoản?{" "}
+                  <MuiLink
+                    component={RouterLink}
+                    to="/login"
+                    sx={{ color: "#5a7d9a", fontWeight: 600, textDecoration: "none" }}
+                  >
+                    Sign in
+                  </MuiLink>
+                </Typography>
+              </Box>
             </Box>
           </Box>
-        </Box>
-      </Paper>
-    </div>
+        </Paper>
+      </Box>
+    </Box>
   );
 };
 

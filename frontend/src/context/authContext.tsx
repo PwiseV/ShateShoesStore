@@ -2,6 +2,7 @@
 import { createContext, useState, useEffect, type ReactNode } from "react";
 import type { User } from "../services/authServices";
 import { refreshToken, signout as apiLogout } from "../services/authServices";
+import { removeAccessToken } from "../services/tokenServices";
 
 export interface AuthContextType {
   user: User | null;
@@ -25,8 +26,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       try {
         const auth = await refreshToken();
         setUser(auth.user);
-      } catch {
+        
+        // Lưu userId vào localStorage khi refresh token
+        if (auth.user?.id) {
+          localStorage.setItem("userId", auth.user.id);
+        }
+      } catch (error: any) {
+        console.error("Auth initialization error:", error.message);
         setUser(null);
+        localStorage.removeItem("userId");
+        
+        // KHÔNG hiển thị toast khi init, vì user có thể chưa login
+        // Chỉ log error để debug
       } finally {
         setLoading(false);
       }
@@ -40,7 +51,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } catch (err) {
       console.error("Logout error:", err);
     } finally {
+      // Clear all auth data
       setUser(null);
+      removeAccessToken();
+      localStorage.removeItem("userId");
       window.location.href = "/login";
     }
   };

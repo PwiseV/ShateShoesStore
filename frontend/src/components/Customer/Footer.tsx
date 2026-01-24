@@ -1,167 +1,153 @@
-import {
-  FaFacebookF,
-  FaTwitter,
-  FaInstagram,
-  FaLinkedinIn,
-  FaYoutube,
-} from "react-icons/fa";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import logoImg from "../../assets/logo3.svg";
+import React from "react";
+import { Link } from "react-router-dom";
+import { Box, Container, Grid, Typography, Stack } from "@mui/material";
+import logoImg from "../../assets/logo3.svg"; // Đảm bảo đường dẫn logo đúng
 
 const Footer = () => {
   return (
-    <div>
-      <footer
-        style={{
-          background: "linear-gradient(135deg, #2C5F7C 0%, #567C8D 80%)",
-          color: "white",
-          padding: "2rem 2rem",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "1200px",
-            margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: "3rem",
-          }}
+    <Box
+      component="footer"
+      sx={{
+        bgcolor: "#567C8D", // Màu nền xanh xám giống hình
+        color: "white",
+        py: 6, // Padding trên dưới (48px)
+        mt: "auto", // Đẩy footer xuống đáy nếu nội dung trang ngắn
+      }}
+    >
+      <Container maxWidth="xl">
+        <Grid
+          container
+          spacing={4}
+          alignItems="center" // Căn giữa theo chiều dọc
+          justifyContent="space-between"
         >
-          {/* Brand Col */}
-          <div style={{ minWidth: "300px" }}>
-            <div
-              style={{
+          {/* 1. CỘT TRÁI: CÁC LIÊN KẾT CHÍNH SÁCH */}
+          <Grid item xs={12} md={4}>
+            <Box
+              sx={{
                 display: "flex",
-                alignItems: "center",
-                gap: "0.75rem",
-                marginBottom: "1.25rem",
+                flexDirection: "column",
+                alignItems: { xs: "center", md: "flex-start" }, // Mobile căn giữa, PC căn trái
+                gap: 2,
               }}
             >
-              <div
-                style={{
-                  display: "grid",
-                  gap: "3px",
+              {/* Dòng 1: Đổi trả & Bảo mật */}
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center", // <--- MẤU CHỐT: Căn giữa các dòng link với nhau
+                  gap: 1,
                 }}
               >
-                <Box
-                  component="img"
-                  src={logoImg}
-                  alt="SHATE logo"
-                  sx={{ height: 40, width: "auto" }}
-                />
-              </div>
-              <Typography
+                {/* Dòng 1 */}
+                <Box sx={{ display: "flex", gap: 3 }}>
+                  <FooterLink to="/return-policy">
+                    CHÍNH SÁCH ĐỔI TRẢ
+                  </FooterLink>
+                  <FooterLink to="/privacy-policy">
+                    CHÍNH SÁCH BẢO MẬT
+                  </FooterLink>
+                </Box>
+
+                {/* Dòng 2 (Sẽ tự động căn giữa so với dòng 1) */}
+                <FooterLink to="/size-guide">HƯỚNG DẪN CHỌN SIZE</FooterLink>
+              </Box>
+              {/* --- KẾT THÚC HỘP GOM NHÓM --- */}
+            </Box>
+          </Grid>
+
+          {/* 2. CỘT GIỮA: LOGO & TÊN THƯƠNG HIỆU */}
+          <Grid item xs={12} md={4}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Box
+                component="img"
+                src={logoImg}
+                alt="SHATE Logo"
                 sx={{
-                  fontSize: "1rem",
-                  fontWeight: 700,
-                  letterSpacing: "9px",
-                  alignItems: "center",
-                  marginTop: "3px",
+                  height: 80, // Logo to giống hình
+                  width: "auto",
+                  mb: 1,
+                }}
+              />
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 500,
+                  letterSpacing: "4px",
+                  fontFamily: '"Lexend", sans-serif',
                 }}
               >
                 SHATE
               </Typography>
-            </div>
-            <p
-              style={{
-                color: "rgba(255,255,255,0.7)",
-                fontSize: "1rem",
-                lineHeight: "1.6",
-                marginBottom: "1.5rem",
-                textAlign: "left"
+            </Box>
+          </Grid>
 
-              }}
-            >
-              Lorem ipsum dolor sit amet consectetur adipiscing elit sed mauris
-              sed.
-            </p>
-            <div style={{ display: "flex", gap: "0.8rem" }}>
-              {[
-                FaFacebookF,
-                FaTwitter,
-                FaInstagram,
-                FaLinkedinIn,
-                FaYoutube,
-              ].map((Icon, i) => (
-                <a
-                  key={i}
-                  href="#"
-                  style={{
-                    width: "36px",
-                    height: "36px",
-                    background: "rgba(255,255,255,0.1)",
-                    borderRadius: "8px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "white",
-                  }}
-                >
-                  <Icon size={16} />
-                </a>
-              ))}
-            </div>
-          </div>
-
-          {/* Links Cols */}
-          {[
-            {
-              title: "Product",
-              links: ["Features", "Pricing", "Reviews", "Updates"],
-            },
-            {
-              title: "Company",
-              links: ["About", "Contact us", "Careers", "Blog"],
-            },
-            {
-              title: "Support",
-              links: ["Help center", "Report a bug", "Chat support"],
-            }
-          ].map((section, i) => (
-            <div key={i}>
-              <h4
-                style={{
-                  marginBottom: "1.25rem",
+          {/* 3. CỘT PHẢI: SLOGAN */}
+          <Grid item xs={12} md={4}>
+            <Box sx={{ textAlign: { xs: "center", md: "right" } }}>
+              {" "}
+              {/* Mobile giữa, PC phải */}
+              <Typography
+                sx={{
                   fontSize: "1.1rem",
-                  fontWeight: 600,
+                  mb: 0.5,
+                  fontFamily: '"Lexend", sans-serif',
+                  fontWeight: 300,
+                  textAlign: "center",
                 }}
               >
-                {section.title}
-              </h4>
-              <ul style={{ listStyle: "none", padding: 0 }}>
-                {section.links.map((link, j) => (
-                  <li key={j} style={{ marginBottom: "0.8rem" }}>
-                    <a
-                      href="#"
-                      style={{
-                        color: "rgba(255,255,255,0.7)",
-                        textDecoration: "none",
-                        fontSize: "0.95rem",
-                      }}
-                    >
-                      {link}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-        <div
-          style={{
-            textAlign: "center",
-            marginTop: "2rem",
-            paddingTop: "2rem",
-            borderTop: "1px solid rgba(255,255,255,0.1)",
-            color: "rgba(255,255,255,0.6)",
-            fontSize: "0.85rem",
-          }}
-        >
-          Copyright © 2023 BRIX Templates | All Rights Reserved
-        </div>
-      </footer>
-    </div>
+                Shate – ví mỏng nhưng style đỉnh
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: "1.1rem",
+                  fontFamily: '"Lexend", sans-serif',
+                  fontWeight: 300,
+                }}
+              >
+                Bước chuẩn phong cách, dẫn đầu xu hướng
+              </Typography>
+            </Box>
+          </Grid>
+        </Grid>
+      </Container>
+    </Box>
   );
 };
+
+// Component nhỏ để style cho các Link (tránh lặp code)
+const FooterLink = ({
+  to,
+  children,
+}: {
+  to: string;
+  children: React.ReactNode;
+}) => (
+  <Typography
+    component={Link}
+    to={to}
+    sx={{
+      color: "white",
+      textDecoration: "none",
+      fontWeight: 700,
+      fontSize: "0.9rem",
+      textTransform: "uppercase",
+      "&:hover": {
+        textDecoration: "underline",
+        color: "white",
+      },
+    }}
+  >
+    {children}
+  </Typography>
+);
+
 export default Footer;

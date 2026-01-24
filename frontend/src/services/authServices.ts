@@ -65,7 +65,7 @@ export const signup = async (
 ============================ */
 export const signout = async (): Promise<{ message: string }> => {
   try {
-    const response = await api.post<{ message: string }>("/auth/signout");
+    const response = await api.post<{ message: string }>("/auth/logout");
     return response.data;
   } catch (error) {
     console.error("Signout error:", error);
@@ -108,5 +108,69 @@ export const getMe = async (params?: unknown): Promise<AuthResponse> => {
   } catch (error) {
     console.error("Get me error:", error);
     throw error;
+  }
+};
+
+
+/* ============================
+   FORGOT PASSWORD
+============================ */
+
+export const requestPasswordReset = async (
+  email: string
+): Promise<{ message: string; token: string }> => {
+  try {
+    const response = await api.post<{
+      message: string;
+      token: string;
+    }>("/auth/forgot-password", { email });
+
+    return response.data;
+  } catch (error: any) {
+    console.error("Request password reset error:", error);
+    throw error?.response?.data || error;
+  }
+};
+
+
+/* ============================
+   RESET PASSWORD
+============================ */
+
+export const resetPassword = async (params: {
+  token: string;
+  newPassword: string;
+}): Promise<{ message: string }> => {
+  try {
+    const response = await api.post<{ message: string }>(
+      "/auth/reset-password",
+      params
+    );
+
+    return response.data;
+  } catch (error: any) {
+    console.error("Reset password error:", error);
+    throw error?.response?.data || error;
+  }
+};
+
+/* ============================
+   CHANGE PASSWORD (LOGGED IN)
+============================ */
+
+export const changePassword = async (params: {
+  oldPassword: string;
+  newPassword: string;
+}): Promise<{ message: string }> => {
+  try {
+    const response = await api.put<{ message: string }>(
+      "/auth/change-password",
+      params
+    );
+
+    return response.data;
+  } catch (error: any) {
+    console.error("Change password error:", error);
+    throw error?.response?.data || error;
   }
 };

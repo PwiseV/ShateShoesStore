@@ -1,16 +1,19 @@
 import { useState, useEffect } from "react";
 import { Paper, Typography, Avatar, Box, Button } from "@mui/material";
 import { useToast } from "../../../../context/useToast";
+import { useNavigate } from "react-router-dom"; // 1. Import useNavigate
 import {
   type CommentItem,
   getDashboardComments,
-} from "../../../../services/fakeAdminServices";
+} from "../../../../services/adminServices";
 
 const Comment = () => {
   const [comments, setComments] = useState<CommentItem[]>([]);
   const { showToast } = useToast();
+  const navigate = useNavigate(); // 2. Khởi tạo navigate
+
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchComments = async () => {
       try {
         const res = await getDashboardComments();
         setComments(res);
@@ -19,13 +22,13 @@ const Comment = () => {
           err instanceof Error
             ? err.message
             : typeof err === "string"
-            ? err
-            : "Something went wrong";
+              ? err
+              : "Something went wrong";
         showToast(message, "error");
       }
     };
-    fetchProducts();
-  });
+    fetchComments();
+  }, []); // 3. Thêm [] để chỉ gọi API một lần khi mount
 
   return (
     <Paper
@@ -35,6 +38,7 @@ const Comment = () => {
         padding: "10px",
         pt: 4,
         width: "100%",
+        boxShadow: "none", // Tùy chọn: làm phẳng dashboard
       }}
     >
       <Typography
@@ -51,6 +55,7 @@ const Comment = () => {
       <Box sx={{}}>
         {comments.slice(0, 4).map((c) => (
           <Box
+            key={c.id} // Thêm key để tránh cảnh báo React
             sx={{
               display: "flex",
               alignItems: "center",
@@ -74,7 +79,7 @@ const Comment = () => {
               <Typography
                 sx={{
                   fontSize: "0.7rem",
-                  textAlign: "center",
+                  textAlign: "left", // Chỉnh lại textAlign trái cho tự nhiên
                   maxWidth: "150px",
                   whiteSpace: "nowrap",
                   overflow: "hidden",
@@ -96,6 +101,7 @@ const Comment = () => {
                 sx={{
                   fontSize: "0.7rem",
                   textAlign: "right",
+                  color: "#888",
                 }}
               >
                 {c.time}
@@ -103,20 +109,30 @@ const Comment = () => {
             </Box>
           </Box>
         ))}
+        
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
+            mt: 1,
+            px: 1,
           }}
         >
           <Button
+            onClick={() => navigate("/admin/reviews")} // 4. Thêm sự kiện điều hướng
             sx={{
               border: "1.5px solid #bbb",
               textTransform: "none",
-              fontSize: "0.9rem",
+              fontSize: "0.85rem",
+              fontWeight: 600,
               color: "black",
               borderRadius: "20px",
               width: "100%",
+              py: 0.8,
+              "&:hover": {
+                backgroundColor: "rgba(0,0,0,0.04)",
+                borderColor: "#999",
+              },
             }}
           >
             More comments
@@ -126,4 +142,5 @@ const Comment = () => {
     </Paper>
   );
 };
+
 export default Comment;

@@ -15,10 +15,10 @@ import { useToast } from "../../../../context/useToast";
 import {
   type DayData,
   getDashboardProductViewsLast7Days,
-} from "../../../../services/fakeAdminServices";
+} from "../../../../services/adminServices";
 
 const ProductViewWith7DayColumnChart = ({
-  title = "Product Views",
+  title = "Order Views",
   height = 300,
 }) => {
   const [data, setData] = useState<DayData[]>([]);
@@ -33,8 +33,8 @@ const ProductViewWith7DayColumnChart = ({
           err instanceof Error
             ? err.message
             : typeof err === "string"
-            ? err
-            : "Something went wrong";
+              ? err
+              : "Something went wrong";
         showToast(message, "error");
       }
     };

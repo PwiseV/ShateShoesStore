@@ -5,15 +5,20 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
+    "build:check": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@mui/icons-material": "^7.3.5",
-    "@mui/material": "^7.3.5",
+    "@mui/icons-material": "^7.3.6",
+    "@mui/material": "^7.3.7",
+    "@mui/private-theming": "^7.3.7",
+    "@mui/system": "^7.3.7",
+    "@payos/node": "^2.0.4",
+    "@payos/payos-checkout": "^1.0.8",
     "@tailwindcss/vite": "^4.1.17",
     "axios": "^1.13.2",
     "react": "^19.2.0",
@@ -26,7 +31,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
-    "@types/node": "^24.10.0",
+    "@types/node": "^24.10.4",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "@vitejs/plugin-react": "^5.1.0",

@@ -1,0 +1,431 @@
+import Order from "../models/Order.js";
+import OrderItem from "../models/OrderItem.js";
+import ProductVariant from "../models/ProductVariant.js";
+import CartItem from "../models/CartItem.js";
+import Promotion from "../models/Promotion.js";
+import mongoose from "mongoose";
+
+/**
+ * Thứ tự hợp lệ của status (chỉ được tiến)
+ */
+const STATUS_FLOW = ["pending", "paid", "processing", "shipped", "delivered"];
+
+/**
+ * Validate status transition
+ */
+const canMoveStatus = (current, next) => {
+  if (next === "cancelled") {
+    return ["pending", "processing"].includes(current);
+  }
+  return STATUS_FLOW.indexOf(next) > STATUS_FLOW.indexOf(current);
+};
+
+/**
+ * Get admin orders with filter and pagination
+ */
+export const getAllOrders = async (query) => {
+  const {
+    page = 1,
+    limit = 10,
+    status,
+    paymentMethod,
+    minTotal,
+    maxTotal,
+  } = query;
+
+  const filter = {};
+
+  if (status) filter.status = status;
+  if (paymentMethod) filter.paymentMethod = paymentMethod;
+
+  if (minTotal || maxTotal) {
+    filter.total = {};
+    if (minTotal) filter.total.$gte = Number(minTotal);
+    if (maxTotal) filter.total.$lte = Number(maxTotal);
+  }
+
+  const totalItems = await Order.countDocuments(filter);
+
+  const orders = await Order.find(filter)
+    .sort({ createdAt: -1 })
+    .skip((page - 1) * limit)
+    .limit(Number(limit))
+    .select("orderNumber name phone total paymentMethod status createdAt");
+
+  return {
+    data: orders,
+    pagination: {
+      page: Number(page),
+      limit: Number(limit),
+      totalItems,
+      totalPages: Math.ceil(totalItems / limit),
+    },
+  };
+};
+
+export const getMyOrders = async (userId, query) => {
+  const { status } = query;
+  const filter = { userId };
+
+  if (status && status !== "all") {
+    filter.status = status;
+  }
+
+  const orders = await Order.find(filter)
+    .sort({ createdAt: -1 })
+    .select(
+      "orderNumber name phone address total shippingFee paymentMethod status createdAt",
+    )
+    .lean();
+
+  const formattedOrders = await Promise.all(
+    orders.map(async (order) => {
+      const items = await OrderItem.find({ orderId: order._id })
+        .populate({
+          path: "variantId",
+          model: "ProductVariant",
+          select: "size color price productVariantImageId productId",
+          populate: [
+            {
+              path: "productId",
+              model: "Product",
+              select: "title code avatar",
+            },
+            {
+              path: "productVariantImageId",
+              model: "ProductVariantImage",
+              select: "avatar color",
+            },
+          ],
+        })
+        .lean();
+      const deliveryDate = new Date(order.createdAt);
+      deliveryDate.setDate(deliveryDate.getDate() + 5);
+
+      return {
+        orderId: order._id,
+        orderNumber: order.orderNumber,
+        status: order.status,
+        total: order.total,
+        name: order.name,
+        phone: order.phone,
+        address: order.address,
+        shippingFee: order.shippingFee,
+        shippingDuration: 5,
+        fromAddress: "77 Võ Văn Kiệt, Bình Tân, TP Hồ Chí Minh, Việt Nam",
+        paymentMethod: order.paymentMethod,
+        createdAt: order.createdAt,
+        arrivedAt: deliveryDate,
+        items: items.map((item) => {
+          const variantImage = item.variantId?.productVariantImageId?.avatar?.url;
+          const productImage = item.variantId?.productId?.avatar?.url;
+          const finalAvatar = variantImage || productImage;
+          
+          return {
+            orderItemId: item._id,
+            quantity: item.quantity,
+            price: item.price,
+            variantId: item.variantId?._id,
+            size: item.variantId?.size,
+            color: item.variantId?.color,
+            productId: item.variantId?.productId?._id,
+            title: item.variantId?.productId?.title,
+            code: item.variantId?.productId?.code,
+            avatar: finalAvatar,
+          };
+        }),
+      };
+    }),
+  );
+
+  return {
+    data: formattedOrders,
+  };
+};
+
+export const getMyOrderDetail = async (userId, orderId) => {
+
+  const order = await Order.findOne({ _id: orderId, userId })
+    .select(
+      "orderNumber name phone address total shippingFee paymentMethod status createdAt"
+    )
+    .lean();
+
+  if (!order) {
+    throw new Error("ORDER_NOT_FOUND");
+  }
+
+  const items = await OrderItem.find({ orderId: order._id })
+    .populate({
+      path: "variantId",
+      model: "ProductVariant",
+      select: "size color price productVariantImageId productId",
+      populate: [
+        {
+          path: "productId",
+          model: "Product",
+          select: "title code avatar",
+        },
+        {
+          path: "productVariantImageId",
+          model: "ProductVariantImage",
+          select: "avatar color",
+        },
+      ],
+    })
+    .lean();
+  const deliveryDate = new Date(order.createdAt);
+  deliveryDate.setDate(deliveryDate.getDate() + 5);
+
+  return {
+    orderId: order._id,
+    orderNumber: order.orderNumber,
+    status: order.status,
+    total: order.total,
+    name: order.name,
+    phone: order.phone,
+    address: order.address,
+    shippingFee: order.shippingFee,
+    shippingDuration: 5,
+    fromAddress: "77 Võ Văn Kiệt, Bình Tân, TP Hồ Chí Minh, Việt Nam",
+    paymentMethod: order.paymentMethod,
+    createdAt: order.createdAt,
+    arrivedAt: deliveryDate,
+    items: items.map((item) => {
+      const variantImage = item.variantId?.productVariantImageId?.avatar?.url;
+      const productImage = item.variantId?.productId?.avatar?.url;
+      const finalAvatar = variantImage || productImage;
+      
+      return {
+        orderItemId: item._id,
+        quantity: item.quantity,
+        price: item.price,
+        variantId: item.variantId?._id,
+        size: item.variantId?.size,
+        color: item.variantId?.color,
+        productId: item.variantId?.productId?._id,
+        title: item.variantId?.productId?.title,
+        code: item.variantId?.productId?.code,
+        avatar: finalAvatar,
+      };
+    }),
+  };
+};
+
+/**
+ * GET /admin/orders/:id
+ * Chi tiết đơn hàng
+ */
+
+export const getOrderDetail = async (id) => {
+  const order = await Order.findById(id);
+  if (!order) throw new Error("Không tìm thấy đơn hàng");
+
+  const items = await OrderItem.find({ orderId: id }).populate({
+    path: "variantId",
+    populate: [
+      {
+        path: "productId",
+        select: "title avatar",
+      },
+      {
+        path: "productVariantImageId",
+        select: "avatar color",
+      },
+    ],
+  });
+
+  return {
+    ...order.toJSON(),
+    items: items.map((item) => {
+      const variantImage = item.variantId?.productVariantImageId?.avatar?.url;
+      const productImage = item.variantId?.productId?.avatar?.url;
+      const finalImage = variantImage || productImage;
+      
+      return {
+        _id: item._id,
+        quantity: item.quantity,
+        price: item.price,
+        subtotal: item.price * item.quantity,
+        variant: {
+          _id: item.variantId?._id,
+          size: item.variantId?.size,
+          color: item.variantId?.color,
+        },
+        product: {
+          _id: item.variantId?.productId?._id,
+          title: item.variantId?.productId?.title,
+          image: finalImage,
+        },
+      };
+    }),
+  };
+};
+
+/**
+ * PATCH /admin/orders/:id
+ * Cập nhật đơn hàng (status / info)
+ */
+export const updateOrderAdmin = async (id, payload) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const order = await Order.findById(id).session(session);
+    if (!order) throw new Error("Không tìm thấy đơn hàng");
+
+    if (order.status === "cancelled") {
+      throw new Error("Đơn hàng đã hủy, không thể chỉnh sửa");
+    }
+
+    const { status, name, phone, address, paymentMethod } = payload;
+
+    // Update basic info
+    if (name) order.name = name;
+    if (phone) order.phone = phone;
+    if (address) order.address = address;
+    if (paymentMethod) order.paymentMethod = paymentMethod;
+
+    // Update status
+    if (status && status !== order.status) {
+      if (!canMoveStatus(order.status, status)) {
+        throw new Error("Không thể cập nhật trạng thái không hợp lệ");
+      }
+
+      // Huỷ đơn → rollback stock
+      if (status === "cancelled") {
+        const items = await OrderItem.find({ orderId: id }).session(session);
+        for (const item of items) {
+          await ProductVariant.findByIdAndUpdate(
+            item.variantId,
+            { $inc: { stock: item.quantity } },
+            { session },
+          );
+        }
+      }
+
+      order.status = status;
+      if (status === "shipped") order.shippedAt = new Date();
+      if (status === "delivered") order.deliveredAt = new Date();
+    }
+
+    await order.save({ session });
+    await session.commitTransaction();
+    return order;
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
+  }
+};
+
+export const createOrder = async (userId, payload) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const {
+      name,
+      phone,
+      address,
+      paymentMethod,
+      items,
+      note,
+      total,
+      promotionId,
+      shippingFee,
+    } = payload;
+
+    if (!items || items.length === 0) {
+      throw new Error("Đơn hàng phải có ít nhất 1 sản phẩm");
+    }
+
+    const orderItemsData = [];
+
+    // 1. Kiểm tra tồn kho và chuẩn bị dữ liệu sản phẩm
+    for (const item of items) {
+      const variant = await ProductVariant.findById(item.variantId).session(
+        session,
+      );
+      if (!variant)
+        throw new Error(`Không tìm thấy biến thể sản phẩm: ${item.variantId}`);
+
+      if (variant.stock < item.quantity) {
+        throw new Error(`Không đủ tồn kho cho SKU ${variant.sku}`);
+      }
+
+      orderItemsData.push({
+        variantId: variant._id,
+        quantity: item.quantity,
+        price: variant.price, 
+      });
+
+      // Trừ kho
+      variant.stock -= item.quantity;
+      await variant.save({ session });
+    }
+
+    // 2. Tạo Order
+    const [order] = await Order.create(
+      [
+        {
+          orderNumber: `ORD-${Date.now()}`,
+          userId,
+          name,
+          phone,
+          address,
+          paymentMethod: paymentMethod || "COD",
+          total,
+          note,
+          status: "pending",
+          promotionId: promotionId || null,
+          shippingFee: shippingFee || 0,
+        },
+      ],
+      { session },
+    );
+
+    // 3. Tạo OrderItems
+    const finalItems = orderItemsData.map((item) => ({
+      ...item,
+      orderId: order._id,
+    }));
+    await OrderItem.insertMany(finalItems, { session });
+
+    const cartItemIdsToDelete = items
+      .filter((item) => item.cartItemId)
+      .map((item) => item.cartItemId);
+
+    if (cartItemIdsToDelete.length > 0) {
+      await CartItem.deleteMany(
+        { _id: { $in: cartItemIdsToDelete }, userId },
+        { session },
+      );
+    }
+
+    if (promotionId) {
+      const existingOrderWithPromo = await Order.findOne({
+        userId: userId,
+        promotionId: promotionId,
+      });
+      if (existingOrderWithPromo)
+        throw new Error("Đã sử dụng mã khuyến mãi này");
+      else {
+        await Promotion.findByIdAndUpdate(
+          promotionId,
+          { $inc: { stock: -1 } },
+          { session },
+        );
+      }
+    }
+
+    await session.commitTransaction();
+    return order;
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
+  }
+};
