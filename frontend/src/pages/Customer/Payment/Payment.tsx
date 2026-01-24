@@ -12,7 +12,7 @@ import {
   Button,
   Stack,
   CircularProgress,
-  Divider
+  Divider,
 } from "@mui/material";
 
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
@@ -152,13 +152,13 @@ const PaymentPage = () => {
       <Header />
       <Container sx={{ py: 4, maxWidth: "800px !important" }}>
         <Typography
-            variant="h4"
-            fontWeight={800}
-            color="#2F4156"
-            sx={{ fontFamily: "'Lexend', sans-serif" }}
-          >
-            Thanh toán đơn hàng
-          </Typography>
+          variant="h4"
+          fontWeight={800}
+          color="#2F4156"
+          sx={{ fontFamily: "'Lexend', sans-serif" }}
+        >
+          Thanh toán đơn hàng
+        </Typography>
         <Divider sx={{ borderColor: "#000000", mt: 2, mb: 4 }} />
         <Paper sx={{ p: 4, borderRadius: 3 }}>
           <Box sx={{ mb: 3, p: 2, bgcolor: "#f5f5f5", borderRadius: 2 }}>
@@ -269,19 +269,38 @@ const PaymentPage = () => {
                 variant="contained"
                 disabled={loading || isProcessingOrder}
                 onClick={handlePaymentClick}
+                // Thêm icon ở phía trước để nút sinh động hơn
+                startIcon={!loading }
                 sx={{
                   bgcolor: "#2C4A5C",
                   px: 6,
-                  py: 1.5,
-                  borderRadius: "50px",
+                  py: 1.8, // Tăng nhẹ độ cao để nhìn sang hơn
+                  borderRadius: "12px", // Thay đổi từ 50px sang 12px (bo góc hiện đại - Soft Corners)
                   fontWeight: 800,
-                  "&:hover": { bgcolor: "#1A2E3A" },
+                  fontSize: "1rem",
+                  fontFamily: "'Lexend', sans-serif",
+                  letterSpacing: "0.5px",
+                  textTransform: "none", // Giữ chữ hoa thường cho thân thiện
+                  boxShadow: "0 8px 16px rgba(44, 74, 92, 0.25)", // Đổ bóng mềm mại cùng tông màu
+                  transition: "all 0.3s ease", // Hiệu ứng mượt mà
+                  "&:hover": {
+                    bgcolor: "#1A2E3A",
+                    boxShadow: "0 12px 24px rgba(26, 46, 58, 0.35)",
+                    transform: "translateY(-2px)", // Nhấc nhẹ nút lên khi hover
+                  },
+                  "&:active": {
+                    transform: "translateY(0)", // Nhấn xuống khi click
+                  },
+                  "&.Mui-disabled": {
+                    bgcolor: "#cbd5e0",
+                    color: "#ffffff",
+                  },
                 }}
               >
                 {loading ? (
-                  <CircularProgress size={24} color="inherit" />
+                  <CircularProgress size={24} color="inherit" thickness={2} />
                 ) : (
-                  `XÁC NHẬN THANH TOÁN`
+                  "Xác nhận thanh toán"
                 )}
               </Button>
             ) : (

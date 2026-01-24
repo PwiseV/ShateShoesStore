@@ -25,11 +25,11 @@ const ResetPassword: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   /* ============================
-     GUARD: bắt buộc có token
+      GUARD: bắt buộc có token
   ============================ */
   useEffect(() => {
     if (!token) {
-      showToast("Phiên đặt lại mật khẩu không hợp lệ", "error");
+      showToast("Phiên đặt lại mật khẩu không hợp lệ hoặc đã hết hạn", "error");
       navigate("/forgot-password", { replace: true });
     }
   }, [token, navigate, showToast]);
@@ -37,18 +37,21 @@ const ResetPassword: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // 1. Kiểm tra rỗng
     if (!newPassword || !confirmPassword) {
       showToast("Vui lòng nhập đầy đủ thông tin", "warning");
       return;
     }
 
+    // 2. Validate độ mạnh mật khẩu (sử dụng hàm từ utils)
     const validationError = validatePassword(newPassword);
     if (validationError) {
       setError(validationError);
+      showToast(validationError, "error"); // Hiện toast để người dùng chú ý hơn
       return;
     }
-    setError(null);
 
+    // 3. Kiểm tra khớp mật khẩu
     if (newPassword !== confirmPassword) {
       showToast("Mật khẩu xác nhận không khớp", "error");
       return;
@@ -56,6 +59,7 @@ const ResetPassword: React.FC = () => {
 
     try {
       setLoading(true);
+      setError(null);
 
       const data = await resetPassword({
         token,
@@ -67,11 +71,10 @@ const ResetPassword: React.FC = () => {
         "success"
       );
 
+      // Chuyển hướng về login sau khi thành công
       navigate("/login", { replace: true });
     } catch (err: any) {
-      const message =
-        err?.message || "Không thể đặt lại mật khẩu";
-
+      const message = err?.response?.data?.message || err?.message || "Không thể đặt lại mật khẩu";
       showToast(message, "error");
     } finally {
       setLoading(false);
@@ -88,34 +91,33 @@ const ResetPassword: React.FC = () => {
           borderRadius: "16px",
         }}
       >
-        <Typography
-          variant="h5"
-          align="center"
-          mb={2}
-          fontWeight={600}
-        >
+        <Typography variant="h5" align="center" mb={2} fontWeight={600}>
           Đặt lại mật khẩu
         </Typography>
 
-        <Typography
-          variant="body2"
-          align="center"
-          color="text.secondary"
-          mb={3}
-        >
+        <Typography variant="body2" align="center" color="text.secondary" mb={3}>
           Nhập mật khẩu mới cho tài khoản của bạn
         </Typography>
 
-        <Box component="form" onSubmit={handleSubmit}>
+        <Box component="form" onSubmit={handleSubmit} noValidate>
           <RoundedInput
             label="Mật khẩu mới"
             type="password"
             value={newPassword}
-            setValue={setNewPassword}
+            setValue={(val) => {
+                setNewPassword(val);
+                if (error) setError(null); // Xóa lỗi khi đang gõ lại
+            }}
             placeholder="Nhập mật khẩu mới"
             onBlur={() => setError(validatePassword(newPassword))}
           />
-          {error && <p className="text-red-500 text-xs mb-2">{error}</p>}
+          
+          {/* Hiển thị thông báo lỗi ngay dưới ô nhập */}
+          {error && (
+            <Typography color="error" variant="caption" sx={{ ml: 2, display: 'block', mt: -1, mb: 1 }}>
+              {error}
+            </Typography>
+          )}
 
           <RoundedInput
             label="Xác nhận mật khẩu"
@@ -133,10 +135,11 @@ const ResetPassword: React.FC = () => {
               sx={{
                 width: "100%",
                 borderRadius: "9999px",
-                py: 1,
+                py: 1.5,
                 backgroundColor: "#5a7d9a",
                 "&:hover": { backgroundColor: "#4a6d8a" },
                 textTransform: "none",
+                fontWeight: 600
               }}
             >
               {loading ? "Đang xử lý..." : "Đặt lại mật khẩu"}
@@ -147,7 +150,7 @@ const ResetPassword: React.FC = () => {
             <Button
               variant="text"
               onClick={() => navigate("/login")}
-              sx={{ textTransform: "none" }}
+              sx={{ textTransform: "none", color: "gray" }}
             >
               Quay lại đăng nhập
             </Button>

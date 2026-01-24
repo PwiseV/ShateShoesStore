@@ -1,11 +1,43 @@
 import React, { useEffect, useState } from "react";
-import { Box, Paper, Typography, Stack, Button, Container } from "@mui/material";
+import { Box, Paper, Typography, Stack, Button, Container, CircularProgress } from "@mui/material";
+import { getAllCategories } from "../../../../services/productlistServices";
+// --- INTERFACES ---
+interface SubCategory {
+  id: string;
+  name: string;
+}
+
+interface ParentCategory {
+  id: string;
+  name: string;
+  category: SubCategory[];
+}
 
 const FlashSale: React.FC = () => {
-  const [timeLeft, setTimeLeft] = useState({
-    days: 0, hours: 23, minutes: 59, seconds: 59,
-  });
+  const [categories, setCategories] = useState<ParentCategory[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 23, minutes: 59, seconds: 59 });
+  
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
 
+        setLoading(true);
+        const response = await getAllCategories();
+        if (response.success) {
+          setCategories(response.data);
+        }
+      } catch (error) {
+        console.error("Lỗi khi fetch categories:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // 2. Logic Countdown
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
@@ -29,31 +61,25 @@ const FlashSale: React.FC = () => {
     </Stack>
   );
 
-  const products = [
-    { id: "p1", title: "Vintage Sneaker", img: "https://images.unsplash.com/photo-1603808033192-082d6919d3e1?w=600" },
-    { id: "p2", title: "Classic Runner", img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600" },
-  ];
-
   return (
     <Container maxWidth="lg" sx={{ mb: 4, px: { xs: 2, md: 4 } }}>
       <Box
         sx={{
           display: "flex",
-          flexDirection: "row",
-          flexWrap: "nowrap",
+          flexDirection: { xs: "column", md: "row" }, // Mobile dọc, Desktop ngang
           gap: 2,
           alignItems: "stretch",
           width: "100%",
-          minHeight: "320px", // Đã giảm chiều cao để bớt "to"
+          minHeight: "350px",
         }}
       >
-        {/* LEFT: Countdown panel - Gọn gàng hơn */}
-        <Box sx={{ flex: "0 0 55%" }}>
+        {/* LEFT: Countdown panel */}
+        <Box sx={{ flex: { xs: "1", md: "0 0 40%" } }}>
           <Paper
             elevation={0}
             sx={{
               borderRadius: 4,
-              p: { xs: 2, md: 4 }, // Padding vừa phải
+              p: { xs: 3, md: 5 },
               background: "linear-gradient(135deg, #2C4A5C 0%, #1A2E3A 100%)",
               color: "white",
               height: "100%",
@@ -62,14 +88,14 @@ const FlashSale: React.FC = () => {
               justifyContent: "center",
             }}
           >
-            <Typography sx={{ fontSize: { xs: "1.5rem", md: "2.5rem" }, fontWeight: 800, mb: 0.5 }}>
+            <Typography sx={{ fontSize: { xs: "1.5rem", md: "2.2rem" }, fontWeight: 800, mb: 1 }}>
               Flash Sale!
             </Typography>
-            <Typography sx={{ mb: 3, opacity: 0.8, fontSize: "0.85rem", maxWidth: "90%" }}>
-              Ưu đãi giới hạn cho những đôi giày đẳng cấp.
+            <Typography sx={{ mb: 4, opacity: 0.8, fontSize: "0.9rem" }}>
+              Ưu đãi dành riêng cho các dòng {categories[0]?.name || "Giày dép"} mới nhất.
             </Typography>
             
-            <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 0.5, md: 1.5 }, mb: 3 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 4 }}>
               <TimeBox val={timeLeft.days} label="Ngày" />
               <Typography sx={{ fontSize: "1.2rem", pb: 1.5 }}>:</Typography>
               <TimeBox val={timeLeft.hours} label="Giờ" />
@@ -81,59 +107,66 @@ const FlashSale: React.FC = () => {
 
             <Button
               variant="contained"
-              size="small"
               sx={{
                 bgcolor: "white",
                 color: "#2C4A5C",
                 width: "fit-content",
-                px: 3,
+                px: 4,
+                py: 1,
                 fontWeight: 700,
-                borderRadius: "4px",
                 "&:hover": { bgcolor: "#f0f0f0" }
               }}
             >
-              MUA NGAY
+              KHÁM PHÁ NGAY
             </Button>
           </Paper>
         </Box>
 
-        {/* RIGHT: Products - Kích thước vừa vặn */}
-        <Box sx={{ display: "flex", flexDirection: "row", gap: 2, flex: 1 }}>
-          {products.map((p) => (
-            <Paper
-              key={p.id}
-              elevation={0}
-              sx={{
-                borderRadius: 4,
-                p: 2,
-                flex: 1,
-                border: "1px solid #eee",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                textAlign: "center",
-              }}
-            >
-              <Box
+        {/* RIGHT: Categories từ Backend */}
+        <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+          {loading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
+              <CircularProgress color="inherit" />
+            </Box>
+          ) : (
+            categories.map((parent) => (
+              <Paper
+                key={parent.id}
+                elevation={0}
                 sx={{
-                  width: { xs: 80, md: 130 }, // Ảnh nhỏ lại
-                  height: { xs: 80, md: 130 },
-                  borderRadius: "50%",
-                  overflow: "hidden",
-                  mb: 1.5
+                  borderRadius: 4,
+                  p: 2.5,
+                  flex: 1,
+                  border: "1px solid #eee",
+                  background: "#F8F9FD"
                 }}
               >
-                <img src={p.img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              </Box>
-              <Typography sx={{ fontSize: "0.9rem", fontWeight: 700, color: "#2C4A5C" }} noWrap>
-                {p.title}
-              </Typography>
-              <Button size="small" sx={{ mt: 1, fontSize: "0.7rem", color: "#666" }}>
-                Chi tiết
-              </Button>
-            </Paper>
-          ))}
+                <Typography sx={{ fontSize: "1rem", fontWeight: 800, color: "#2C4A5C", mb: 2, borderLeft: "4px solid #567C8D", pl: 1.5 }}>
+                  {parent.name.toUpperCase()}
+                </Typography>
+                
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                  {parent.category.map((sub) => (
+                    <Button
+                      key={sub.id}
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        borderRadius: "8px",
+                        textTransform: "none",
+                        borderColor: "#D1D5DB",
+                        color: "#4B5563",
+                        fontSize: "0.75rem",
+                        "&:hover": { borderColor: "#567C8D", color: "#567C8D" }
+                      }}
+                    >
+                      {sub.name}
+                    </Button>
+                  ))}
+                </Box>
+              </Paper>
+            ))
+          )}
         </Box>
       </Box>
     </Container>

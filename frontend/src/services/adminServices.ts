@@ -50,7 +50,8 @@ export interface CommentItem {
 export const getDashboardOverview = async (): Promise<OverviewResponse> => {
   try {
     const response = await api.get("/admin/dashboard/overview");
-    return response.data;
+    console.log("data: ", response.data);
+    return response.data.data;
   } catch (error) {
     console.error("Get dashboard overview error:", error);
     throw error;
@@ -60,8 +61,8 @@ export const getDashboardOverview = async (): Promise<OverviewResponse> => {
 // Get new customers today
 export const getDashboardNewCustomers = async (): Promise<NewCustomer[]> => {
   try {
-    const response = await api.get("/admin/dashboard/new-customer");
-    return response.data;
+    const response = await api.get("/admin/dashboard/new-customers");
+    return response.data.data;
   } catch (error) {
     console.error("Get new customers error:", error);
     throw error;
@@ -72,8 +73,8 @@ export const getDashboardNewCustomers = async (): Promise<NewCustomer[]> => {
 // Get new product items today
 export const getDashboardPopularProducts = async (): Promise<ProductItem[]> => {
   try {
-    const response = await api.get("/admin/dashboard/products");
-    return response.data;
+    const response = await api.get("/admin/dashboard/popular-products");
+    return response.data.data;
   } catch (error) {
     console.error("Get popular products error:", error);
     throw error;
@@ -83,8 +84,8 @@ export const getDashboardPopularProducts = async (): Promise<ProductItem[]> => {
 // Get product views last 7 days
 export const getDashboardProductViewsLast7Days = async (): Promise<DayData[]> => {
   try {
-    const response = await api.get("/admin/dashboard/product-views");
-    return response.data;
+    const response = await api.get("/admin/dashboard/order-views");
+    return response.data.data;
   } catch (error) {
     console.error("Get popular products error:", error);
     throw error;
@@ -94,8 +95,8 @@ export const getDashboardProductViewsLast7Days = async (): Promise<DayData[]> =>
 // Get Comments
 export const getDashboardComments = async (): Promise<CommentItem[]> => {
   try {
-    const response = await api.get("/admin/dashboard/comments");
-    return response.data;
+    const response = await api.get("/admin/dashboard/new-comments");
+    return response.data.data;
   } catch (error) {
     console.error("Get comments error:", error);
     throw error;

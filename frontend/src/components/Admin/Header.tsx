@@ -58,14 +58,14 @@ const Header: React.FC = () => {
 
         {/* ICONS */}
         <Box sx={{ display: "flex", alignItems: "center" }}>
-          <IconButton
+          {/* <IconButton
             component={Link}
             to="/signin"
             aria-label="Sign in"
             sx={{ color: "#567C8D" }}
           >
             <AccountCircleIcon fontSize="small" />
-          </IconButton>
+          </IconButton> */}
         </Box>
       </Toolbar>
     </AppBar>

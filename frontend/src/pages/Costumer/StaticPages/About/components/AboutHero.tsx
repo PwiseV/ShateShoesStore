@@ -37,7 +37,7 @@ const AboutHero: React.FC = () => {
           textShadow: "2px 2px 4px rgba(0,0,0,0.3)",
         }}
       >
-        Find your shoe <br /> with us & <br /> feel the comfort
+        Đồng hành cùng bạn <br /> nâng niu <br /> từng bước chân
       </h1>
     </div>
   );

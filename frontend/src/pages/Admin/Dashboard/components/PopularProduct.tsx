@@ -6,8 +6,10 @@ import {
   type ProductItem,
   getDashboardPopularProducts,
 } from "../../../../services/adminServices";
+import { useNavigate } from "react-router-dom";
 
 const PopularProduct = () => {
+  const navigate = useNavigate();
   const [products, setProducts] = useState<ProductItem[]>([]);
   const { showToast } = useToast();
   useEffect(() => {
@@ -85,7 +87,7 @@ const PopularProduct = () => {
                 ml: "auto",
               }}
             >
-              <Typography
+              {/* <Typography
                 sx={{
                   fontSize: "0.7rem",
                   textAlign: "right",
@@ -93,7 +95,7 @@ const PopularProduct = () => {
               >
                 {c.price}
               </Typography>
-              <StockStatus status={c.status}></StockStatus>
+              <StockStatus status={c.status}></StockStatus> */}
             </Box>
           </Box>
         ))}
@@ -104,6 +106,7 @@ const PopularProduct = () => {
           }}
         >
           <Button
+            onClick={() => navigate("/admin/products")}
             sx={{
               border: "1.5px solid #bbb",
               textTransform: "none",

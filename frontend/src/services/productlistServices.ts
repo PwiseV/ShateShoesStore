@@ -73,7 +73,7 @@ export const getAllProducts = async (params?: {
   sort?: string;
 }): Promise<ProductResponse> => {
   try {
-    const response = await api.get("/users/products", { params });
+    const response = await api.get("/guest/products", { params });
 
     // Lấy data và pagination từ response backend
     const rawData = response.data?.data || [];
@@ -113,7 +113,7 @@ export const getAllProducts = async (params?: {
 
 export const getAllCategories = async (): Promise<ParentCategory[]> => {
   try {
-    const response = await api.get("/users/category/list");
+    const response = await api.get("/guest/category/list");
     return response.data?.data || [];
   } catch (error) {
     console.error("Get categories error:", error);

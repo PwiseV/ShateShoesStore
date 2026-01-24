@@ -1,8 +1,15 @@
+import { useNavigate } from "react-router-dom"; // 1. Import hook điều hướng
 import bannerHompage from "../../../../assets/bannerHompage.png";
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
-import { Paper, Box, Container } from "@mui/material";
+import { Paper, Box, Container, Button } from "@mui/material"; // Dùng Button của MUI cho đồng bộ
 
 const Banner = () => {
+  const navigate = useNavigate();
+
+  const handleShopNow = () => {
+    navigate("/products"); 
+  };
+
   return (
     <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', py: 2 }}>
       <Container maxWidth="lg">
@@ -13,7 +20,6 @@ const Banner = () => {
             display: "flex",
             backgroundColor: "transparent",
             boxShadow: "none",
-            // Đẩy toàn bộ nội dung xuống dưới đáy
             alignItems: "flex-end", 
             minHeight: "500px",
             overflow: "hidden",
@@ -36,25 +42,23 @@ const Banner = () => {
             }}
           />
 
-          {/* Nội dung Content - Nằm ở dưới cùng */}
+          {/* Nội dung Content */}
           <Box
             sx={{
               display: "flex",
               zIndex: 2,
               width: "100%",
-              // Padding đáy để chữ không chạm mép tuyệt đối
               pb: 4, 
               px: { xs: 3, md: 6 },
               flexDirection: { xs: 'column', md: 'row' },
-              alignItems: "flex-end", // Căn các cột nội dung theo đáy
+              alignItems: "flex-end",
               gap: 2
             }}
           >
-            {/* Cột trái: Tiêu đề nhỏ lại */}
             <Box sx={{ flex: 1.5 }}>
               <h1
                 style={{
-                  fontSize: "1.75rem", // Thu nhỏ tiêu đề
+                  fontSize: "1.75rem",
                   lineHeight: "1.2",
                   color: "#334E68",
                   fontWeight: 700,
@@ -67,7 +71,6 @@ const Banner = () => {
               </h1>
             </Box>
 
-            {/* Cột phải: Mô tả & Button nhỏ lại */}
             <Box
               sx={{
                 flex: 1,
@@ -79,7 +82,7 @@ const Banner = () => {
               <p
                 style={{
                   color: "#102A43",
-                  fontSize: "0.85rem", // Thu nhỏ mô tả
+                  fontSize: "0.85rem",
                   lineHeight: "1.5",
                   fontWeight: 500,
                   marginBottom: "1rem",
@@ -91,23 +94,26 @@ const Banner = () => {
                 thanh lịch bắt nguồn từ những điều nhỏ bé.
               </p>
               
-              <button
-                style={{
+              {/* 4. Cập nhật nút bấm với sự kiện onClick */}
+              <Button
+                variant="contained"
+                onClick={handleShopNow}
+                endIcon={<ShoppingBagIcon sx={{ fontSize: 16 }}/>}
+                sx={{
                   background: "#546E7A",
                   color: "white",
-                  border: "none",
-                  padding: "0.5rem 1.2rem", // Nút thu nhỏ lại
+                  padding: "0.5rem 1.2rem",
                   borderRadius: "6px",
                   fontSize: "0.8rem",
                   fontWeight: "bold",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.4rem",
+                  textTransform: "none", // Giữ nguyên chữ hoa thường
+                  "&:hover": {
+                    background: "#37474F",
+                  },
                 }}
               >
-                SHOP NOW <ShoppingBagIcon sx={{ fontSize: 16 }}/>
-              </button>
+                SHOP NOW
+              </Button>
             </Box>
           </Box>
         </Paper>

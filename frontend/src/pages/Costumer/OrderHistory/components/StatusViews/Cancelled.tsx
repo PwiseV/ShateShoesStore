@@ -55,7 +55,7 @@ const Cancelled: React.FC<Props> = ({ order }) => {
             </Typography>
           </Box>
         </Box>
-        <Button
+        {/* <Button
           variant="contained"
           startIcon={<ReplayIcon />}
           onClick={handleReOrder}
@@ -68,7 +68,7 @@ const Cancelled: React.FC<Props> = ({ order }) => {
           }}
         >
           Mua lại sản phẩm
-        </Button>
+        </Button> */}
       </Paper>
 
       <Box sx={{ opacity: 0.7 }}>

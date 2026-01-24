@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
-import { useSearchParams, useLocation, useParams, useNavigate } from "react-router-dom";
+import {
+  useSearchParams,
+  useLocation,
+  useParams,
+  useNavigate,
+} from "react-router-dom";
 
 // Component con
 import Header from "../../../components/Customer/Header";
@@ -25,6 +30,7 @@ import {
   removeFromWishlist,
   addToCart,
 } from "../../../services/productDetailsServices";
+
 import { useToast } from "../../../context/useToast";
 
 import { getReviewsByProduct } from "../../../services/reviewProductServices";
@@ -48,6 +54,7 @@ const ProductDetail: React.FC = () => {
   const [isLiked, setIsLiked] = useState(false);
   const [likeState, setLikeState] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [title, setTitle] = useState(null);
 
   const { showToast } = useToast();
   const isDev = import.meta.env?.DEV ?? true;
@@ -66,7 +73,8 @@ const ProductDetail: React.FC = () => {
         const data = await getProductDetails(id, controller.signal);
         setProduct(data);
         setIsLiked(data.isFavourite);
-        
+        setTitle(data.title);
+
         // Fetch reviews using the correct service
         const reviewsData = await getReviewsByProduct(id);
         setReviews(reviewsData);
@@ -139,17 +147,37 @@ const ProductDetail: React.FC = () => {
       return;
     }
     try {
-      const response = await addToCart({
-        variantId: data.variantId,
-        quantity: data.quantity,
+      // const response = await addToCart({
+      //   variantId: data.variantId,
+      //   quantity: data.quantity,
+      // });
+      // if (response.success) {
+      //   showToast(response.message, "success");
+      //   // Navigate to cart page
+      //   navigate("/cart");
+      // } else {
+      //   showToast(response.message, "error");
+      // }
+      navigate("/checkout", {
+        state: {
+
+          items: [
+            {
+              variantId: data.variantId,
+              quantity: data.quantity,
+              avatar: data.avatar,
+              size: data.sizeId,
+              color: data.colorName,
+              price: data.price,
+              product: {
+                title: title,
+              }
+            },
+          ],
+          total: data.price,
+          finalTotal: data.price,
+        },
       });
-      if (response.success) {
-        showToast(response.message, "success");
-        // Navigate to cart page
-        navigate("/cart");
-      } else {
-        showToast(response.message, "error");
-      }
     } catch (error) {
       console.error(error);
       showToast("Có lỗi xảy ra, vui lòng thử lại sau.", "error");

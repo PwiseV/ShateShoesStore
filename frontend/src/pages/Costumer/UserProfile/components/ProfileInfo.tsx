@@ -242,11 +242,11 @@ const ProfileInfo = () => {
               <InfoRow label="Name" value={userData.displayName || "N/A"} />
               <InfoRow label="Email" value={userData.email || "N/A"} />
               <InfoRow label="Phone number" value={userData.phone || "Chưa cập nhật"} />
-              <InfoRow label="Orders" value={(userData.orderCount || 0).toString()} />
+              {/* <InfoRow label="Orders" value={(userData.orderCount || 0).toString()} />
               <InfoRow
                 label="Total Spent"
                 value={(userData.totalSpent || 0).toLocaleString() + " đ"}
-              />
+              /> */}
             </Box>
           </Grid>
           <Grid item xs={12} md={4} lg={3}>
@@ -273,7 +273,7 @@ const ProfileInfo = () => {
               >
                 {userData.displayName || userData.username || "User"}
               </Typography>
-              <Typography sx={{ fontSize: "0.85rem", color: "white", mb: 3 }}>
+              <Typography sx={{ fontSize: "0.85rem", color: "#2C3E50", mb: 3 }}>
                 {userData.email || ""}
               </Typography>
               <Button
@@ -294,13 +294,13 @@ const ProfileInfo = () => {
                 onClick={() => setOpenChangePasswordModal(true)}
                 variant="outlined"
                 sx={{
-                  borderColor: "white",
-                  color: "white",
+                  borderColor: "#2C3E50",
+                  color: "#2C3E50",
                   borderRadius: "30px",
-                  fontWeight: 600,
+                  fontWeight: 570,
                   "&:hover": { 
                     bgcolor: "rgba(255, 255, 255, 0.1)",
-                    borderColor: "white",
+                    borderColor: "#2C3E50",
                   },
                 }}
               >

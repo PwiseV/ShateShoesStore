@@ -23,6 +23,8 @@ import postRoute from "./routes/post.route.js"
 import payosRoute from "./routes/payos.route.js"
 
 import blogRoute from "./routes/blog.route.js"
+import contactRoute from "./routes/contact.route.js"
+import dashboardRoute from "./routes/dashboard.route.js"
 
 
 import { protectedRoute } from "./middlewares/authMiddleware.js";
@@ -47,12 +49,13 @@ app.use(express.json());
 // public routes (KHÔNG token)
 app.use("/api/auth", authRoute);
 app.use("/api/blog", blogRoute);
+app.use("/api/guest", productRoute);
 
 // private user routes (CẦN đăng nhập)
-app.use("/api/users", protectedRoute, userRoute, productRoute, favouriteRoute, addressRoute, cartRoute, promotionRoute, adminOrderRoute, payosRoute, reviewRoute, postRoute);
+app.use("/api/users", protectedRoute, userRoute, productRoute, favouriteRoute, addressRoute, cartRoute, promotionRoute, adminOrderRoute, payosRoute, reviewRoute, postRoute, contactRoute);
 
 // admin routes (CẦN đăng nhập + quyền admin)
-app.use("/api/admin", protectedRoute, adminOnly, adminRoute, productRoute, promotionRoute, userRoute, postRoute, adminOrderRoute, reviewRoute);
+app.use("/api/admin", protectedRoute, adminOnly, adminRoute, productRoute, promotionRoute, userRoute, postRoute, adminOrderRoute, reviewRoute, dashboardRoute);
 
 
 

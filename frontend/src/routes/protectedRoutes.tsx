@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import FullScreenLoader from "../components/Loading";
+import LoginRequired from "../components/Customer/LoginRequired";
 
 interface ProtectedRouteProps {
   role?: "customer" | "admin";
@@ -16,7 +17,7 @@ const ProtectedRoute = ({ role }: ProtectedRouteProps) => {
 
   // Chưa đăng nhập → về signin
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <LoginRequired />;
   }
 
   // Sai role → về trang báo unauthorized/forbidden

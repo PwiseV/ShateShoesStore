@@ -93,7 +93,8 @@ const Favourite = () => {
     >
       <Header />
 
-      <Container maxWidth="xl" sx={{ py: 6, flex: 1, px: { xs: 2, md: 6 } }}>
+      {/* <Container maxWidth="xl" sx={{ py: 6, flex: 1, px: { xs: 2, md: 6 } }}> */}
+      <Container sx={{ maxWidth: "lg", flex: 1, py: 8 }}>
         <Box
           sx={{
             display: "flex",

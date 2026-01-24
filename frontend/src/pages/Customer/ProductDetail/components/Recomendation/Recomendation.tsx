@@ -1,59 +1,54 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Grid";
 import IconButton from "@mui/material/IconButton";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
-import { Link } from "react-router-dom";
-
-// 1. ĐỊNH NGHĨA TYPE TRỰC TIẾP TẠI ĐÂY (Không cần import từ services)
-type RelatedItem = {
-  id: string;
-  src: string;
-  alt?: string;
-};
-
-// 2. DỮ LIỆU FIX CỨNG
-const defaultItems: RelatedItem[] = [
-  {
-    id: "1",
-    src: "https://images.unsplash.com/photo-1511556532299-8f662fc26c06?auto=format&fit=crop&w=600&q=80",
-    alt: "Giày 1",
-  },
-  {
-    id: "2",
-    src: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=600&q=80",
-    alt: "Giày 2",
-  },
-  {
-    id: "3",
-    src: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=600&q=80",
-    alt: "Giày 3",
-  },
-  {
-    id: "4",
-    src: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=600&q=80",
-    alt: "Giày 4",
-  },
-];
+import { Link, useLocation } from "react-router-dom";
+// Import service của bạn
+import { getAllProducts, type Product } from "../../../../../services/productlistServices";
 
 export type RecomendationProps = {
   title?: string;
   className?: string;
-  // Optional: Nếu cha truyền vào thì dùng, không thì dùng defaultItems
-  items?: RelatedItem[];
+  limit?: number; // Cho phép tùy chỉnh số lượng sản phẩm (mặc định 4)
 };
 
 const Recomendation: React.FC<RecomendationProps> = ({
   title = "Có thể bạn sẽ quan tâm",
   className,
-  items,
+  limit = 4,
 }) => {
-  // Ưu tiên dùng items truyền vào, nếu không có thì dùng defaultItems
-  const data = items && items.length > 0 ? items : defaultItems;
-
+  const [products, setProducts] = useState<Product[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
+  
+  // Lấy pathname để theo dõi sự thay đổi URL
+  const { pathname } = useLocation();
+
+  // --- LOGIC CUỘN LÊN ĐẦU TRANG ---
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "smooth", // Thêm "smooth" để cuộn mượt mà hơn, hoặc "auto" để lên ngay lập tức
+    });
+  }, [pathname]);
+
+  // --- FETCH DATA TỪ SERVICE ---
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await getAllProducts({ limit });
+        if (response && response.products) {
+          setProducts(response.products);
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy sản phẩm đề xuất:", error);
+      }
+    };
+    fetchData();
+  }, [limit]);
 
   const handleToggleFavorite = (e: React.MouseEvent, id: string) => {
     e.preventDefault();
@@ -67,6 +62,8 @@ const Recomendation: React.FC<RecomendationProps> = ({
       }
     });
   };
+
+  if (products.length === 0) return null;
 
   return (
     <Box
@@ -89,15 +86,15 @@ const Recomendation: React.FC<RecomendationProps> = ({
       </Typography>
 
       <Grid container spacing={3}>
-        {data.map((item) => {
+        {products.map((item) => {
           const isLiked = favorites.includes(item.id);
 
           return (
             <Grid item xs={6} md={3} key={item.id}>
               <Link
-                to={`/products/${encodeURIComponent(item.id)}`}
+                to={`/products/details/${encodeURIComponent(item.id)}`}
                 style={{ display: "block", textDecoration: "none" }}
-                aria-label={item.alt ?? "Sản phẩm liên quan"}
+                aria-label={item.name ?? "Sản phẩm liên quan"}
               >
                 <Box
                   sx={{
@@ -129,36 +126,7 @@ const Recomendation: React.FC<RecomendationProps> = ({
                     },
                   }}
                 >
-                  <img src={item.src} alt={item.alt ?? "Product"} />
-
-                  {/* NÚT TIM */}
-                  <IconButton
-                    className="fav-btn"
-                    disableRipple
-                    onClick={(e) => handleToggleFavorite(e, item.id)}
-                    sx={{
-                      position: "absolute",
-                      top: 10,
-                      right: 10,
-                      bgcolor: "#fff",
-                      color: isLiked ? "#ff4757" : "#333",
-                      width: 36,
-                      height: 36,
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                      transition: "all 0.3s ease",
-                      "&:focus": { outline: "none" },
-                      "&:hover": {
-                        bgcolor: "#fff",
-                        color: "#ff4757",
-                      },
-                    }}
-                  >
-                    {isLiked ? (
-                      <FavoriteIcon sx={{ fontSize: 20 }} />
-                    ) : (
-                      <FavoriteBorderIcon sx={{ fontSize: 20 }} />
-                    )}
-                  </IconButton>
+                  <img src={item.image} alt={item.name ?? "Product"} />
                 </Box>
               </Link>
             </Grid>

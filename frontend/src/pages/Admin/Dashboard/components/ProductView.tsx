@@ -18,7 +18,7 @@ import {
 } from "../../../../services/adminServices";
 
 const ProductViewWith7DayColumnChart = ({
-  title = "Product Views",
+  title = "Order Views",
   height = 300,
 }) => {
   const [data, setData] = useState<DayData[]>([]);

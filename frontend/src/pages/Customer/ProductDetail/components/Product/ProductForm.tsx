@@ -251,6 +251,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                   variantId: currentVariant?.variantId,
                   price: displayPrice,
                   quantity,
+                  avatar: currentVariant?.avatar,
                 })
               }
               sx={{

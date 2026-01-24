@@ -46,7 +46,6 @@ const postSchema = new mongoose.Schema(
     },
   },
   {
-    // automatically manage createdAt and updatedAt fields
     timestamps: true, 
     // _id -> id
     toJSON: { virtuals: true },

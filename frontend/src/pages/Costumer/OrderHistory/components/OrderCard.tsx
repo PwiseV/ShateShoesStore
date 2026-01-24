@@ -74,7 +74,7 @@ const OrderCard: React.FC<Props> = ({ order }) => {
     return (
       <>
         {/* Nút Mua lại: Hiện cho Delivered và Cancelled */}
-        {(order.status === "delivered" || order.status === "cancelled") && (
+        {/* {(order.status === "delivered" || order.status === "cancelled") && (
           <Button
             variant="contained"
             startIcon={<ReplayIcon fontSize="small" />}
@@ -86,7 +86,7 @@ const OrderCard: React.FC<Props> = ({ order }) => {
           >
             Mua lại
           </Button>
-        )}
+        )} */}
 
         {/* [THÊM MỚI] Nút Đánh giá: Chỉ hiện khi Delivered */}
         {order.status === "delivered" && (
