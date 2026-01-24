@@ -15,7 +15,6 @@ import ReviewList from "./components/Review/ReviewList";
 import Recomendation from "./components/Recomendation/Recomendation";
 
 import {
-  COLOR_OPTIONS,
   COLOR_MAP,
   COLOR_DISPLAY_MAP,
 } from "../../Admin/Products/constants";
@@ -29,7 +28,7 @@ import {
   addToWishlist,
   removeFromWishlist,
   addToCart,
-} from "../../../services/productDetailsServices";
+} from "../../../services/productdetailsServices";
 
 import { useToast } from "../../../context/useToast";
 
@@ -54,7 +53,7 @@ const ProductDetail: React.FC = () => {
   const [isLiked, setIsLiked] = useState(false);
   const [likeState, setLikeState] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [title, setTitle] = useState(null);
+  const [title, setTitle] = useState<string | null>(null);
 
   const { showToast } = useToast();
   const isDev = import.meta.env?.DEV ?? true;
@@ -78,8 +77,8 @@ const ProductDetail: React.FC = () => {
         // Fetch reviews using the correct service
         const reviewsData = await getReviewsByProduct(id);
         setReviews(reviewsData);
-      } catch (err) {
-        if (err.name !== "AbortError") console.error(err);
+      } catch (err: any) {
+        if (err?.name !== "AbortError") console.error(err);
       } finally {
         setLoading(false);
       }
@@ -93,24 +92,22 @@ const ProductDetail: React.FC = () => {
       if (isLiked) {
         setIsLiked(false);
         const res = await removeFromWishlist(id);
-        if (!res) {
+        if (!res.success) {
           setIsLiked(previousLiked);
-
           showToast(res.message || "Lỗi", "error");
         } else {
-          setLikeState(previousLiked);
-          showToast(res.message, "success");
+          setLikeState(!previousLiked);
+          showToast(res.message || "Đã xóa khỏi yêu thích", "success");
         }
       } else {
         setIsLiked(true);
         const res = await addToWishlist(id);
-        if (!res) {
+        if (!res.success) {
           setIsLiked(previousLiked);
-
           showToast(res.message || "Lỗi", "error");
         } else {
-          setLikeState(previousLiked);
-          showToast(res.message, "success");
+          setLikeState(!previousLiked);
+          showToast(res.message || "Đã thêm vào yêu thích", "success");
         }
       }
     } catch (error) {
