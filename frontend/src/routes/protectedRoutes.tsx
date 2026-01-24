@@ -10,22 +10,34 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ role }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
 
-  console.log("ProtectedRoute - user:", user);
+  // 1. Đang tải dữ liệu user
   if (loading) {
-    return <FullScreenLoader></FullScreenLoader>;
+    return <FullScreenLoader />;
   }
 
-  // Chưa đăng nhập → về signin
+  // 2. Chưa đăng nhập
   if (!user) {
-    return <LoginRequired />;
+    // Nếu trang yêu cầu quyền Admin, đẩy thẳng về trang Login
+    // Nếu trang yêu cầu quyền Customer, hiện form LoginRequired đẹp mắt của bạn
+    return role === "admin" ? <Navigate to="/login" replace /> : <LoginRequired />;
   }
 
-  // Sai role → về trang báo unauthorized/forbidden
+  // 3. Đã đăng nhập nhưng sai Role (Check quyền)
   if (role && user.role !== role) {
+    // Nếu Admin cố vào trang Customer -> Đẩy về Dashboard Admin
+    if (user.role === "admin") {
+      return <Navigate to="/admin/dashboard" replace />;
+    }
+    // Nếu Customer cố vào trang Admin -> Đẩy về Homepage Customer
+    if (user.role === "customer") {
+      return <Navigate to="/homepage" replace />;
+    }
+    
+    // Trường hợp mặc định nếu có các role khác
     return <Navigate to="/unauthorized" replace />;
   }
 
-  // Hợp lệ → cho phép render route con
+  // 4. Hợp lệ -> Cho phép truy cập
   return <Outlet />;
 };
 
