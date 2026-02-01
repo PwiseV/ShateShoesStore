@@ -1,3 +1,4 @@
+import "./loadEnv.js";
 import app from "./app.js";
 import { connectDB } from './libs/db.js';
 
