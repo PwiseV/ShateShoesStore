@@ -1,6 +1,6 @@
 import Post from "../models/Post.js";
 import slugify from "slugify";
-import { uploadImageToCloudinary, deleteImageFromCloudinary } from "./cloudinaryService.js";
+import { uploadImageToCloudinary, deleteImageFromCloudinary } from "./cloudinary.service.js";
 
 // get list of posts with pagination, search, and filters
 export const getAllPosts = async (params) => {
@@ -48,8 +48,8 @@ export const createPost = async (payload, fileBuffer) => {
   if (Array.isArray(slug)) {
     slug = slug.find(s => s && typeof s === 'string' && s.trim() !== "") || "";
   }
-  const finalSlug = (slug && slug.trim() !== "") 
-    ? slug.toLowerCase().trim() 
+  const finalSlug = (slug && slug.trim() !== "")
+    ? slug.toLowerCase().trim()
     : slugify(title || "post", { lower: true, strict: true, locale: 'vi' });
 
   // check slug uniqueness
