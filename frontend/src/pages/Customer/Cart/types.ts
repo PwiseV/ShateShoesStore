@@ -1,7 +1,7 @@
 import type {
   Product as BaseProduct,
   BackendColorVariant,
-} from "../../../services/productdetailsServices";
+} from "../../../services/productDetailsServices";
 
 // --- START: Cấu trúc dữ liệu khớp với API BE ---
 

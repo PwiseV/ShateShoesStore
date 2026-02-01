@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Box, Paper, Typography, Stack, Button, Container, CircularProgress } from "@mui/material";
-import { getAllCategories } from "../../../../services/productlistServices";
+import { getAllCategories } from "../../../../services/productListServices";
 // --- INTERFACES ---
 interface SubCategory {
   id: string;
@@ -17,7 +17,7 @@ const FlashSale: React.FC = () => {
   const [categories, setCategories] = useState<ParentCategory[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 23, minutes: 59, seconds: 59 });
-  
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -94,7 +94,7 @@ const FlashSale: React.FC = () => {
             <Typography sx={{ mb: 4, opacity: 0.8, fontSize: "0.9rem" }}>
               Ưu đãi dành riêng cho các dòng {categories[0]?.name || "Giày dép"} mới nhất.
             </Typography>
-            
+
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 4 }}>
               <TimeBox val={timeLeft.days} label="Ngày" />
               <Typography sx={{ fontSize: "1.2rem", pb: 1.5 }}>:</Typography>
@@ -144,7 +144,7 @@ const FlashSale: React.FC = () => {
                 <Typography sx={{ fontSize: "1rem", fontWeight: 800, color: "#2C4A5C", mb: 2, borderLeft: "4px solid #567C8D", pl: 1.5 }}>
                   {parent.name.toUpperCase()}
                 </Typography>
-                
+
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                   {parent.category.map((sub) => (
                     <Button

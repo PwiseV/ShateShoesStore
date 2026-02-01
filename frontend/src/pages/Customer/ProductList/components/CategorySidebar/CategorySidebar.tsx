@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, ListItemButton, Typography } from "@mui/material";
 import CategoryItem from "./CategoryItem";
-import type { ParentCategory } from "../../../services/productlistServices";
+import type { ParentCategory } from "../../../../../services/productListServices";
 import GridViewIcon from "@mui/icons-material/GridView";
 
 type Props = {

@@ -7,7 +7,7 @@ import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import { Link, useLocation } from "react-router-dom";
 // Import service của bạn
-import { getAllProducts, type Product } from "../../../../../services/productlistServices";
+import { getAllProducts, type Product } from "../../../../../services/productListServices";
 
 export type RecomendationProps = {
   title?: string;
@@ -22,7 +22,7 @@ const Recomendation: React.FC<RecomendationProps> = ({
 }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
-  
+
   // Lấy pathname để theo dõi sự thay đổi URL
   const { pathname } = useLocation();
 
