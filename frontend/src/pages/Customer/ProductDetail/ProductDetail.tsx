@@ -29,7 +29,7 @@ import {
   addToWishlist,
   removeFromWishlist,
   addToCart,
-} from "../../../services/productdetailsServices";
+} from "../../../services/productDetailsServices";
 
 import { useToast } from "../../../context/useToast";
 
