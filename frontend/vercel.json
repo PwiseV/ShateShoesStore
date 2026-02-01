@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "src/App.tsx"
+      "destination": "index.html"
     }
   ]
 }
