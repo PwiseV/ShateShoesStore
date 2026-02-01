@@ -110,8 +110,6 @@ const LoginForm: React.FC = () => {
         },
       }}
     >
-      <Header />
-
       <Box
         sx={{
           flex: 1,

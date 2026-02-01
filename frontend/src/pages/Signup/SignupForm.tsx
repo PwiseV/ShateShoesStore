@@ -74,7 +74,6 @@ const SignupForm: React.FC = () => {
         },
       }}
     >
-      <Header />
 
       <Box
         sx={{

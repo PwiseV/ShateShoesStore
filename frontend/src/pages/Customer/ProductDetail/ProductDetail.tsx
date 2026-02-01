@@ -13,6 +13,7 @@ import Footer from "../../../components/Customer/Footer";
 import ProductForm from "./components/Product/ProductForm";
 import ReviewList from "./components/Review/ReviewList";
 import Recomendation from "./components/Recomendation/Recomendation";
+import FullScreenLoader from "../../../components/Loading";
 
 import {
   COLOR_OPTIONS,
@@ -160,7 +161,6 @@ const ProductDetail: React.FC = () => {
       // }
       navigate("/checkout", {
         state: {
-
           items: [
             {
               variantId: data.variantId,
@@ -171,7 +171,7 @@ const ProductDetail: React.FC = () => {
               price: data.price,
               product: {
                 title: title,
-              }
+              },
             },
           ],
           total: data.price,
@@ -183,8 +183,12 @@ const ProductDetail: React.FC = () => {
       showToast("Có lỗi xảy ra, vui lòng thử lại sau.", "error");
     }
   };
+  if (loading) {
+    return <FullScreenLoader />;
+  }
 
-  if (!product) return <Box sx={{ p: 4 }}>Không tìm thấy sản phẩm</Box>;
+  // if (!product) return <Box sx={{ p: 4 }}>Không tìm thấy sản phẩm</Box>;
+  if (!product) return <FullScreenLoader />;
 
   const getHexColor = (colorName: string) => {
     if (!colorName) return "#cccccc";
