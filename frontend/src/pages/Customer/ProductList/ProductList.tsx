@@ -16,7 +16,7 @@ import {
   getAllCategories,
   type Product,
   type ParentCategory,
-} from "../../../services/productlistServices";
+} from "../../../services/productListServices";
 
 const PAGE_SIZE = 6;
 
