@@ -35,3 +35,17 @@
 //     }
 //   }
 // }
+// cypress/support/commands.js
+
+Cypress.Commands.add("clickMenuAndCheck", (labelText, expectedPath) => {
+  // 1. Log ra màn hình để dễ debug
+  cy.log(`👉 Click vào menu: ${labelText}`);
+
+  // 2. Tìm thẻ chứa text, đảm bảo nó hiển thị rồi mới click
+  // Dùng .closest('a') để click vào thẻ link an toàn hơn
+  cy.contains(labelText).closest("a").should("be.visible").click();
+
+  // 3. Đợi UI hiển thị bằng cách kiểm tra URL
+  // Đây là cách "đợi" tổng quan và chính xác nhất cho việc chuyển trang
+  cy.url().should("include", expectedPath);
+});
