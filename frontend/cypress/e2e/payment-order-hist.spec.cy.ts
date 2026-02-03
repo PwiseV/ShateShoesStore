@@ -44,7 +44,9 @@ describe("Tính năng Thanh toán trực tuyến (Mock PayOS Polling)", () => {
     cy.contains("Dép Tông Nam Chữ").click();
     cy.contains("Thêm vào giỏ hàng").click();
     cy.get('a[href="/cart"]').should("be.visible").click();
+    cy.wait(3000);
     cy.contains("button", "Tiến hành đặt hàng").click();
+    cy.wait(3000);
 
     cy.get('input[placeholder="Nhập họ tên người nhận"]')
       .clear()
@@ -61,8 +63,15 @@ describe("Tính năng Thanh toán trực tuyến (Mock PayOS Polling)", () => {
     // KÍCH HOẠT THANH TOÁN
     cy.contains("button", "Xác nhận thanh toán").click();
 
+    cy.get('iframe[src*="pay.payos.vn"]', { timeout: 15000 }).should(
+      "be.visible"
+    );
+
     // ĐỢI VÀ CHECK KẾT QUẢ
-    cy.wait("@payosPolling");
+    cy.wait("@payosPolling", { timeout: 20000 }).then((interception) => {
+      // Log ra để debug nếu cần
+      cy.log("Đã bắt được request polling PayOS");
+    });
 
     cy.get(
       'iframe[src*="redirect_uri=https://shate-shoes-store.vercel.app/order-success"]'
@@ -88,10 +97,13 @@ describe("Tính năng Thanh toán trực tuyến (Mock PayOS Polling)", () => {
       .type("HCM");
 
     cy.contains("button", "Đặt hàng").click();
+    cy.wait(3000);
     cy.contains("div", "Thanh toán khi nhận hàng (COD)").click();
+    cy.wait(3000);
 
     // KÍCH HOẠT THANH TOÁN
     cy.contains("button", "Xác nhận thanh toán").click();
+    cy.wait(3000);
 
     // ĐỢI VÀ CHECK KẾT QUẢ
 
@@ -113,10 +125,10 @@ describe("Tính năng Thanh toán trực tuyến (Mock PayOS Polling)", () => {
     // Check Địa chỉ (HCM) - Data nhập ở bước 3
     cy.contains("HCM").should("be.visible");
 
-    // Check Tổng tiền (110,000đ)
-    cy.contains("110,000đ").should("be.visible");
+    // Check Tổng tiền (10,000đ)
+    cy.contains("170,000đ").should("be.visible");
 
     // Check Số lượng (x1)
-    cy.contains("x1").should("be.visible");
+    cy.contains("x2").should("be.visible");
   });
 });

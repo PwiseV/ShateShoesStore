@@ -9,7 +9,7 @@ describe("Tính năng Quản lý sản phẩm", () => {
     cy.contains("button", "Quản lý sản phẩm").click();
     cy.wait("@getProducts").its("response.statusCode").should("eq", 200);
   });
-  it.only("Test Case 1: Hiển thị đúng giao diện Quản lý sản phẩm và danh sách dữ liệu", () => {
+  it("Test Case 1: Hiển thị đúng giao diện Quản lý sản phẩm và danh sách dữ liệu", () => {
     // Check tiêu đề trang là h5
     cy.get("h5").contains("Quản lý sản phẩm").should("be.visible");
 
